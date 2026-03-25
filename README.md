@@ -194,3 +194,53 @@ The `packages/tooling/blockchain` module is designed to be **modular and composa
 The `BlockchainTool<TInput, TOutput>` interface is MCP-compatible (Model Context Protocol), meaning these tools could be exposed as an MCP server — making them instantly usable across any AI coding assistant or agent runtime that supports the standard.
 
 The combination of visual workflow authoring, first-class CKB/Fiber integration, and AI character expansion positions Omniflow as the **de-facto developer experience layer for the Nervos CKB ecosystem**.
+
+---
+
+## 9. Getting Started
+
+### Prerequisites
+- **Node.js**: v18.0.0 or higher
+- **Package Manager**: pnpm (`npm install -g pnpm`)
+- **Database**: MongoDB Atlas instance or local MongoDB
+- **AI Keys**: Google Gemini API Key and/or OpenAI API Key (or shared proxy)
+
+### Installation
+
+Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/FadhilMulinya/Omniflow.git
+cd Omniflow
+pnpm install
+```
+
+### Configuration
+
+1. Locate the **server** directory and create a `.env` file based on `.env.example`:
+   ```bash
+   cp server/.env.example server/.env
+   ```
+2. Open `server/.env` and update the following values:
+   - `MONGO_URI`: Your MongoDB connection string.
+   - `JWT_SECRET`: A secure random string for token signing.
+   - `GEMINI_API_KEY`: Your Google AI Studio key.
+   - `OPENAI_API_KEY`: Your OpenAI key (or proxy key).
+   - `OPENAI_BASE_URL`: (Optional) Set to `https://share-ai.ckbdev.com/v1` for proxy usage.
+
+3. (Optional) Repeat the process for the `client` directory if specific frontend environment variables are required.
+
+### Running the System
+
+To start both the backend server and the frontend application in development mode:Run this in the root folder
+
+```bash
+pnpm dev
+```
+
+- **Frontend**: [http://localhost:3000](http://localhost:3000)
+- **Backend API**: [http://localhost:3001](http://localhost:3001)
+
+### Workspace Verification
+Once running, sign up/log in to access the Dashboard. You can immediately begin creating AI-enhanced agents and building CKB workflow graphs in the Sandbox!
+
