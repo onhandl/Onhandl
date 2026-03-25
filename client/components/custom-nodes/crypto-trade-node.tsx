@@ -10,7 +10,6 @@ interface CryptoTradeNodeProps {
   id: string;
 }
 
-// Update the component to better handle input from wallet node
 const CryptoTradeNode: React.FC<CryptoTradeNodeProps> = ({ data, isConnectable, selected, id }) => {
   // Get trade action
   const action = data.inputs?.find((input: any) => input.key === 'action')?.value || 'Buy';
@@ -20,19 +19,13 @@ const CryptoTradeNode: React.FC<CryptoTradeNodeProps> = ({ data, isConnectable, 
     data.inputs?.find((input: any) => input.key === 'walletInfo')?.value ||
     (data.outputData?.walletInfo ? data.outputData.walletInfo : null);
 
-  // Log the wallet info for debugging
-  console.log('Crypto Trade Node - Wallet Info:', walletInfo);
-
   // More flexible check for wallet connection
   const isWalletConnected = Boolean(
     walletInfo &&
-      (walletInfo.connected === true ||
-        walletInfo.address ||
-        (typeof walletInfo === 'object' && Object.keys(walletInfo).length > 0))
+    (walletInfo.connected === true ||
+      walletInfo.address ||
+      (typeof walletInfo === 'object' && Object.keys(walletInfo).length > 0))
   );
-
-  // Log the connection status
-  console.log('Crypto Trade Node - Wallet Connected:', isWalletConnected);
 
   // Get icon based on action
   const ActionIcon =
@@ -46,18 +39,13 @@ const CryptoTradeNode: React.FC<CryptoTradeNodeProps> = ({ data, isConnectable, 
 
   return (
     <div
-      className={`p-3 rounded-md border-2 ${selected ? 'border-blue-500' : 'border-green-200'} ${
-        data.isActive === false ? 'opacity-50' : ''
-      } ${data.isPlaying ? 'animate-pulse shadow-lg shadow-green-200' : ''} bg-green-50 shadow-sm w-48 relative`}
+      className={`p-3 rounded-md border-2 ${selected ? 'border-blue-500' : 'border-green-200'} ${data.isActive === false ? 'opacity-50' : ''
+        } ${data.isPlaying ? 'animate-pulse shadow-lg shadow-green-200' : ''} bg-green-50 shadow-sm w-48 relative`}
     >
       <NodeControls
         nodeId={id}
         isPlaying={data.isPlaying || false}
         isActive={data.isActive !== false}
-        onPlayPause={data.onPlayPause}
-        onToggleActive={data.onToggleActive}
-        onOpenConsole={data.onOpenConsole}
-        onDeleteNode={data.onDeleteNode}
       />
 
       {/* Node Icon */}
@@ -70,13 +58,12 @@ const CryptoTradeNode: React.FC<CryptoTradeNodeProps> = ({ data, isConnectable, 
       {/* Action indicator */}
       <div className="absolute top-1 right-8 flex items-center text-xs">
         <div
-          className={`flex items-center ${
-            action === 'Buy'
+          className={`flex items-center ${action === 'Buy'
               ? 'text-green-600'
               : action === 'Sell'
                 ? 'text-red-600'
                 : 'text-blue-600'
-          }`}
+            }`}
         >
           <ActionIcon className="h-3 w-3 mr-1" />
           <span className="text-[10px]">{action}</span>
@@ -129,13 +116,12 @@ const CryptoTradeNode: React.FC<CryptoTradeNodeProps> = ({ data, isConnectable, 
           <div className="text-xs text-gray-500 mb-1 flex items-center justify-between">
             <span>Transaction Status</span>
             <span
-              className={`text-xs px-1.5 py-0.5 rounded ${
-                data.outputData.status === 'completed'
+              className={`text-xs px-1.5 py-0.5 rounded ${data.outputData.status === 'completed'
                   ? 'bg-green-100 text-green-700'
                   : data.outputData.status === 'pending'
                     ? 'bg-yellow-100 text-yellow-700'
                     : 'bg-red-100 text-red-700'
-              }`}
+                }`}
             >
               {data.outputData.status === 'completed'
                 ? 'Completed'
@@ -170,13 +156,12 @@ const CryptoTradeNode: React.FC<CryptoTradeNodeProps> = ({ data, isConnectable, 
       {/* Show execution status indicator if available */}
       {data.executionStatus && (
         <div
-          className={`absolute top-0 left-0 w-2 h-2 rounded-full m-1 ${
-            data.executionStatus === 'success'
+          className={`absolute top-0 left-0 w-2 h-2 rounded-full m-1 ${data.executionStatus === 'success'
               ? 'bg-green-500'
               : data.executionStatus === 'error'
                 ? 'bg-red-500'
                 : 'bg-yellow-500'
-          }`}
+            }`}
         />
       )}
     </div>

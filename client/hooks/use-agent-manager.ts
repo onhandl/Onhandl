@@ -3,65 +3,58 @@
 import { useCallback } from 'react';
 import { useToast } from '@/components/ui';
 import { useFlow } from '@/contexts/FlowContext';
-import { apiFetch } from '@/lib/api-client';
+import { agentApi } from '@/api';
 
 export const useAgentManager = () => {
     const { nodes, edges, reactFlowInstance, setNodes, setEdges } = useFlow();
     const { toast } = useToast();
 
-    const saveAgent = useCallback(async (name: string, description?: string) => {
-        if (reactFlowInstance) {
-            const flow = reactFlowInstance.toObject();
-            try {
-                await apiFetch('/agents', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        name,
-                        description,
-                        graph: {
-                            nodes: flow.nodes,
-                            edges: flow.edges,
-                        },
-                    }),
-                });
-                toast({
-                    title: 'Agent saved',
-                    description: 'Your agent has been saved to the cloud successfully.',
-                });
-            } catch (err: any) {
-                toast({
-                    title: 'Error',
-                    description: err.message || 'Failed to save agent.',
-                    variant: 'destructive',
-                });
-            }
+    const saveAgent = useCallback(async (name: string, persona?: string, graph?: { nodes: any[]; edges: any[] }, description?: string, isDraft: boolean = true) => {
+        const flow = graph || (reactFlowInstance ? reactFlowInstance.toObject() : { nodes: [], edges: [] });
+        try {
+            const response = await agentApi.saveAgent(name, {
+                nodes: flow.nodes,
+                edges: flow.edges,
+            }, persona, description, isDraft);
+            return response;
+        } catch (err: any) {
+            toast({
+                title: 'Error',
+                description: err.message || 'Failed to save agent.',
+                variant: 'destructive',
+            });
+            throw err;
         }
     }, [reactFlowInstance, toast]);
 
-    const loadAgents = useCallback(async () => {
+    const updateAgent = useCallback(async (id: string, updates: { name?: string; description?: string; graph?: { nodes: any[]; edges: any[] }; identities?: any; isDraft?: boolean }) => {
         try {
-            const data = await apiFetch('/agents');
-            if (data && data.length > 0) {
-                // Load the first agent for now
-                const agent = data[0];
-                const graph = agent.graph;
+            const response = await agentApi.updateAgent(id, updates);
+            return response;
+        } catch (err: any) {
+            console.error('Update agent error:', err);
+            throw err;
+        }
+    }, []);
 
-                setNodes(graph.nodes || []);
-                setEdges(graph.edges || []);
+    const loadAgents = useCallback(async (id?: string) => {
+        try {
+            const data = id ? await agentApi.getAgent(id) : await agentApi.loadAgents();
+            const agent = Array.isArray(data) ? data[0] : data;
 
-                toast({
-                    title: 'Agent loaded',
-                    description: `Loaded agent: ${agent.name}`,
-                });
+            if (agent && agent.graph) {
+                setNodes(agent.graph.nodes || []);
+                setEdges(agent.graph.edges || []);
+                return agent;
             }
         } catch (err: any) {
             toast({
                 title: 'Error',
-                description: 'Failed to load agents.',
+                description: 'Failed to load agent.',
                 variant: 'destructive',
             });
         }
     }, [setNodes, setEdges, toast]);
 
-    return { saveAgent, loadAgents };
+    return { saveAgent, updateAgent, loadAgents };
 };

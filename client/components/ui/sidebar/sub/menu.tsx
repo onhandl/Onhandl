@@ -5,7 +5,8 @@ import { Slot } from '@radix-ui/react-slot';
 import { VariantProps, cva } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 import { useSidebar } from '../use-sidebar';
-import { Skeleton, Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui';
+import { Skeleton } from '../../feedback/skeleton';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../popups/tooltip';
 
 export const SidebarMenu = React.forwardRef<HTMLUListElement, React.ComponentProps<'ul'>>(
     ({ className, ...props }, ref) => (

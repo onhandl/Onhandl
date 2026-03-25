@@ -12,4 +12,5 @@ export * from './disclosure';
 export * from './media';
 export * from './menus';
 export * from './notifications';
-export * from './sidebar';
+// NOTE: Sidebar is excluded from this barrel to avoid circular dependencies.
+// Import sidebar components directly: import { ... } from '@/components/ui/sidebar'

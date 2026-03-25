@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui';
+} from '../overlays/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 const Command = React.forwardRef<

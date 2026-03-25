@@ -1,8 +1,8 @@
 'use client';
 
 import type React from 'react';
-
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -14,8 +14,8 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import { Button, toast, useToast } from '@/components/ui';
-import { Play, Pause, Plus, Save, Upload, Key } from 'lucide-react';
+import { Button, useToast, toast } from '@/components/ui';
+import { Plus, Save, Upload, Key } from 'lucide-react';
 import NodeLibrary from '@/components/node-library';
 import NodeSidebar from '@/components/node-sidebar';
 import NodeConsoleModal from '@/components/node-console-modal';
@@ -25,21 +25,21 @@ import { nodeTypes } from '@/lib/node-types';
 import FlowConsole from '@/components/flow-console';
 
 import { useFlow, useSimulation } from '@/contexts';
-import { useApiKeyManager, useLocalStorage, useAgentManager } from '@/hooks';
+import { useApiKeyManager, useAgentManager } from '@/hooks';
 
-export default function FlowBuilder() {
+function FlowBuilderContent() {
+  const searchParams = useSearchParams();
+  const agentIdFromUrl = searchParams.get('agentId');
+
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
-  const [consoleNode, setConsoleNode] = useState<Node | null>(null);
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
-  // const { toast } = useToast()
+  const [currentAgentId, setCurrentAgentId] = useState<string | null>(null);
 
-  // hooks and context states
   const {
     nodes,
     setNodes,
     edges,
-    setEdges,
     onNodesChange,
     onEdgesChange,
     onConnect,
@@ -47,133 +47,104 @@ export default function FlowBuilder() {
     setSelectedNode,
     setReactFlowInstance,
     reactFlowInstance,
+    handleNodePlayPause,
+    handleDeleteNode,
+    consoleNode,
+    setConsoleNode,
     updateNodeData,
-    cascadeNodeExecution,
+    syncExecutionState,
   } = useFlow();
 
-  const { isSimulating, toggleSimulation } = useSimulation();
+  const { isSimulating, executionId, toggleSimulation, stopSimulation } = useSimulation();
   const { handleSaveApiKey } = useApiKeyManager();
-  const { saveAgent, loadAgents } = useAgentManager();
+  const { saveAgent, updateAgent, loadAgents } = useAgentManager();
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Simulation interval reference
-  const simulationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  // Load agent on mount if agentId is in URL
+  useEffect(() => {
+    if (agentIdFromUrl && !currentAgentId) {
+      loadAgents(agentIdFromUrl).then((agent) => {
+        if (agent) setCurrentAgentId(agent._id);
+      });
+    }
+  }, [agentIdFromUrl, currentAgentId, loadAgents]);
+
+
+  // Auto-save logic: Debounce node/edge changes to the backend
+  useEffect(() => {
+    if (!currentAgentId || isSimulating) return;
+
+    const timer = setTimeout(async () => {
+      setIsSaving(true);
+      try {
+        await updateAgent(currentAgentId, {
+          graph: { nodes, edges }
+        });
+      } catch (error) {
+        console.error('Auto-save failed:', error);
+      } finally {
+        setTimeout(() => setIsSaving(false), 1000);
+      }
+    }, 2000); // 2 second debounce
+
+    return () => clearTimeout(timer);
+  }, [nodes, edges, currentAgentId, isSimulating, updateAgent]);
+
+  // Listen for real-time Server-Sent Events from backend executions
+  useEffect(() => {
+    let eventSource: EventSource | null = null;
+    if (isSimulating && executionId) {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+      eventSource = new EventSource(`${baseUrl}/executions/${executionId}/stream`);
+
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+
+          if (data.type === 'connected') return;
+
+          if (data.state) {
+            syncExecutionState(data.state);
+          }
+
+          if (data.status === 'completed' && !data.nodeId) {
+            // End of execution
+            stopSimulation();
+            toast({
+              title: 'Flow completed',
+              description: 'Execution finished successfully.',
+              variant: 'default',
+            });
+            eventSource?.close();
+          } else if (data.status === 'failed') {
+            stopSimulation();
+            toast({
+              title: 'Flow failed',
+              description: data.error || 'Execution interrupted.',
+              variant: 'destructive',
+            });
+            eventSource?.close();
+          }
+        } catch (error) {
+          console.error('SSE Parsing error:', error);
+        }
+      };
+
+      eventSource.onerror = () => {
+        console.error('SSE execution stream closed or failed');
+        eventSource?.close();
+      };
+    }
+
+    return () => {
+      if (eventSource) eventSource.close();
+    };
+  }, [isSimulating, executionId, stopSimulation, syncExecutionState, toast]);
 
   const onDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
   }, []);
-
-  // Update the handleNodePlayPause function to better handle node execution
-  const handleNodePlayPause = useCallback(
-    (nodeId: string) => {
-      setNodes((nds) =>
-        nds.map((node) => {
-          if (node.id === nodeId) {
-            const isPlaying = !node.data.isPlaying;
-
-            // Add a console message when play/pause state changes
-            const consoleOutput = [
-              ...((node.data.consoleOutput as any) || []),
-              `[${new Date().toLocaleTimeString()}] Node ${isPlaying ? 'started' : 'paused'}`,
-            ];
-
-            // If starting to play, run simulation for this node
-            if (isPlaying) {
-              // We'll run the simulation in the next tick
-              setTimeout(async () => {
-                try {
-                  console.log(`Starting simulation for node ${nodeId} (${node.data.name})`);
-                  // Use cascadeNodeExecution to trigger updates to downstream nodes
-                  await cascadeNodeExecution(nodeId);
-                } catch (error) {
-                  console.error(`Error simulating node ${nodeId}:`, error);
-                }
-              }, 0);
-            }
-
-            return {
-              ...node,
-              data: {
-                ...node.data,
-                isPlaying,
-                consoleOutput,
-              },
-            };
-          }
-          return node;
-        })
-      );
-    },
-    [setNodes, cascadeNodeExecution]
-  );
-
-  const handleNodeToggleActive = useCallback(
-    (nodeId: string) => {
-      setNodes((nds) =>
-        nds.map((node) => {
-          if (node.id === nodeId) {
-            const isActive = node.data.isActive === false;
-
-            // Add a console message when active state changes
-            const consoleOutput = [
-              ...((node.data.consoleOutput as any) || []),
-              `[${new Date().toLocaleTimeString()}] Node ${isActive ? 'activated' : 'deactivated'}`,
-            ];
-
-            return {
-              ...node,
-              data: {
-                ...node.data,
-                isActive,
-                isPlaying: isActive ? node.data.isPlaying : false, // Stop playing if deactivated
-                consoleOutput,
-              },
-            };
-          }
-          return node;
-        })
-      );
-    },
-    [setNodes]
-  );
-
-  const handleOpenNodeConsole = useCallback(
-    (nodeId: string) => {
-      const node = nodes.find((n) => n.id === nodeId);
-      if (node) {
-        setConsoleNode(node);
-      }
-    },
-    [nodes]
-  );
-
-  // Delete node handler
-  const handleDeleteNode = useCallback(
-    (nodeId: string) => {
-      // First, close the sidebar if the deleted node is selected
-      if (selectedNode && selectedNode.id === nodeId) {
-        setSelectedNode(null);
-      }
-
-      // Close console modal if open for this node
-      if (consoleNode && consoleNode.id === nodeId) {
-        setConsoleNode(null);
-      }
-
-      // Remove all edges connected to this node
-      setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
-
-      // Remove the node
-      setNodes((nds) => nds.filter((n) => n.id !== nodeId));
-
-      // Show toast notification
-      toast({
-        title: 'Node deleted',
-        description: 'The node has been removed from the flow.',
-      });
-    },
-    [setNodes, setEdges, selectedNode, consoleNode, toast]
-  );
 
   const onDrop = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
@@ -182,8 +153,7 @@ export default function FlowBuilder() {
       const reactFlowBounds = reactFlowWrapper.current?.getBoundingClientRect();
       const type = event.dataTransfer.getData('application/reactflow');
 
-      // Check if the dropped element is valid
-      if (typeof type === 'undefined' || !type || !reactFlowBounds || !reactFlowInstance) {
+      if (!type || !reactFlowBounds || !reactFlowInstance) {
         return;
       }
 
@@ -194,7 +164,6 @@ export default function FlowBuilder() {
 
       const nodeData = JSON.parse(event.dataTransfer.getData('application/nodeData'));
 
-      // Add node control handlers and state
       const enhancedNodeData = {
         ...nodeData,
         isActive: true,
@@ -202,11 +171,6 @@ export default function FlowBuilder() {
         consoleOutput: [],
         outputData: null,
         executionStatus: null,
-        onPlayPause: handleNodePlayPause,
-        onToggleActive: handleNodeToggleActive,
-        onOpenConsole: handleOpenNodeConsole,
-        onDeleteNode: handleDeleteNode,
-        onUpdateNodeData: updateNodeData, // Add this line
       };
 
       const newNode = {
@@ -218,38 +182,42 @@ export default function FlowBuilder() {
 
       setNodes((nds) => nds.concat(newNode));
     },
-    [
-      reactFlowInstance,
-      setNodes,
-      handleNodePlayPause,
-      handleNodeToggleActive,
-      handleOpenNodeConsole,
-      handleDeleteNode,
-      updateNodeData,
-    ]
+    [reactFlowInstance, setNodes]
   );
 
   const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
     setSelectedNode(node);
-  }, []);
+  }, [setSelectedNode]);
 
-  // Clean up interval on unmount
-  useEffect(() => {
-    return () => {
-      if (simulationIntervalRef.current) {
-        clearInterval(simulationIntervalRef.current);
+  const handleToggleSimulation = async () => {
+    if (!currentAgentId && !isSimulating) {
+      toast({
+        title: 'Agent not saved',
+        description: 'Please save your agent before running simulation.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    await toggleSimulation(currentAgentId || '');
+  };
+
+  const handleSave = async (name: string) => {
+    try {
+      setIsSaving(true);
+      const result: any = await saveAgent(name, undefined, { nodes, edges });
+      if (result?._id) {
+        setCurrentAgentId(result._id);
       }
-    };
-  }, []);
-
-  // Add a useEffect to show simulation mode toast
-  useEffect(() => {
-    toast({
-      title: 'Decoupled Backend',
-      description: 'Flow execution is now handled by the Fastify backend.',
-      duration: 5000,
-    });
-  }, [toast]);
+      toast({
+        title: 'Flow Saved',
+        description: 'Agent and workflow persisted successfully.',
+      });
+    } catch (error) {
+      console.error('Save failed:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="flex h-screen w-full">
@@ -272,39 +240,52 @@ export default function FlowBuilder() {
             <Background />
             <Controls />
             <MiniMap />
-            <Panel position="top-right" className="flex gap-2">
+            <Panel position="top-right" className="flex gap-2 items-center">
+              {isSaving && (
+                <div className="text-xs font-medium text-primary animate-pulse mr-2 bg-white/80 px-2 py-1 rounded-md border border-primary/20 shadow-sm">
+                  Saving...
+                </div>
+              )}
               <Button
                 variant="outline"
-                size="icon"
-                onClick={toggleSimulation}
-                className={isSimulating ? 'bg-destructive/10 text-destructive border-destructive/20' : ''}
+                size="sm"
+                className="bg-white/80"
+                onClick={() => setIsApiKeyModalOpen(true)}
               >
-                {isSimulating ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                <Key className="h-4 w-4 mr-2" />
+                API Keys
               </Button>
               <Button
                 variant="outline"
-                size="icon"
-                onClick={() => setIsLibraryOpen(!isLibraryOpen)}
+                size="sm"
+                className="bg-white/80"
+                onClick={() => setIsLibraryOpen(true)}
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-4 w-4 mr-2" />
+                Add Node
               </Button>
-              <Button variant="outline" size="icon" onClick={() => saveAgent('My New Bot', 'Optimized bot')}>
-                <Save className="h-4 w-4" />
+              <Button variant="outline" size="sm" className="bg-white/80" onClick={() => handleSave('Untitled Agent')}>
+                <Save className="h-4 w-4 mr-2" />
+                Save Flow
               </Button>
-              <Button variant="outline" size="icon" onClick={loadAgents}>
-                <Upload className="h-4 w-4" />
+              <Button variant="outline" size="sm" className="bg-white/80" onClick={() => loadAgents()}>
+                <Upload className="h-4 w-4 mr-2" />
+                Load Flow
               </Button>
-              <Button variant="outline" size="icon" onClick={() => setIsApiKeyModalOpen(true)}>
-                <Key className="h-4 w-4" />
+              <Button
+                variant={isSimulating ? 'destructive' : 'default'}
+                size="sm"
+                onClick={handleToggleSimulation}
+              >
+                {isSimulating ? 'Stop Simulation' : 'Start Simulation'}
               </Button>
             </Panel>
-            {isLibraryOpen && (
-              <Panel position="top-left" className="bg-card p-6 rounded-xl shadow-2xl border border-border">
-                <NodeLibrary onClose={() => setIsLibraryOpen(false)} />
-              </Panel>
-            )}
+
           </ReactFlow>
         </div>
+
+        <FlowConsole />
+        <NodeLibrary isOpen={isLibraryOpen} setIsOpen={setIsLibraryOpen} />
         {selectedNode && (
           <NodeSidebar
             node={selectedNode}
@@ -312,19 +293,25 @@ export default function FlowBuilder() {
             updateNodeData={updateNodeData}
           />
         )}
-        {consoleNode && (
-          <NodeConsoleModal
-            nodeId={consoleNode.id}
-            nodeName={consoleNode.data.name as string}
-            consoleOutput={(consoleNode.data.consoleOutput as string[]) || []}
-            onClose={() => setConsoleNode(null)}
-          />
-        )}
-        {isApiKeyModalOpen && (
-          <ApiKeyModal onClose={() => setIsApiKeyModalOpen(false)} onSave={handleSaveApiKey} />
-        )}
-        <FlowConsole />
+        <NodeConsoleModal
+          node={consoleNode}
+          isOpen={!!consoleNode}
+          onClose={() => setConsoleNode(null)}
+        />
+        <ApiKeyModal
+          isOpen={isApiKeyModalOpen}
+          onClose={() => setIsApiKeyModalOpen(false)}
+          onSave={handleSaveApiKey}
+        />
       </ReactFlowProvider>
     </div>
+  );
+}
+
+export default function FlowBuilder() {
+  return (
+    <Suspense fallback={<div className="flex h-screen w-screen items-center justify-center bg-card text-muted-foreground animate-pulse font-bold">Loading Omniflow Sandbox...</div>}>
+      <FlowBuilderContent />
+    </Suspense>
   );
 }

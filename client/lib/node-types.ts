@@ -7,6 +7,7 @@ import CryptoWalletNode from '@/components/custom-nodes/crypto-wallet-node';
 import CryptoTradeNode from '@/components/custom-nodes/crypto-trade-node';
 import TradingBotNode from '@/components/custom-nodes/trading-bot-node';
 import TelegramNode from '@/components/custom-nodes/telegram-node';
+import BlockchainNode from '@/components/custom-nodes/blockchain-node';
 
 // Make sure we're exporting a plain object with component references
 export const nodeTypes = {
@@ -19,4 +20,5 @@ export const nodeTypes = {
   crypto_trade: CryptoTradeNode,
   trading_bot: TradingBotNode,
   telegram: TelegramNode,
+  blockchain_tool: BlockchainNode,
 };

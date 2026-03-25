@@ -5,9 +5,11 @@ import type React from 'react';
 import { useState, useEffect } from 'react';
 import NodeControls from './node-controls';
 import { MessageCircle, Send } from 'lucide-react';
-import { Button, Label, Switch } from '@/components/ui';
-
+import { Button } from '@/components/ui/buttons/button';
+import { Label } from '@/components/ui/forms/label';
+import { Switch } from '@/components/ui/selection/switch';
 import TelegramConfigModal from '../modals/telegram-config-modal';
+import { useFlow } from '@/contexts/FlowContext';
 
 interface TelegramNodeProps {
   data: any;
@@ -17,6 +19,8 @@ interface TelegramNodeProps {
 }
 
 const TelegramNode: React.FC<TelegramNodeProps> = ({ data, isConnectable, selected, id }) => {
+  const { updateNodeData } = useFlow();
+
   // State for config modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLiveMode, setIsLiveMode] = useState(false);
@@ -35,56 +39,35 @@ const TelegramNode: React.FC<TelegramNodeProps> = ({ data, isConnectable, select
 
   // Handle successful configuration
   const handleTelegramConfigured = (config: any) => {
-    if (data.onUpdateNodeData) {
-      // Create output data structure
-      const outputData = {
-        connected: true,
-        telegramInfo: {
-          botToken: config.botToken,
-          chatId: config.chatId,
-          botName: config.botName || 'Trading Bot',
-          lastUpdated: new Date().toISOString(),
-        },
-      };
+    // Create output data structure
+    const outputData = {
+      connected: true,
+      telegramInfo: {
+        botToken: config.botToken,
+        chatId: config.chatId,
+        botName: config.botName || 'Trading Bot',
+        lastUpdated: new Date().toISOString(),
+      },
+    };
 
-      // Update node data with configuration
-      data.onUpdateNodeData(id, {
-        ...data,
-        outputData,
-        inputs: data.inputs?.map((input: any) => {
-          if (input.key === 'botToken') {
-            return {
-              ...input,
-              value: config.botToken || input.value,
-            };
-          }
-          if (input.key === 'chatId') {
-            return {
-              ...input,
-              value: config.chatId || input.value,
-            };
-          }
-          if (input.key === 'botName') {
-            return {
-              ...input,
-              value: config.botName || input.value,
-            };
-          }
-          return input;
-        }),
-      });
+    // Update node data with configuration
+    updateNodeData(id, {
+      outputData,
+      inputs: data.inputs?.map((input: any) => {
+        if (input.key === 'botToken') return { ...input, value: config.botToken || input.value };
+        if (input.key === 'chatId') return { ...input, value: config.chatId || input.value };
+        if (input.key === 'botName') return { ...input, value: config.botName || input.value };
+        return input;
+      }),
+    });
 
-      // Add console message
-      const consoleOutput = [...(data.consoleOutput || [])];
-      consoleOutput.push(
-        `[${new Date().toLocaleTimeString()}] Telegram bot configured: ${config.botName || 'Trading Bot'}`
-      );
+    // Add console message
+    const consoleOutput = [...(data.consoleOutput || [])];
+    consoleOutput.push(
+      `[${new Date().toLocaleTimeString()}] Telegram bot configured: ${config.botName || 'Trading Bot'}`
+    );
 
-      data.onUpdateNodeData(id, {
-        ...data,
-        consoleOutput,
-      });
-    }
+    updateNodeData(id, { consoleOutput });
   };
 
   // Toggle live mode
@@ -92,38 +75,30 @@ const TelegramNode: React.FC<TelegramNodeProps> = ({ data, isConnectable, select
     const newLiveMode = !isLiveMode;
     setIsLiveMode(newLiveMode);
 
-    if (data.onUpdateNodeData) {
-      // Update node meta data
-      const meta = { ...(data.meta || {}), liveMode: newLiveMode };
+    // Update node meta data
+    const meta = { ...(data.meta || {}), liveMode: newLiveMode };
 
-      // Add console message
-      const consoleOutput = [...(data.consoleOutput || [])];
-      consoleOutput.push(
-        `[${new Date().toLocaleTimeString()}] ${newLiveMode ? 'LIVE MODE ENABLED' : 'Switched to simulation mode'}`
-      );
+    // Add console message
+    const consoleOutput = [...(data.consoleOutput || [])];
+    consoleOutput.push(
+      `[${new Date().toLocaleTimeString()}] ${newLiveMode ? 'LIVE MODE ENABLED' : 'Switched to simulation mode'}`
+    );
 
-      data.onUpdateNodeData(id, {
-        ...data,
-        meta,
-        consoleOutput,
-      });
-    }
+    updateNodeData(id, {
+      meta,
+      consoleOutput,
+    });
   };
 
   return (
     <div
-      className={`p-3 rounded-md border-2 ${selected ? 'border-blue-500' : 'border-cyan-200'} ${
-        data.isActive === false ? 'opacity-50' : ''
-      } ${data.isPlaying ? 'animate-pulse shadow-lg shadow-cyan-200' : ''} bg-cyan-50 shadow-sm w-48 relative`}
+      className={`p-3 rounded-md border-2 ${selected ? 'border-blue-500' : 'border-cyan-200'} ${data.isActive === false ? 'opacity-50' : ''
+        } ${data.isPlaying ? 'animate-pulse shadow-lg shadow-cyan-200' : ''} bg-cyan-50 shadow-sm w-48 relative`}
     >
       <NodeControls
         nodeId={id}
         isPlaying={data.isPlaying || false}
         isActive={data.isActive !== false}
-        onPlayPause={data.onPlayPause}
-        onToggleActive={data.onToggleActive}
-        onOpenConsole={data.onOpenConsole}
-        onDeleteNode={data.onDeleteNode}
       />
 
       {/* Node Icon */}
@@ -175,7 +150,10 @@ const TelegramNode: React.FC<TelegramNodeProps> = ({ data, isConnectable, select
           size="sm"
           variant="outline"
           className="w-full text-xs h-7 flex items-center gap-1"
-          onClick={() => setIsModalOpen(true)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsModalOpen(true);
+          }}
         >
           <Send className="h-3 w-3" />
           Configure Telegram
@@ -212,9 +190,8 @@ const TelegramNode: React.FC<TelegramNodeProps> = ({ data, isConnectable, select
           <div className="text-xs text-gray-500 mb-1 flex items-center justify-between">
             <span>Telegram Bot</span>
             <span
-              className={`text-xs px-1.5 py-0.5 rounded ${
-                isConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-              }`}
+              className={`text-xs px-1.5 py-0.5 rounded ${isConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                }`}
             >
               {isConnected ? (isLiveMode ? 'LIVE' : 'Connected') : 'Disconnected'}
             </span>
@@ -232,19 +209,6 @@ const TelegramNode: React.FC<TelegramNodeProps> = ({ data, isConnectable, select
                   </div>
                 </div>
               )}
-              {data.outputData.messagesSent && (
-                <div className="text-xs text-gray-500 mt-1">
-                  Messages Sent: {data.outputData.messagesSent}
-                </div>
-              )}
-              {data.outputData.receivedMessage && (
-                <div className="text-xs text-gray-500 mt-1">
-                  <div className="font-medium">Received Message:</div>
-                  <div className="whitespace-pre-wrap break-words">
-                    {data.outputData.receivedMessage.text}
-                  </div>
-                </div>
-              )}
             </>
           )}
         </div>
@@ -253,13 +217,12 @@ const TelegramNode: React.FC<TelegramNodeProps> = ({ data, isConnectable, select
       {/* Show execution status indicator if available */}
       {data.executionStatus && (
         <div
-          className={`absolute top-0 left-0 w-2 h-2 rounded-full m-1 ${
-            data.executionStatus === 'success'
+          className={`absolute top-0 left-0 w-2 h-2 rounded-full m-1 ${data.executionStatus === 'success'
               ? 'bg-green-500'
               : data.executionStatus === 'error'
                 ? 'bg-red-500'
                 : 'bg-yellow-500'
-          }`}
+            }`}
         />
       )}
 

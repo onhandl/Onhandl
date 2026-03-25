@@ -5,8 +5,9 @@ import { Handle, Position } from '@xyflow/react';
 import type React from 'react';
 import NodeControls from './node-controls';
 import { Wallet, AlertTriangle, ExternalLink } from 'lucide-react';
-import { Button } from '@/components/ui';
-import ConnectWalletModal from '../modals/connect-wallet-modal'; // Fixed import path
+import { Button } from '@/components/ui/buttons/button';
+import ConnectWalletModal from '../modals/connect-wallet-modal';
+import { useFlow } from '@/contexts/FlowContext';
 
 interface CryptoWalletNodeProps {
   data: any;
@@ -21,6 +22,8 @@ const CryptoWalletNode: React.FC<CryptoWalletNodeProps> = ({
   selected,
   id,
 }) => {
+  const { updateNodeData } = useFlow();
+
   // Determine connection status
   const isConnected = data.outputData?.connected || false;
   const connectionType =
@@ -45,79 +48,67 @@ const CryptoWalletNode: React.FC<CryptoWalletNodeProps> = ({
   const handleWalletConnected = (walletInfo: any) => {
     // Update node data with wallet info
     console.log('Wallet connected:', walletInfo);
-    if (data.onUpdateNodeData) {
-      // Create a properly structured output that can be consumed by other nodes
-      const outputData = {
+
+    // Create a properly structured output that can be consumed by other nodes
+    const outputData = {
+      connected: true,
+      walletInfo: {
+        address: walletInfo.address || '',
+        network: walletInfo.network || 'Ethereum',
+        chainId: walletInfo.chainId || 1,
+        currency: walletInfo.currency || 'ETH',
+        connectionType: walletInfo.connectionType || 'MetaMask',
+        lastUpdated: new Date().toISOString(),
+      },
+      balance: walletInfo.balance || '0',
+    };
+
+    // Update the node data with the wallet info
+    updateNodeData(id, {
+      ...data,
+      outputData,
+      // Add wallet info to inputs so it's visible in the sidebar
+      inputs: data.inputs?.map((input: any) => {
+        if (input.key === 'walletAddress') {
+          return {
+            ...input,
+            value: walletInfo.address || input.value,
+          };
+        }
+        if (input.key === 'network') {
+          return {
+            ...input,
+            value: walletInfo.network || input.value,
+          };
+        }
+        return input;
+      }),
+    });
+
+    // Log successful connection to console output
+    const consoleOutput = [...(data.consoleOutput || [])];
+    consoleOutput.push(
+      `[${new Date().toLocaleTimeString()}] Wallet connected: ${walletInfo.address} on ${walletInfo.network}`
+    );
+
+    updateNodeData(id, {
+      consoleOutput,
+      outputData: {
+        ...outputData,
         connected: true,
-        walletInfo: {
-          address: walletInfo.address || '',
-          network: walletInfo.network || 'Ethereum',
-          chainId: walletInfo.chainId || 1,
-          currency: walletInfo.currency || 'ETH',
-          connectionType: walletInfo.connectionType || 'MetaMask',
-          lastUpdated: new Date().toISOString(),
-        },
-        balance: walletInfo.balance || '0',
-      };
-
-      // Log the exact data structure being created
-      console.log('Creating wallet output data:', outputData);
-
-      // Update the node data with the wallet info
-      data.onUpdateNodeData(id, {
-        ...data,
-        outputData,
-        // Add wallet info to inputs so it's visible in the sidebar
-        inputs: data.inputs?.map((input: any) => {
-          if (input.key === 'walletAddress') {
-            return {
-              ...input,
-              value: walletInfo.address || input.value,
-            };
-          }
-          if (input.key === 'network') {
-            return {
-              ...input,
-              value: walletInfo.network || input.value,
-            };
-          }
-          return input;
-        }),
-      });
-
-      // Force a second update to ensure the data is properly propagated
-      setTimeout(() => {
-        // Log successful connection to console output
-        const consoleOutput = [...(data.consoleOutput || [])];
-        consoleOutput.push(
-          `[${new Date().toLocaleTimeString()}] Wallet connected: ${walletInfo.address} on ${walletInfo.network}`
-        );
-        data.onUpdateNodeData(id, {
-          ...data,
-          consoleOutput,
-          outputData: {
-            ...outputData,
-            connected: true, // Ensure connected flag is set
-          },
-        });
-      }, 100);
-    }
+      },
+    });
   };
 
   return (
     <div
-      className={`p-3 rounded-md border-2 ${selected ? 'border-blue-500' : 'border-orange-200'} ${
-        data.isActive === false ? 'opacity-50' : ''
-      } ${data.isPlaying ? 'animate-pulse shadow-lg shadow-orange-200' : ''} bg-orange-50 shadow-sm w-48 relative`}
+      className={`p-3 rounded-md border-2 ${selected ? 'border-blue-500' : 'border-orange-200'} ${data.isActive === false ? 'opacity-50' : ''
+        } ${data.isPlaying ? 'animate-pulse shadow-lg shadow-orange-200' : ''} bg-orange-50 shadow-sm w-48 relative`}
     >
       <NodeControls
         nodeId={id}
         isPlaying={data.isPlaying || false}
         isActive={data.isActive !== false}
-        onPlayPause={data.onPlayPause}
-        onToggleActive={data.onToggleActive}
-        onOpenConsole={data.onOpenConsole}
-        onDeleteNode={data.onDeleteNode}
       />
 
       {/* Node Icon */}
@@ -147,7 +138,10 @@ const CryptoWalletNode: React.FC<CryptoWalletNodeProps> = ({
             size="sm"
             variant="outline"
             className="w-full text-xs h-7 flex items-center gap-1"
-            onClick={() => setIsModalOpen(true)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsModalOpen(true);
+            }}
             disabled={!isMetaMaskAvailable}
           >
             <Wallet className="h-3 w-3" />
@@ -185,21 +179,20 @@ const CryptoWalletNode: React.FC<CryptoWalletNodeProps> = ({
       {data.isPlaying && data.outputData && (
         <div className="mt-2 p-2 bg-gray-800 border rounded-md">
           <div className="text-xs text-gray-500 mb-1 flex items-center justify-between">
-            <span>Wallet Status</span>
+            <span className="text-white">Wallet Status</span>
             <span
-              className={`text-xs px-1.5 py-0.5 rounded ${
-                isConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-              }`}
+              className={`text-xs px-1.5 py-0.5 rounded ${isConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                }`}
             >
               {isConnected ? 'Connected' : 'Disconnected'}
             </span>
           </div>
           {isConnected && (
             <>
-              <div className="text-sm font-medium">
+              <div className="text-sm font-medium text-white">
                 {data.outputData.walletInfo?.network || 'Ethereum'} Wallet
               </div>
-              <div className="text-xs text-gray-500 mt-1 flex items-center">
+              <div className="text-xs text-gray-400 mt-1 flex items-center">
                 <span className="truncate">
                   {formatAddress(data.outputData.walletInfo?.address)}
                 </span>
@@ -208,15 +201,13 @@ const CryptoWalletNode: React.FC<CryptoWalletNodeProps> = ({
                     href={`https://etherscan.io/address/${data.outputData.walletInfo.address}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="ml-1 text-blue-500 hover:text-blue-700"
+                    className="ml-1 text-blue-400 hover:text-blue-300"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <ExternalLink className="h-3 w-3" />
                   </a>
                 )}
               </div>
-              {/* <div className="text-xs font-medium mt-1">
-                                Balance: {data.outputData.balance} {data.outputData.walletInfo?.currency || "ETH"}
-                            </div> */}
             </>
           )}
         </div>
@@ -225,13 +216,12 @@ const CryptoWalletNode: React.FC<CryptoWalletNodeProps> = ({
       {/* Show execution status indicator if available */}
       {data.executionStatus && (
         <div
-          className={`absolute top-0 left-0 w-2 h-2 rounded-full m-1 ${
-            data.executionStatus === 'success'
+          className={`absolute top-0 left-0 w-2 h-2 rounded-full m-1 ${data.executionStatus === 'success'
               ? 'bg-green-500'
               : data.executionStatus === 'error'
                 ? 'bg-red-500'
                 : 'bg-yellow-500'
-          }`}
+            }`}
         />
       )}
 

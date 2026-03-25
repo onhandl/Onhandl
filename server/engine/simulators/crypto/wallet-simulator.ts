@@ -3,11 +3,9 @@ import { generateRandomAddress, generateRandomBalance, getCurrencyForNetwork } f
 export function simulateCryptoWallet(data: any) {
     const outputs: Record<string, any> = {};
 
-    const connectionType =
-        data.inputs?.find((input: any) => input.key === 'connectionType')?.value || 'Wallet Address';
+    const connectionType = data.inputs?.find((input: any) => input.key === 'connectionType')?.value || 'Wallet Address';
     const privateKey = data.inputs?.find((input: any) => input.key === 'privateKey')?.value || '';
-    const walletAddress =
-        data.inputs?.find((input: any) => input.key === 'walletAddress')?.value || '';
+    const walletAddress = data.inputs?.find((input: any) => input.key === 'walletAddress')?.value || '';
     const network = data.inputs?.find((input: any) => input.key === 'network')?.value || 'Ethereum';
 
     const canConnect = connectionType === 'Private Key' ? !!privateKey : !!walletAddress;

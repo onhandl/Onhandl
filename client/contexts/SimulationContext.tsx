@@ -4,28 +4,46 @@ import React, { createContext, useContext, useState, useCallback, ReactNode } fr
 
 interface SimulationContextType {
   isSimulating: boolean;
-  simulationSpeed: number;
-  toggleSimulation: () => void;
-  setSimulationSpeed: React.Dispatch<React.SetStateAction<number>>;
+  executionId: string | null;
+  toggleSimulation: (agentId: string) => Promise<void>;
+  stopSimulation: () => void;
 }
 
 const SimulationContext = createContext<SimulationContextType | undefined>(undefined);
 
 export const SimulationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isSimulating, setIsSimulating] = useState(false);
-  const [simulationSpeed, setSimulationSpeed] = useState(3000); // Default 3 seconds
+  const [executionId, setExecutionId] = useState<string | null>(null);
 
-  const toggleSimulation = useCallback(() => {
-    setIsSimulating((prev) => !prev);
+  const toggleSimulation = useCallback(async (agentId: string) => {
+    if (isSimulating) {
+      setIsSimulating(false);
+      setExecutionId(null);
+    } else {
+      // Start backend execution
+      try {
+        const { executionApi } = await import('@/api/execution-api');
+        const execution = await executionApi.startExecution(agentId);
+        setExecutionId(execution._id);
+        setIsSimulating(true);
+      } catch (error) {
+        console.error('Failed to start simulation:', error);
+      }
+    }
+  }, [isSimulating]);
+
+  const stopSimulation = useCallback(() => {
+    setIsSimulating(false);
+    setExecutionId(null);
   }, []);
 
   return (
     <SimulationContext.Provider
       value={{
         isSimulating,
-        simulationSpeed,
+        executionId,
         toggleSimulation,
-        setSimulationSpeed,
+        stopSimulation,
       }}
     >
       {children}

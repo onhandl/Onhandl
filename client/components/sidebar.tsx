@@ -14,7 +14,8 @@ import {
   ChevronRight,
   Menu,
 } from 'lucide-react';
-import { Button, Sheet, SheetContent, SheetTrigger } from '@/components/ui';
+import { Button } from '@/components/ui/buttons/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/overlays/sheet';
 
 const navItems = [
   { name: 'Home', href: '/', icon: Home },

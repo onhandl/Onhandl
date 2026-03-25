@@ -4,7 +4,6 @@ import React, { createContext, useContext, useCallback, ReactNode } from 'react'
 import { Node } from '@xyflow/react';
 import { useFlow } from './FlowContext';
 import { useToast } from '@/components/ui';
-import { simulateNode } from '@/lib/simulation';
 
 interface NodeContextType {
   handleNodePlayPause: (nodeId: string) => void;
@@ -17,106 +16,41 @@ interface NodeContextType {
 const NodeContext = createContext<NodeContextType | undefined>(undefined);
 
 export const NodeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { nodes, edges, setNodes } = useFlow();
-  const { toast } = useToast();
-
-  const updateNodeData = useCallback(
-    (nodeId: string, newData: Partial<Node['data']>) => {
-      setNodes((currentNodes) =>
-        currentNodes.map((node) =>
-          node.id === nodeId ? { ...node, data: { ...node.data, ...newData } } : node
-        )
-      );
-    },
-    [setNodes]
-  );
+  const { nodes, setNodes, handleNodePlayPause: flowHandleNodePlayPause, handleDeleteNode: flowHandleDeleteNode, handleNodeToggleActive: flowHandleNodeToggleActive, updateNodeData: flowUpdateNodeData, handleOpenNodeConsole: flowHandleOpenNodeConsole } = useFlow();
 
   const handleNodePlayPause = useCallback(
-    async (nodeId: string) => {
-      setNodes((currentNodes) =>
-        currentNodes.map((node) => {
-          if (node.id === nodeId) {
-            const isPlaying = !node.data.isPlaying;
-
-            // If starting to play, simulate the node
-            if (isPlaying) {
-              simulateNode(node, nodes, edges)
-                .then((result) => {
-                  updateNodeData(nodeId, {
-                    isPlaying,
-                    consoleOutput: result.consoleOutput,
-                    outputData: result.outputData,
-                    executionStatus: result.executionStatus,
-                  });
-                })
-                .catch((error) => {
-                  console.error(`Simulation error for node ${nodeId}: `, error);
-                });
-            }
-
-            return {
-              ...node,
-              data: {
-                ...node.data,
-                isPlaying,
-                consoleOutput: [
-                  ...((node.data.consoleOutput as any) || []),
-                  `[${new Date().toLocaleTimeString()}] Node ${isPlaying ? 'started' : 'paused'} `,
-                ],
-              },
-            };
-          }
-          return node;
-        })
-      );
+    (nodeId: string) => {
+      flowHandleNodePlayPause(nodeId);
     },
-    [nodes, edges, setNodes, updateNodeData]
+    [flowHandleNodePlayPause]
   );
 
   const handleNodeToggleActive = useCallback(
     (nodeId: string) => {
-      setNodes((currentNodes) =>
-        currentNodes.map((node) => {
-          if (node.id === nodeId) {
-            const isActive = node.data.isActive === false;
-            return {
-              ...node,
-              data: {
-                ...node.data,
-                isActive,
-                isPlaying: isActive ? node.data.isPlaying : false,
-                consoleOutput: [
-                  ...((node.data.consoleOutput as any) || []),
-                  `[${new Date().toLocaleTimeString()}] Node ${isActive ? 'activated' : 'deactivated'} `,
-                ],
-              },
-            };
-          }
-          return node;
-        })
-      );
+      flowHandleNodeToggleActive(nodeId);
     },
-    [setNodes]
+    [flowHandleNodeToggleActive]
   );
 
   const handleDeleteNode = useCallback(
     (nodeId: string) => {
-      setNodes((currentNodes) => currentNodes.filter((node) => node.id !== nodeId));
-
-      toast({
-        title: 'Node Deleted',
-        description: 'The node has been removed from the flow.',
-      });
+      flowHandleDeleteNode(nodeId);
     },
-    [setNodes, toast]
+    [flowHandleDeleteNode]
   );
 
   const handleOpenNodeConsole = useCallback(
     (nodeId: string) => {
-      const node = nodes.find((n) => n.id === nodeId);
-      // Implement console opening logic
+      flowHandleOpenNodeConsole(nodeId);
     },
-    [nodes]
+    [flowHandleOpenNodeConsole]
+  );
+
+  const updateNodeData = useCallback(
+    (nodeId: string, newData: Partial<Node['data']>) => {
+      flowUpdateNodeData(nodeId, newData);
+    },
+    [flowUpdateNodeData]
   );
 
   return (

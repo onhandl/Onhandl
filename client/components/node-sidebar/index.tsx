@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import type { Node } from '@xyflow/react';
-import { X } from 'lucide-react';
-import { Button, Label, Separator, Switch } from '@/components/ui';
+import { X, Play, Pause, Trash2 } from 'lucide-react';
+import { Button, Label, Separator, Switch, Badge } from '@/components/ui';
 
 import { useFlow } from '@/contexts/FlowContext';
+import { toolsApi } from '@/api';
 
 // Import sub-components
 import { AICharacterSection } from './sections/ai-character-settings';
@@ -22,10 +23,16 @@ interface NodeSidebarProps {
 
 export default function NodeSidebar({ node, onClose, updateNodeData }: NodeSidebarProps) {
     const [nodeData, setNodeData] = useState<any>(node.data);
-    const { cascadeNodeExecution } = useFlow();
+    const [fetchedTools, setFetchedTools] = useState<any>(null);
+    const { cascadeNodeExecution, handleDeleteNode, handleNodePlayPause } = useFlow();
 
     useEffect(() => {
         setNodeData(node.data);
+        if (node.type === 'blockchain_tool' && !fetchedTools) {
+            toolsApi.getBlockchainTools().then(res => {
+                if (res.success) setFetchedTools(res.data.grouped);
+            }).catch(err => console.error("Failed to fetch tools", err));
+        }
     }, [node]);
 
     const handleInputChange = (key: string, value: any) => {
@@ -35,6 +42,9 @@ export default function NodeSidebar({ node, onClose, updateNodeData }: NodeSideb
             const inputIndex = updatedData.inputs.findIndex((input: any) => input.key === key);
             if (inputIndex !== -1) {
                 updatedData.inputs[inputIndex].value = value;
+            } else {
+                // Allow dynamic fields injected by schemaDef to persist
+                updatedData.inputs.push({ key, value });
             }
         }
 
@@ -50,11 +60,45 @@ export default function NodeSidebar({ node, onClose, updateNodeData }: NodeSideb
 
     return (
         <div className="w-80 h-full border-l border-border bg-card p-6 overflow-y-auto pb-20 shadow-xl">
-            <div className="flex justify-between items-center mb-6">
-                <h3 className="font-bold text-xl">{nodeData.name}</h3>
-                <Button variant="ghost" size="icon" onClick={onClose}>
+            <div className="flex justify-between items-start mb-2">
+                <div>
+                    <h3 className="font-bold text-xl">{nodeData.name}</h3>
+                    <div className="flex gap-1.5 mt-2">
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8 text-primary border-primary/20 hover:bg-primary/10"
+                            onClick={() => handleNodePlayPause(node.id)}
+                        >
+                            {node.data.isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8 text-destructive border-destructive/20 hover:bg-destructive/10"
+                            onClick={() => {
+                                handleDeleteNode(node.id);
+                                onClose();
+                            }}
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+                <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
                     <X className="h-4 w-4" />
                 </Button>
+            </div>
+
+            <div className="flex items-center gap-2 mb-6">
+                <Badge variant={node.data.isActive !== false ? "default" : "secondary"} className="text-[10px] h-5">
+                    {node.data.isActive !== false ? "Active" : "Inactive"}
+                </Badge>
+                {!!node.data.isPlaying && (
+                    <Badge variant="outline" className="text-[10px] h-5 bg-green-50 text-green-700 border-green-200">
+                        Running
+                    </Badge>
+                )}
             </div>
 
             <p className="text-sm text-muted-foreground mb-6 leading-relaxed">{nodeData.description}</p>
@@ -63,7 +107,48 @@ export default function NodeSidebar({ node, onClose, updateNodeData }: NodeSideb
 
             <div className="space-y-4">
                 <h4 className="font-medium">Inputs</h4>
-                {nodeData.inputs?.map((input: any) => (
+                {(() => {
+                    const inputsToRender = JSON.parse(JSON.stringify(nodeData.inputs || []));
+
+                    if (node.type === 'blockchain_tool' && fetchedTools) {
+                        const netInput = inputsToRender.find((i: any) => i.key === 'network');
+                        if (netInput) netInput.options = Object.keys(fetchedTools);
+                        const selNet = netInput?.value || Object.keys(fetchedTools)[0];
+
+                        const grpInput = inputsToRender.find((i: any) => i.key === 'action_group');
+                        if (grpInput && fetchedTools[selNet]) {
+                            grpInput.options = Object.keys(fetchedTools[selNet]);
+                        }
+                        const selGrp = grpInput?.value || (fetchedTools[selNet] ? Object.keys(fetchedTools[selNet])[0] : null);
+
+                        const toolInput = inputsToRender.find((i: any) => i.key === 'tool_lookup');
+                        if (toolInput && selGrp && fetchedTools[selNet]?.[selGrp]) {
+                            toolInput.type = 'select';
+                            toolInput.options = fetchedTools[selNet][selGrp].map((t: any) => t.name);
+                        }
+
+                        // Completely replace generic Payload input with Strict DB Schemas
+                        const selToolName = toolInput?.value || (toolInput?.options && toolInput.options.length > 0 ? toolInput.options[0] : null);
+                        const activeToolDef = selToolName ? fetchedTools[selNet]?.[selGrp]?.find((t: any) => t.name === selToolName) : null;
+
+                        const payloadIdx = inputsToRender.findIndex((i: any) => i.key === 'payload');
+                        if (payloadIdx !== -1) inputsToRender.splice(payloadIdx, 1);
+
+                        if (activeToolDef && activeToolDef.schemaDef) {
+                            for (const [key, field] of Object.entries(activeToolDef.schemaDef)) {
+                                inputsToRender.push({
+                                    key,
+                                    label: (field as any).label,
+                                    type: (field as any).type,
+                                    placeholder: (field as any).placeholder || '',
+                                    options: (field as any).options || [],
+                                    value: nodeData.inputs?.find((i: any) => i.key === key)?.value || ''
+                                });
+                            }
+                        }
+                    }
+                    return inputsToRender;
+                })().map((input: any) => (
                     <div key={input.key} className="space-y-2">
                         <Label htmlFor={input.key}>{input.label}</Label>
                         <FieldRenderer input={input} handleInputChange={handleInputChange} />

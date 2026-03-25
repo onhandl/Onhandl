@@ -10,6 +10,8 @@ import { agentRoutes } from '../modules/agentRoutes'
 import { executionRoutes } from '../modules/executionRoutes'
 import { teleCronRoutes } from '../modules/teleCronRoutes'
 import { aiRoutes } from '../modules/aiRoutes'
+import toolsRoutes from '../modules/toolsRoutes'
+import { syncBlockchainToolsToDb } from '../services/ToolSyncer'
 import { ENV } from '../lib/environments'
 import { startWorkers } from '../workers/agenda'
 
@@ -35,6 +37,7 @@ fastify.register(workspaceRoutes, { prefix: '/api' })
 fastify.register(agentRoutes, { prefix: '/api' })
 fastify.register(executionRoutes, { prefix: '/api' })
 fastify.register(teleCronRoutes, { prefix: '/api' })
+fastify.register(toolsRoutes, { prefix: '/api/tools' })
 
 fastify.get('/api/health', async (request, reply) => {
     return { status: 'ok' }
@@ -43,6 +46,7 @@ fastify.get('/api/health', async (request, reply) => {
 const startServer = async () => {
     try {
         await startWorkers()
+        await syncBlockchainToolsToDb()
         await fastify.listen({ port: 3001, host: '0.0.0.0' })
         fastify.log.info(`Server listening on ${fastify.server.address()}`)
         fastify.log.info(`CORS allowed origins: ${ENV.ALLOWED_ORIGINS.join(', ')}`)

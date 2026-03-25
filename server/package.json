@@ -8,9 +8,12 @@
         "start": "node dist/index.js"
     },
     "dependencies": {
+        "@ckb-ccc/shell": "^1.1.25",
+        "@ckb-lumos/lumos": "^0.23.0",
         "@fastify/cookie": "9",
         "@fastify/cors": "9",
         "@fastify/jwt": "^6.7.1",
+        "@nervosnetwork/ckb-sdk-core": "^0.109.5",
         "agenda": "^5.0.0",
         "bcrypt": "^6.0.0",
         "borgen": "^2.0.0",
@@ -19,7 +22,8 @@
         "fastify": "^4.26.2",
         "mongoose": "^8.2.1",
         "openai": "^6.32.0",
-        "telegraf": "^4.16.3"
+        "telegraf": "^4.16.3",
+        "zod": "^3.25.76"
     },
     "devDependencies": {
         "@types/bcrypt": "^6.0.0",

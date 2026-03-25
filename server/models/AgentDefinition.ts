@@ -7,17 +7,17 @@ export interface IAgentDefinition extends Document {
     name: string;
     description?: string;
     character?: CharacterSchema;
+    identities: Record<string, any>; // Chain specific traits (addresses, lock scripts)
+    memory: Record<string, any>; // Persistent agent memory
     modelProvider: 'gemini' | 'openai';
     modelConfig: {
         modelName: string;
         temperature?: number;
         maxTokens?: number;
     };
-    graph: {
-        nodes: any[];
-        edges: any[];
-    };
     isActive: boolean;
+    isDraft: boolean;
+    persona?: string; // Original persona summary provided by user
     createdAt: Date;
     updatedAt: Date;
 }
@@ -29,17 +29,17 @@ const AgentDefinitionSchema: Schema = new Schema(
         name: { type: String, required: true },
         description: { type: String },
         character: { type: Schema.Types.Mixed },
+        identities: { type: Schema.Types.Mixed, default: {} },
+        memory: { type: Schema.Types.Mixed, default: {} },
         modelProvider: { type: String, enum: ['gemini', 'openai'], default: 'gemini' },
         modelConfig: {
             modelName: { type: String, default: 'gemini-1.5-flash' },
             temperature: { type: Number, default: 0.7 },
             maxTokens: { type: Number },
         },
-        graph: {
-            nodes: { type: Array, default: [] },
-            edges: { type: Array, default: [] },
-        },
         isActive: { type: Boolean, default: true },
+        isDraft: { type: Boolean, default: true },
+        persona: { type: String },
     },
     { timestamps: true }
 );

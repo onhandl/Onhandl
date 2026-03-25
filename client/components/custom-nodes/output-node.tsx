@@ -11,12 +11,11 @@ interface OutputNodeProps {
   id: string;
 }
 
-// Explicitly define as React FC
 const OutputNode: React.FC<OutputNodeProps> = ({ data, isConnectable, selected, id }) => {
   // Get the icon component from Lucide
-  const IconComponent = data.icon
+  const IconComponent = (data.icon
     ? LucideIcons[data.icon as keyof typeof LucideIcons]
-    : LucideIcons.Circle;
+    : LucideIcons.Circle) as React.ElementType;
 
   return (
     <div
@@ -28,10 +27,6 @@ const OutputNode: React.FC<OutputNodeProps> = ({ data, isConnectable, selected, 
         nodeId={id}
         isPlaying={data.isPlaying || false}
         isActive={data.isActive !== false}
-        onPlayPause={data.onPlayPause}
-        onToggleActive={data.onToggleActive}
-        onOpenConsole={data.onOpenConsole}
-        onDeleteNode={data.onDeleteNode}
       />
 
       {/* Node Icon */}

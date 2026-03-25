@@ -10,7 +10,6 @@ interface TradingBotNodeProps {
   id: string;
 }
 
-// Update the component to better handle input from wallet node
 const TradingBotNode: React.FC<TradingBotNodeProps> = ({ data, isConnectable, selected, id }) => {
   // Get trading strategy
   const strategy = data.inputs?.find((input: any) => input.key === 'strategy')?.value || 'Balanced';
@@ -20,37 +19,26 @@ const TradingBotNode: React.FC<TradingBotNodeProps> = ({ data, isConnectable, se
     data.inputs?.find((input: any) => input.key === 'walletInfo')?.value ||
     (data.outputData?.walletInfo ? data.outputData.walletInfo : null);
 
-  // Log the wallet info for debugging
-  console.log('Trading Bot Node - Wallet Info:', walletInfo);
-
   // More flexible check for wallet connection
   const isWalletConnected = Boolean(
     walletInfo &&
-      (walletInfo.connected === true ||
-        walletInfo.address ||
-        (typeof walletInfo === 'object' && Object.keys(walletInfo).length > 0))
+    (walletInfo.connected === true ||
+      walletInfo.address ||
+      (typeof walletInfo === 'object' && Object.keys(walletInfo).length > 0))
   );
-
-  // Log the connection status
-  console.log('Trading Bot Node - Wallet Connected:', isWalletConnected);
 
   // Get tokens to trade
   const tokens = data.inputs?.find((input: any) => input.key === 'tokens')?.value || ['ETH', 'BTC'];
 
   return (
     <div
-      className={`p-3 rounded-md border-2 ${selected ? 'border-blue-500' : 'border-indigo-200'} ${
-        data.isActive === false ? 'opacity-50' : ''
-      } ${data.isPlaying ? 'animate-pulse shadow-lg shadow-indigo-200' : ''} bg-indigo-50 shadow-sm w-48 relative`}
+      className={`p-3 rounded-md border-2 ${selected ? 'border-blue-500' : 'border-indigo-200'} ${data.isActive === false ? 'opacity-50' : ''
+        } ${data.isPlaying ? 'animate-pulse shadow-lg shadow-indigo-200' : ''} bg-indigo-50 shadow-sm w-48 relative`}
     >
       <NodeControls
         nodeId={id}
         isPlaying={data.isPlaying || false}
         isActive={data.isActive !== false}
-        onPlayPause={data.onPlayPause}
-        onToggleActive={data.onToggleActive}
-        onOpenConsole={data.onOpenConsole}
-        onDeleteNode={data.onDeleteNode}
       />
 
       {/* Node Icon */}
@@ -63,15 +51,14 @@ const TradingBotNode: React.FC<TradingBotNodeProps> = ({ data, isConnectable, se
       {/* Strategy indicator */}
       <div className="absolute top-1 right-8 flex items-center text-xs">
         <div
-          className={`flex items-center ${
-            strategy === 'Aggressive'
+          className={`flex items-center ${strategy === 'Aggressive'
               ? 'text-red-600'
               : strategy === 'Conservative'
                 ? 'text-green-600'
                 : strategy === 'Custom'
                   ? 'text-purple-600'
                   : 'text-blue-600'
-          }`}
+            }`}
         >
           <span className="text-[10px]">{strategy}</span>
         </div>
@@ -188,36 +175,18 @@ const TradingBotNode: React.FC<TradingBotNodeProps> = ({ data, isConnectable, se
               </div>
             </div>
           )}
-
-          {/* Display wallet info if available */}
-          {isWalletConnected && (
-            <div className="text-xs border-t pt-1 mt-1">
-              <div className="flex justify-between">
-                <span>Wallet:</span>
-                <span className="font-mono">
-                  {walletInfo.address.substring(0, 6)}...
-                  {walletInfo.address.substring(walletInfo.address.length - 4)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Network:</span>
-                <span>{walletInfo.network || 'Ethereum'}</span>
-              </div>
-            </div>
-          )}
         </div>
       )}
 
       {/* Show execution status indicator if available */}
       {data.executionStatus && (
         <div
-          className={`absolute top-0 left-0 w-2 h-2 rounded-full m-1 ${
-            data.executionStatus === 'success'
+          className={`absolute top-0 left-0 w-2 h-2 rounded-full m-1 ${data.executionStatus === 'success'
               ? 'bg-green-500'
               : data.executionStatus === 'error'
                 ? 'bg-red-500'
                 : 'bg-yellow-500'
-          }`}
+            }`}
         />
       )}
 

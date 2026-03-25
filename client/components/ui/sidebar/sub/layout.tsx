@@ -4,7 +4,9 @@ import * as React from 'react';
 import { PanelLeft } from 'lucide-react';
 import { useSidebar } from '../use-sidebar';
 import { cn } from '@/lib/utils';
-import { Button, Input, Separator } from '@/components/ui';
+import { Button } from '../../buttons/button';
+import { Input } from '../../forms/input';
+import { Separator } from '../../layout/separator';
 
 export const SidebarTrigger = React.forwardRef<
     React.ElementRef<typeof Button>,

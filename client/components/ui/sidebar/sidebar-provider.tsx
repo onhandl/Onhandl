@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { TooltipProvider } from '@/components/ui';
+import { TooltipProvider } from '../popups/tooltip';
 import { cn } from '@/lib/utils';
 import {
     SidebarContext,

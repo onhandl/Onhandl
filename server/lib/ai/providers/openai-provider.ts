@@ -7,7 +7,7 @@ import {
 import { buildSystemPrompt } from '../utils';
 
 export class OpenAIProvider implements IAIProvider {
-    private defaultModel = 'gpt-4o';
+    private defaultModel = process.env.OPENAI_MODEL || 'gpt-4o'; // Fallback to gpt-4o or rely on ENV
 
     async generateCompletion(request: CompletionRequest): Promise<CompletionResponse> {
         const apiKey = request.apiKey || process.env.OPENAI_API_KEY;
@@ -16,7 +16,10 @@ export class OpenAIProvider implements IAIProvider {
             throw new Error('OpenAI API key is missing. Please provide one in the request or configure it on the server.');
         }
 
-        const client = new OpenAI({ apiKey });
+        const client = new OpenAI({
+            apiKey,
+            baseURL: process.env.OPENAI_BASE_URL // If not provided, defaults to standard api.openai.com
+        });
 
         const model = request.model || this.defaultModel;
         const messages: any[] = [...request.messages];

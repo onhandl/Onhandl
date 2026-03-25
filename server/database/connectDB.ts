@@ -7,19 +7,26 @@ mongoose.set('strictQuery', true)
 
 const connectDb = (server: () => void): void => {
 	mongoose
-		.connect(ENV.MONGO_URI)
+		.connect(ENV.MONGO_URI, {
+			// Add robust connection options
+			serverSelectionTimeoutMS: 5000,
+			socketTimeoutMS: 45000,
+		})
 		.then(() => {
-			let isInitialized = seedDatabase()
+			Logger.info({ message: 'Successfully connected to MongoDB Atlas' })
+			const isInitialized = seedDatabase()
 
 			if (isInitialized) {
 				server()
 			} else {
+				Logger.error({ message: 'Database initialization failed' })
 				process.exit(1)
 			}
 		})
 		.catch((err) => {
-			Logger.error({ message: 'connectDb' + err.message })
-			console.log(err)
+			Logger.error({ message: 'Failed to connect to MongoDB: ' + err.message })
+			console.error(err)
+			process.exit(1) // Exit process if database connection fails
 		})
 }
 
