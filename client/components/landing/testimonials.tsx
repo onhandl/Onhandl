@@ -54,7 +54,7 @@ export const Testimonials: React.FC<TestimonialsProps> = ({
                                                 ))}
                                             </div>
                                         </div>
-                                        <blockquote className="text-gray-600 dark:text-gray-300 mb-6 italic">
+                                        <blockquote className="text-black-600 dark:text-black-300 mb-6 italic">
                                             "{testimonial.quote}"
                                         </blockquote>
                                         <div className="flex items-center">

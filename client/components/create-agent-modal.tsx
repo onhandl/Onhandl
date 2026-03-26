@@ -26,22 +26,27 @@ interface CreateAgentModalProps {
 }
 
 export default function CreateAgentModal({ isOpen, onClose }: CreateAgentModalProps) {
+    const [step, setStep] = useState(1);
     const [name, setName] = useState('');
     const [persona, setPersona] = useState('');
-    const [provider, setProvider] = useState('gemini');
-    const [apiKey, setApiKey] = useState('');
+    const [provider, setProvider] = useState<string>('ollama');
+    const [model, setModel] = useState<string>('qwen2.5:3b');
+    const [apiKey, setApiKey] = useState<string>('');
+    const [enhancedData, setEnhancedData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
     const { toast } = useToast();
 
-    // Load key from storage when provider changes
     useEffect(() => {
-        const storedKey = localStorage.getItem(`${provider}_api_key`) || '';
-        setApiKey(storedKey);
+        if (provider === 'ollama') {
+            setApiKey(localStorage.getItem('ollama_base_url') || 'http://localhost:11434');
+            setModel(localStorage.getItem('ollama_model') || 'qwen2.5:3b');
+        } else {
+            setApiKey(localStorage.getItem(`${provider}_api_key`) || '');
+        }
     }, [provider]);
 
-    const handleCreate = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleNext = async () => {
         if (!name || !persona) {
             toast({
                 title: 'Missing fields',
@@ -53,16 +58,41 @@ export default function CreateAgentModal({ isOpen, onClose }: CreateAgentModalPr
 
         setIsLoading(true);
         try {
-            if (apiKey) {
+            if (provider === 'ollama') {
+                localStorage.setItem('ollama_base_url', apiKey);
+                localStorage.setItem('ollama_model', model);
+            } else if (apiKey) {
                 localStorage.setItem(`${provider}_api_key`, apiKey);
             }
-            const agent = await agentApi.saveAgent(name, undefined, persona, undefined, true, provider, apiKey);
+            const data = await agentApi.enhancePersona(name, persona, provider, apiKey, model);
+            setEnhancedData(data);
+            setStep(2);
+        } catch (error: any) {
+            toast({
+                title: 'Expansion Failed',
+                description: error.message || 'The AI failed to expand your persona. Please try again.',
+                variant: 'destructive',
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleCreate = async () => {
+        setIsLoading(true);
+        try {
+            // Send the pre-expanded character to avoid double expansion and ensure rules are enforced
+            const agent = await agentApi.saveAgent(name, undefined, persona, undefined, true, provider, apiKey, enhancedData);
             toast({
                 title: 'Agent Created',
-                description: 'Your agent has been initialized with an AI-enhanced persona.',
+                description: 'Your agent has been initialized with the reviewed persona.',
             });
             router.push(`/sandbox?agentId=${agent._id}`);
             onClose();
+            setStep(1);
+            setEnhancedData(null);
+            setName('');
+            setPersona('');
         } catch (error: any) {
             toast({
                 title: 'Creation Failed',
@@ -76,99 +106,160 @@ export default function CreateAgentModal({ isOpen, onClose }: CreateAgentModalPr
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[500px] border-primary/20 bg-card/95 backdrop-blur-xl shadow-2xl">
+            <DialogContent className="sm:max-w-[550px] border-primary/20 bg-card/95 backdrop-blur-xl shadow-2xl overflow-hidden">
                 <DialogHeader>
                     <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-4 border border-primary/20">
                         <Sparkles className="text-primary h-6 w-6" />
                     </div>
-                    <DialogTitle className="text-2xl font-extrabold tracking-tight">Create AI Agent</DialogTitle>
+                    <DialogTitle className="text-2xl font-extrabold tracking-tight">
+                        {step === 1 ? 'Create AI Agent' : 'Review Agent Persona'}
+                    </DialogTitle>
                     <DialogDescription className="text-muted-foreground">
-                        Give your agent a name and a brief persona. Our AI will expand this into a comprehensive character schema.
+                        {step === 1
+                            ? 'Give your agent a name and a brief persona. Our AI will expand this into a comprehensive character.'
+                            : 'Review the AI-generated character traits and instructions before finalizing.'}
                     </DialogDescription>
                 </DialogHeader>
 
-                <form onSubmit={handleCreate} className="space-y-6 py-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="name" className="text-sm font-bold uppercase tracking-wider opacity-70">Agent Name</Label>
-                        <Input
-                            id="name"
-                            placeholder="e.g. Satoshi, Trading Bot, Fiber Guide"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            className="bg-muted/30 border-border/50 focus:border-primary/50 transition-all rounded-xl h-12"
-                            required
-                        />
-                    </div>
+                <div className="py-4">
+                    {step === 1 ? (
+                        <div className="space-y-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="name" className="text-sm font-bold uppercase tracking-wider opacity-70">Agent Name</Label>
+                                <Input
+                                    id="name"
+                                    placeholder="e.g. Satoshi, Trading Bot, Fiber Guide"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    className="bg-muted/30 border-border/50 focus:border-primary/50 transition-all rounded-xl h-12"
+                                />
+                            </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="persona" className="text-sm font-bold uppercase tracking-wider opacity-70">Persona Summary</Label>
-                        <Textarea
-                            id="persona"
-                            placeholder="e.g. A helpful assistant that specialized in CKB transactions and Fiber network payments. Highly technical but friendly."
-                            value={persona}
-                            onChange={(e) => setPersona(e.target.value)}
-                            className="bg-muted/30 border-border/50 focus:border-primary/50 min-h-[120px] transition-all rounded-xl py-3"
-                            required
-                        />
-                    </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="persona" className="text-sm font-bold uppercase tracking-wider opacity-70">Persona Summary</Label>
+                                <Textarea
+                                    id="persona"
+                                    placeholder="e.g. A helpful assistant that specialized in CKB transactions and Fiber network payments."
+                                    value={persona}
+                                    onChange={(e) => setPersona(e.target.value)}
+                                    className="bg-muted/30 border-border/50 focus:border-primary/50 min-h-[120px] transition-all rounded-xl py-3"
+                                />
+                            </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label className="text-sm font-bold uppercase tracking-wider opacity-70">AI Model Provider</Label>
-                            <Select value={provider} onValueChange={setProvider}>
-                                <SelectTrigger className="bg-muted/30 border-border/50 focus:border-primary/50 rounded-xl h-12">
-                                    <SelectValue placeholder="Select Provider" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="gemini">Google Gemini</SelectItem>
-                                    <SelectItem value="openai">OpenAI</SelectItem>
-                                    <SelectItem value="anthropic">Anthropic</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-bold uppercase tracking-wider opacity-70">AI Provider</Label>
+                                    <Select value={provider} onValueChange={setProvider}>
+                                        <SelectTrigger className="bg-muted/30 border-border/50 focus:border-primary/50 rounded-xl h-12">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="ollama">Ollama (Local)</SelectItem>
+                                            <SelectItem value="gemini">Google Gemini</SelectItem>
+                                            <SelectItem value="openai">OpenAI</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="apiKey" className="text-sm font-bold uppercase tracking-wider opacity-70">
+                                        {provider === 'ollama' ? 'Ollama Base URL' : 'API Key (Optional)'}
+                                    </Label>
+                                    <Input
+                                        id="apiKey"
+                                        type={provider === 'ollama' ? 'text' : 'password'}
+                                        placeholder={provider === 'ollama' ? 'http://localhost:11434' : 'Optional SDK Key'}
+                                        value={apiKey}
+                                        onChange={(e) => setApiKey(e.target.value)}
+                                        className="bg-muted/30 border-border/50 focus:border-primary/50 transition-all rounded-xl h-12"
+                                    />
+                                </div>
+
+                                {provider === 'ollama' && (
+                                    <div className="space-y-2 col-span-2">
+                                        <Label htmlFor="model" className="text-sm font-bold uppercase tracking-wider opacity-70">Ollama Model</Label>
+                                        <Input
+                                            id="model"
+                                            placeholder="e.g. qwen2.5:3b, llama3, etc."
+                                            value={model}
+                                            onChange={(e) => setModel(e.target.value)}
+                                            className="bg-muted/30 border-border/50 focus:border-primary/50 transition-all rounded-xl h-12"
+                                        />
+                                    </div>
+                                )}
+                            </div>
                         </div>
+                    ) : (
+                        <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-primary/20">
+                            <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 space-y-3">
+                                <div className="flex justify-between items-center">
+                                    <h4 className="text-xs font-bold uppercase tracking-widest text-primary">Expanded Bio</h4>
+                                    <Sparkles className="h-3 w-3 text-primary animate-pulse" />
+                                </div>
+                                <p className="text-sm leading-relaxed italic opacity-90">"{enhancedData?.bio}"</p>
+                            </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="apiKey" className="text-sm font-bold uppercase tracking-wider opacity-70">API Key (Optional)</Label>
-                            <Input
-                                id="apiKey"
-                                type="password"
-                                placeholder={`Your ${provider.charAt(0).toUpperCase() + provider.slice(1)} API Key`}
-                                value={apiKey}
-                                onChange={(e) => setApiKey(e.target.value)}
-                                className="bg-muted/30 border-border/50 focus:border-primary/50 transition-all rounded-xl h-12"
-                            />
-                            <p className="text-[10px] text-muted-foreground mt-1">Leave empty to use system default keys</p>
+                            <div className="space-y-2">
+                                <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">System Instructions</h4>
+                                <div className="space-y-1">
+                                    {enhancedData?.instructions?.map((inst: string, idx: number) => (
+                                        <div key={idx} className="p-3 text-xs bg-muted/30 border border-border/50 rounded-lg flex gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-primary/40 mt-1 shrink-0" />
+                                            <span>{inst}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-2">
+                                    <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Personality</h4>
+                                    <div className="flex flex-wrap gap-1">
+                                        {enhancedData?.traits?.personality?.map((t: string, idx: number) => (
+                                            <span key={idx} className="px-2 py-1 text-[10px] bg-primary/10 text-primary border border-primary/20 rounded-md capitalize">{t}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Knowledge</h4>
+                                    <div className="flex flex-wrap gap-1">
+                                        {enhancedData?.traits?.knowledge?.map((t: string, idx: number) => (
+                                            <span key={idx} className="px-2 py-1 text-[10px] bg-secondary/10 text-secondary border border-secondary/20 rounded-md capitalize">{t}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    )}
+                </div>
 
-                    <DialogFooter className="pt-4 gap-2 sm:gap-0">
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            onClick={onClose}
-                            className="rounded-xl font-bold hover:bg-muted"
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            type="submit"
-                            disabled={isLoading}
-                            className="rounded-xl font-bold px-8 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 flex gap-2 transition-all transform active:scale-95"
-                        >
-                            {isLoading ? (
-                                <>
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                    Generating...
-                                </>
-                            ) : (
-                                <>
-                                    <Sparkles className="h-4 w-4" />
-                                    Create Agent
-                                </>
-                            )}
-                        </Button>
-                    </DialogFooter>
-                </form>
+                <DialogFooter className="pt-4 gap-2 border-t border-border/50">
+                    {step === 1 ? (
+                        <>
+                            <Button variant="ghost" onClick={onClose} className="rounded-xl font-bold">Cancel</Button>
+                            <Button
+                                onClick={handleNext}
+                                disabled={isLoading}
+                                className="rounded-xl font-bold px-8 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 flex gap-2 transition-all transform active:scale-95"
+                            >
+                                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                                Expand Persona
+                            </Button>
+                        </>
+                    ) : (
+                        <>
+                            <Button variant="ghost" onClick={() => setStep(1)} className="rounded-xl font-bold">Back</Button>
+                            <Button
+                                onClick={handleCreate}
+                                disabled={isLoading}
+                                className="rounded-xl font-bold px-8 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 flex gap-2 transition-all transform active:scale-95"
+                            >
+                                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                                Finalize & Create
+                            </Button>
+                        </>
+                    )}
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     );

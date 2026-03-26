@@ -15,8 +15,29 @@ import { simulateBlockchainNode } from './simulators/blockchain-node-simulator';
 import { enhancedLog, timestamp } from './simulators/base';
 import { executionEmitter } from '../services/ExecutionEmitter';
 
+interface SaveQueue {
+    [executionId: string]: Promise<any>;
+}
+
 export class FlowEngine {
+    private static saveQueues: SaveQueue = {};
+
+    private static async safeSave(execution: any) {
+        const id = execution._id.toString();
+        const currentQueue = this.saveQueues[id] || Promise.resolve();
+
+        this.saveQueues[id] = currentQueue.then(async () => {
+            try {
+                await execution.save();
+            } catch (err) {
+                console.error(`[FlowEngine] SafeSave failed for ${id}:`, err);
+            }
+        });
+
+        return this.saveQueues[id];
+    }
     static async runExecution(executionId: string) {
+        console.log(`\n[FlowEngine] 🚀 Starting execution: ${executionId}`);
         const execution = await ExecutionRun.findById(executionId);
         if (!execution) throw new Error('Execution not found');
 
@@ -28,6 +49,7 @@ export class FlowEngine {
             return;
         }
 
+        console.log(`[FlowEngine] 🤖 Agent: ${agent.name} (${agent._id})`);
         execution.status = 'running';
         execution.startedAt = new Date();
         await execution.save();
@@ -72,6 +94,7 @@ export class FlowEngine {
                     const originalPush = consoleOutput.push;
                     consoleOutput.push = function (...items: string[]) {
                         const res = originalPush.apply(this, items);
+                        console.log(`[FlowEngine] [LOG] [${node.id}]:`, ...items);
 
                         execution.state[node.id] = {
                             ...(execution.state[node.id] || {}),
@@ -79,7 +102,7 @@ export class FlowEngine {
                             status: 'running'
                         };
                         execution.markModified('state');
-                        execution.save().catch(console.error);
+                        FlowEngine.safeSave(execution); // No await here, we just queue it
 
                         executionEmitter.emit(`execution-${executionId}`, {
                             nodeId: node.id,
@@ -92,9 +115,11 @@ export class FlowEngine {
                         return res;
                     };
 
-                    consoleOutput.push(`${timestamp()} 🚀 Starting Node Execution: ${node.data?.name || node.type}`);
+                    const nodeName = node.data?.name || node.type;
+                    console.log(`[FlowEngine] 📍 Executing Node: ${nodeName} (${node.id})`);
+                    consoleOutput.push(`${timestamp()} 🚀 Starting Node Execution: ${nodeName}`);
 
-                    const inputValues = this.getInputValues(node.id, nodes, edges, execution.state);
+                    const inputValues = FlowEngine.getInputValues(node.id, nodes, edges, execution.state);
                     let result: any;
 
                     switch (node.type) {
@@ -102,7 +127,7 @@ export class FlowEngine {
                             result = await simulateInputNode(node.data);
                             break;
                         case 'processing':
-                            result = await simulateProcessingNode(node.data, inputValues, consoleOutput);
+                            result = await simulateProcessingNode(node.data, inputValues, consoleOutput, agent);
                             break;
                         case 'action':
                             result = await simulateActionNode(node.data, inputValues);
@@ -129,6 +154,7 @@ export class FlowEngine {
                             result = await simulateBlockchainNode(node.data, inputValues, consoleOutput);
                             break;
                         default:
+                            console.log(`[FlowEngine] ⚠️ Unsupported node type: ${node.type}`);
                             consoleOutput.push(`${timestamp()} ⚠️ Unsupported node type: ${node.type}`);
                             result = { status: 'skipped' };
                     }
@@ -145,6 +171,8 @@ export class FlowEngine {
                     // Mark as modified for Mongoose Mixed type
                     execution.markModified('state');
                     await execution.save();
+
+                    console.log(`[FlowEngine] ✅ Node Completed: ${nodeName}`);
 
                     // Emit real-time log payload to any active SSE clients
                     executionEmitter.emit(`execution-${executionId}`, {
@@ -172,6 +200,7 @@ export class FlowEngine {
             execution.status = 'completed';
             execution.completedAt = new Date();
             await execution.save();
+            console.log(`[FlowEngine] ✨ Execution Finished: ${executionId}\n`);
 
             executionEmitter.emit(`execution-${executionId}`, {
                 status: 'completed',
@@ -179,6 +208,7 @@ export class FlowEngine {
             });
 
         } catch (error: any) {
+            console.error(`[FlowEngine] ❌ Execution Failed:`, error);
             enhancedLog(`Flow execution failed`, { executionId, error: error.message });
             execution.status = 'failed';
             execution.error = error.message;

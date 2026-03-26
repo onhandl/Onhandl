@@ -12,14 +12,14 @@ export const Footer: React.FC = () => {
                             </div>
                             <span className="text-xl font-bold">OmniFlow</span>
                         </a>
-                        <p className="text-gray-400 mb-4">
+                        <p className="text-black-400 mb-4">
                             Build powerful AI agents without code. Automate your workflows and save hours of
                             manual work.
                         </p>
                     </div>
                     <div>
                         <h4 className="font-bold mb-4">Product</h4>
-                        <ul className="space-y-2 text-gray-400">
+                        <ul className="space-y-2 text-black-400">
                             <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
                             <li><a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a></li>
                             <li><a href="#pricing" className="hover:text-white transition-colors">Pricing</a></li>
@@ -28,7 +28,7 @@ export const Footer: React.FC = () => {
                     </div>
                     <div>
                         <h4 className="font-bold mb-4">Company</h4>
-                        <ul className="space-y-2 text-gray-400">
+                        <ul className="space-y-2 text-black-400">
                             <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
                             <li><a href="#" className="hover:text-white transition-colors">Career</a></li>
                             <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
@@ -37,14 +37,14 @@ export const Footer: React.FC = () => {
                     </div>
                     <div>
                         <h4 className="font-bold mb-4">Legal</h4>
-                        <ul className="space-y-2 text-gray-400">
+                        <ul className="space-y-2 text-black-400">
                             <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
                             <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
                             <li><a href="#" className="hover:text-white transition-colors">Cookie Policy</a></li>
                         </ul>
                     </div>
                 </div>
-                <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-500 text-sm">
+                <div className="border-t border-gray-800 mt-12 pt-8 text-center text-black-500 text-sm">
                     <p>© {new Date().getFullYear()} OmniFlow. All rights reserved.</p>
                 </div>
             </div>

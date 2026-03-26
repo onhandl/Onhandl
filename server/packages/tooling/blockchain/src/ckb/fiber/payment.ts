@@ -16,7 +16,8 @@ export const PayInvoiceTool: BlockchainTool<PayInvoiceInput, any> = {
     schema: PayInvoiceSchema,
     uiSchema: {
         invoice: { type: 'string', label: 'Invoice String', placeholder: 'fiber_invoice...' },
-        timeout_seconds: { type: 'number', label: 'Timeout (seconds)' }
+        fee_limit: { type: 'string', label: 'Maximum Fee (shannons)', placeholder: '1000' },
+        timeout: { type: 'number', label: 'Timeout (seconds)', placeholder: '60' }
     },
     async execute(input) {
         return await fiberRpcCall("pay_invoice", [{

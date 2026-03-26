@@ -21,7 +21,7 @@ export const TradingTab: React.FC<TradingTabProps> = ({
         <div className="space-y-4">
             <h3 className="text-sm font-medium">Trading Nodes</h3>
             {tradeNodes.length === 0 ? (
-                <p className="text-xs text-gray-500">No trading nodes found in this flow.</p>
+                <p className="text-xs text-black-500">No trading nodes found in this flow.</p>
             ) : (
                 <div className="space-y-2">
                     {tradeNodes.map((node) => (
@@ -36,7 +36,7 @@ export const TradingTab: React.FC<TradingTabProps> = ({
                             {enabledNodes[node.id] && (
                                 <div className="mt-2 text-xs">
                                     <div className="flex justify-between items-center">
-                                        <span className="text-gray-500">Risk Level:</span>
+                                        <span className="text-black-500">Risk Level:</span>
                                         <div className="flex gap-1">
                                             {(['low', 'medium', 'high'] as const).map((level) => (
                                                 <button

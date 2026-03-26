@@ -5,6 +5,7 @@ import { fiberRpcCall } from "./node_admin";
 export const OpenChannelSchema = z.object({
     peer_id: z.string(),
     funding_amount: z.string().describe("Amount of CKB to fund in hex shannons"),
+    public: z.boolean(),
     udt_type_script: z.any().optional(),
 });
 
@@ -23,6 +24,7 @@ export const OpenChannelTool: BlockchainTool<OpenChannelInput, any> = {
         return await fiberRpcCall("open_channel", [{
             peer_id: input.peer_id,
             funding_amount: input.funding_amount,
+            public: input.public,
             udt_type_script: input.udt_type_script
         }]);
     },

@@ -19,9 +19,8 @@ const OutputNode: React.FC<OutputNodeProps> = ({ data, isConnectable, selected, 
 
   return (
     <div
-      className={`p-3 rounded-md border-2 ${selected ? 'border-blue-500' : 'border-purple-200'} ${
-        data.isActive === false ? 'opacity-50' : ''
-      } ${data.isPlaying ? 'animate-pulse shadow-lg shadow-purple-200' : ''} bg-purple-50 shadow-sm w-48 relative`}
+      className={`p-3 rounded-md border-2 ${selected ? 'border-blue-500' : 'border-purple-200'} ${data.isActive === false ? 'opacity-50' : ''
+        } ${data.isPlaying ? 'animate-pulse shadow-lg shadow-purple-200' : ''} bg-purple-50 shadow-sm w-48 relative`}
     >
       <NodeControls
         nodeId={id}
@@ -37,7 +36,7 @@ const OutputNode: React.FC<OutputNodeProps> = ({ data, isConnectable, selected, 
       </div>
 
       <div className="font-medium text-sm mt-6">{data.name}</div>
-      <div className="text-xs text-gray-500 mb-2">{data.description}</div>
+      <div className="text-xs text-black-500 mb-2">{data.description}</div>
 
       {/* Input Handles */}
       {data.inputs?.map((input: any, index: number) => (
@@ -60,13 +59,12 @@ const OutputNode: React.FC<OutputNodeProps> = ({ data, isConnectable, selected, 
       {/* Show execution status indicator if available */}
       {data.executionStatus && (
         <div
-          className={`absolute top-0 left-0 w-2 h-2 rounded-full m-1 ${
-            data.executionStatus === 'success'
+          className={`absolute top-0 left-0 w-2 h-2 rounded-full m-1 ${data.executionStatus === 'success'
               ? 'bg-green-500'
               : data.executionStatus === 'error'
                 ? 'bg-red-500'
                 : 'bg-yellow-500'
-          }`}
+            }`}
         />
       )}
     </div>

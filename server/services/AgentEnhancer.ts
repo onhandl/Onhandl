@@ -3,7 +3,7 @@ import { CharacterSchema } from '../characters/schema';
 import { ENV } from '../lib/environments';
 
 export class AgentEnhancer {
-    static async enhancePersona(name: string, persona: string, providerName: string = 'gemini', customApiKey?: string): Promise<Partial<CharacterSchema> & { description?: string }> {
+    static async enhancePersona(name: string, persona: string, providerName: string = 'ollama', customApiKey?: string, modelName?: string): Promise<Partial<CharacterSchema> & { description?: string }> {
         const provider = AIFactory.getProvider(providerName);
 
         const prompt = `
@@ -33,23 +33,37 @@ Summarized Persona: ${persona}
             const response = await provider.generateCompletion({
                 messages: [{ role: 'user', content: prompt }],
                 provider: providerName as any,
+                model: modelName,
                 temperature: 0.8,
-                apiKey: customApiKey || (providerName === 'openai' ? ENV.OPENAI_API_KEY : ENV.GEMINI_API_KEY)
+                apiKey: customApiKey || (providerName === 'openai' ? ENV.OPENAI_API_KEY : providerName === 'ollama' ? ENV.OLLAMA_BASE_URL : ENV.GEMINI_API_KEY)
             });
 
-            // Extract JSON from response (handling potential markdown blocks)
-            let jsonStr = response.content;
-            if (jsonStr.includes('```json')) {
-                jsonStr = jsonStr.split('```json')[1].split('```')[0];
-            } else if (jsonStr.includes('```')) {
-                jsonStr = jsonStr.split('```')[1].split('```')[0];
+            // Extract JSON from response (handling potential markdown blocks or extra text)
+            let jsonStr = response.content || '';
+
+            if (!jsonStr.trim()) {
+                throw new Error('AI returned an empty response.');
+            }
+
+            // Look for JSON block
+            const jsonMatch = jsonStr.match(/```json\s*([\s\S]*?)\s*```/) || jsonStr.match(/```\s*([\s\S]*?)\s*```/);
+            if (jsonMatch && jsonMatch[1]) {
+                jsonStr = jsonMatch[1];
+            } else {
+                // If no markdown block, try to find the first { and last }
+                const startIdx = jsonStr.indexOf('{');
+                const endIdx = jsonStr.lastIndexOf('}');
+                if (startIdx !== -1 && endIdx !== -1) {
+                    jsonStr = jsonStr.substring(startIdx, endIdx + 1);
+                }
             }
 
             const enhancedData = JSON.parse(jsonStr.trim());
             return enhancedData;
-        } catch (error) {
-            console.error('[AgentEnhancer] Failed to enhance persona:', error);
-            throw new Error('Failed to expand persona using AI. Please try again or provide manual details.');
+        } catch (error: any) {
+            const msg = error?.message || String(error);
+            console.error('[AgentEnhancer] Failed to enhance persona:', msg);
+            throw new Error(`Failed to expand persona using AI: ${msg}`);
         }
     }
 }

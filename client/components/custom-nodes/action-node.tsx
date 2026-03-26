@@ -30,13 +30,13 @@ const ActionNode: React.FC<ActionNodeProps> = ({ data, isConnectable, selected, 
 
       {/* Node Icon */}
       <div className="absolute top-1 left-1 flex items-center text-xs">
-        <div className="flex items-center text-gray-600">
+        <div className="flex items-center text-black-600">
           {IconComponent && <IconComponent className="h-4 w-4" />}
         </div>
       </div>
 
       <div className="font-medium text-sm mt-6">{data.name}</div>
-      <div className="text-xs text-gray-500 mb-2">{data.description}</div>
+      <div className="text-xs text-black-500 mb-2">{data.description}</div>
 
       {/* Input Handles */}
       {data.inputs?.map((input: any, index: number) => (
@@ -71,10 +71,10 @@ const ActionNode: React.FC<ActionNodeProps> = ({ data, isConnectable, selected, 
       {data.executionStatus && (
         <div
           className={`absolute top-0 left-0 w-2 h-2 rounded-full m-1 ${data.executionStatus === 'success'
-              ? 'bg-green-500'
-              : data.executionStatus === 'error'
-                ? 'bg-red-500'
-                : 'bg-yellow-500'
+            ? 'bg-green-500'
+            : data.executionStatus === 'error'
+              ? 'bg-red-500'
+              : 'bg-yellow-500'
             }`}
         />
       )}

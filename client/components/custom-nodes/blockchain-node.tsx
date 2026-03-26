@@ -4,6 +4,7 @@ import { Handle, Position } from '@xyflow/react';
 import type React from 'react';
 import NodeControls from './node-controls';
 import { Link } from 'lucide-react';
+import { useEffect, useRef } from 'react'; // Added for FlowConsole simulation feedback
 
 interface BlockchainNodeProps {
     data: any;
@@ -23,9 +24,10 @@ const BlockchainNode: React.FC<BlockchainNodeProps> = ({
 
     return (
         <div
-            className={`p-3 rounded-md border-2 ${selected ? 'border-blue-500' : 'border-indigo-200'} ${data.isActive === false ? 'opacity-50' : ''
-                } ${data.isPlaying ? 'animate-pulse shadow-lg shadow-indigo-200' : ''} bg-indigo-50 shadow-sm w-48 relative`}
+            className={`p-4 rounded-xl border-2 transition-all duration-300 ${selected ? 'border-indigo-500 shadow-xl shadow-indigo-100' : 'border-border'} ${data.isActive === false ? 'opacity-40 grayscale' : ''
+                } ${data.isPlaying ? 'ring-2 ring-indigo-500 ring-offset-2 shadow-xl shadow-indigo-100 bg-indigo-50/30' : 'bg-card'} shadow-sm w-52 relative overflow-hidden`}
         >
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-400 to-blue-500 opacity-70" />
             <NodeControls
                 nodeId={id}
                 isPlaying={data.isPlaying || false}
@@ -39,8 +41,8 @@ const BlockchainNode: React.FC<BlockchainNodeProps> = ({
                 </div>
             </div>
 
-            <div className="font-medium text-sm mt-6 text-indigo-900">{shortName}</div>
-            <div className="text-xs text-indigo-500 mb-2 truncate" title={toolName}>{toolName}</div>
+            <div className="font-bold text-sm mt-6 text-indigo-950 uppercase tracking-tight">{shortName}</div>
+            <div className="text-[10px] font-semibold text-indigo-700 mb-2 leading-tight bg-indigo-100/50 px-1 rounded truncate" title={toolName}>{toolName}</div>
 
             {/* Input Handles */}
             {data.inputs?.map((input: any, index: number) => (

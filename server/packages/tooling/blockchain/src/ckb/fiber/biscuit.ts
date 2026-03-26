@@ -18,6 +18,10 @@ export const MintBiscuitTokenTool: BlockchainTool<GenerateBiscuitInput, any> = {
     name: "blockchain.ckb_fiber.biscuit.mint_token",
     description: "Generates a capability-based Biscuit token for authenticating against a Fiber node's RPC interface securely via its private key equivalent.",
     schema: GenerateBiscuitSchema,
+    uiSchema: {
+        private_key_hex: { type: 'string', label: 'Private Key', placeholder: '0x...' },
+        permissions: { type: 'string', label: 'Permissions (comma separated)', placeholder: 'admin,read' }
+    },
     async execute(input) {
         // This is currently a mock simulation of Biscuit generation since bindings require native crypto
         // In production, instantiate biscuit and add facts for `right("rpc", "{method_name}")` based on permissions

@@ -19,12 +19,18 @@ export const GenerateInvoiceTool: BlockchainTool<GenerateInvoiceInput, any> = {
     uiSchema: {
         amount: { type: 'string', label: 'Amount (shannons)', placeholder: '10000' },
         description: { type: 'string', label: 'Description', placeholder: 'Payment for service' },
-        currency: { type: 'select', label: 'Currency', options: ['CKB', 'UDT'] }
+        currency: { type: 'select', label: 'Currency', options: ['Fibt', 'Fibb', 'Fibd'] }
     },
     async execute(input) {
+        const currencyMap: Record<string, "Fibb" | "Fibt" | "Fibd"> = {
+            'CKB': 'Fibt', // Assuming CKB maps to Fibt (Testnet) by default, adjust as needed for mainnet/devnet
+            // 'UDT': 'Fibt', // UDT support would require more specific handling if it's a different currency type
+        };
+        const mappedCurrency = input.currency ? currencyMap[input.currency] || input.currency : 'Fibt';
+
         return await fiberRpcCall("new_invoice", [{
             amount: input.amount,
-            currency: input.currency,
+            currency: mappedCurrency,
             description: input.description,
             expiry: input.expiry,
             payment_hash: input.payment_hash
@@ -34,6 +40,7 @@ export const GenerateInvoiceTool: BlockchainTool<GenerateInvoiceInput, any> = {
 
 export const DecodeInvoiceSchema = z.object({
     invoice: z.string().startsWith("fib", "Fiber invoice must start with fibb, fibt, or fibd"),
+    timeout: z.number().optional().describe("Timeout in seconds for the invoice lookup. Defaults to 60 seconds."),
 });
 
 export type DecodeInvoiceInput = z.infer<typeof DecodeInvoiceSchema>;
@@ -43,11 +50,13 @@ export const DecodeInvoiceTool: BlockchainTool<DecodeInvoiceInput, any> = {
     description: "Decodes a Fiber invoice string to read its amount, payment hash, expiry, and payee public key.",
     schema: DecodeInvoiceSchema,
     uiSchema: {
-        invoice: { type: 'string', label: 'Invoice String', placeholder: 'fiber_invoice...' }
+        invoice: { type: 'string', label: 'Invoice String', placeholder: 'fiber_invoice...' },
+        timeout: { type: 'number', label: 'Timeout (seconds)', placeholder: '60' }
     },
     async execute(input) {
         return await fiberRpcCall("parse_invoice", [{
-            invoice: input.invoice
+            invoice: input.invoice,
+            timeout: input.timeout,
         }]);
     },
 };

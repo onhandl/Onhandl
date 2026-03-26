@@ -136,6 +136,14 @@ FIBER_NODE_URL=http://localhost:8227
 - Agents support a configurable `modelProvider` (Gemini / OpenAI / Anthropic) and custom API key overrides stored in browser session.
 - Public transparency endpoint: `GET /api/agents/:id.json` exposes the stored character JSON.
 
+The agent id is accessible via the url immediately after creation.
+
+it will look like this http://localhost:3000/sandbox?agentId=69c4e884596fa8e3e3ca4176
+
+  ***After an agent has been create you can view the detailed character schema at http://localhost:3001/api/agents/:id.json***
+
+  ***example http://localhost:3001/api/agents/69c4e884596fa8e3e3ca4176.json***
+
 ### Sandbox Flow Builder
 - Drag-and-drop visual canvas powered by React Flow.
 - Hierarchical Node Library with all CKB, Fiber, and generic processing/output nodes.

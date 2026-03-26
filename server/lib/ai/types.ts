@@ -8,7 +8,7 @@ export interface CompletionMessage {
 }
 
 export interface CompletionRequest {
-    provider?: 'gemini' | 'openai';
+    provider?: 'gemini' | 'openai' | 'ollama';
     model?: string;
     messages: CompletionMessage[];
     temperature?: number;

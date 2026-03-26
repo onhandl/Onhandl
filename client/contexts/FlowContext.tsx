@@ -79,24 +79,22 @@ export const FlowProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const handleNodePlayPause = useCallback(
     (nodeId: string) => {
+      let shouldToast = false;
+
       setNodes((nds) =>
         nds.map((node) => {
           if (node.id === nodeId) {
             const isPlaying = !node.data.isPlaying;
+            // Backend handles execution now
+            if (isPlaying) {
+              shouldToast = true;
+            }
 
             // Add a console message when play/pause state changes
             const consoleOutput = [
               ...((node.data.consoleOutput as any) || []),
               `[${new Date().toLocaleTimeString()}] Node ${isPlaying ? 'started' : 'paused'}`,
             ];
-
-            // Backend handles execution now
-            if (isPlaying) {
-              toast({
-                title: 'Execution Mode',
-                description: 'Start simulation from the top panel to run the flow on the backend.',
-              });
-            }
 
             return {
               ...node,
@@ -110,6 +108,13 @@ export const FlowProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           return node;
         })
       );
+
+      if (shouldToast) {
+        toast({
+          title: 'Execution Mode',
+          description: 'Start simulation from the top panel to run the flow on the backend.',
+        });
+      }
     },
     [toast]
   );
@@ -158,15 +163,12 @@ export const FlowProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const handleOpenNodeConsole = useCallback(
     (nodeId: string) => {
-      setNodes((nds) => {
-        const node = nds.find((n) => n.id === nodeId);
-        if (node) {
-          setConsoleNode(node);
-        }
-        return nds;
-      });
+      // Find the node in current state and update the console node separately
+      // Avoid doing this inside a setNodes updater to prevent "update while rendering" errors
+      const node = nodes.find(n => n.id === nodeId);
+      if (node) setConsoleNode(node);
     },
-    []
+    [nodes]
   );
 
   const updateNodeData = useCallback(

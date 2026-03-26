@@ -49,7 +49,7 @@ export function TradingAnalysisSection({ outputData }: TradingAnalysisSectionPro
                             </span>
                         </div>
                     )}
-                    <div className="text-xs mt-2 text-gray-600">
+                    <div className="text-xs mt-2 text-black-600">
                         {recommendation.reason}
                     </div>
                 </div>

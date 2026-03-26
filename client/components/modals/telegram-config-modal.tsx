@@ -123,7 +123,7 @@ const TelegramConfigModal: React.FC<TelegramConfigModalProps> = ({
                 setConnectionStatus(null);
               }}
             />
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-black-500">
               Get your bot token from the{' '}
               <a
                 href="https://t.me/BotFather"
@@ -148,7 +148,7 @@ const TelegramConfigModal: React.FC<TelegramConfigModalProps> = ({
                 setConnectionStatus(null);
               }}
             />
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-black-500">
               Personal chat ID or channel/group ID where messages will be sent.
             </p>
           </div>

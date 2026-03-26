@@ -16,7 +16,7 @@ export const TelegramTab: React.FC<TelegramTabProps> = ({
         <div className="space-y-4">
             <h3 className="text-sm font-medium">Telegram Nodes</h3>
             {telegramNodes.length === 0 ? (
-                <p className="text-xs text-gray-500">No Telegram nodes found in this flow.</p>
+                <p className="text-xs text-black-500">No Telegram nodes found in this flow.</p>
             ) : (
                 <div className="space-y-2">
                     {telegramNodes.map((node) => (
@@ -31,7 +31,7 @@ export const TelegramTab: React.FC<TelegramTabProps> = ({
                             {enabledNodes[node.id] && (
                                 <div className="mt-2 text-xs">
                                     <div className="flex justify-between">
-                                        <span className="text-gray-500">Bot Token:</span>
+                                        <span className="text-black-500">Bot Token:</span>
                                         <span>
                                             {node.data.inputs?.find((input: any) => input.key === 'botToken')?.value
                                                 ? '✓ Configured'
@@ -39,7 +39,7 @@ export const TelegramTab: React.FC<TelegramTabProps> = ({
                                         </span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span className="text-gray-500">Chat ID:</span>
+                                        <span className="text-black-500">Chat ID:</span>
                                         <span>
                                             {node.data.inputs?.find((input: any) => input.key === 'chatId')?.value
                                                 ? '✓ Configured'

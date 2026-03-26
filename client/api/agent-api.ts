@@ -5,14 +5,14 @@ export const agentApi = {
         return apiFetch('/agents');
     },
 
-    enhancePersona: async (name: string, persona: string, provider?: string, apiKey?: string) => {
+    enhancePersona: async (name: string, persona: string, provider?: string, apiKey?: string, model?: string) => {
         return apiFetch('/agents/enhance', {
             method: 'POST',
-            body: JSON.stringify({ name, persona, provider, apiKey }),
+            body: JSON.stringify({ name, persona, provider, apiKey, model }),
         });
     },
 
-    saveAgent: async (name: string, graph?: { nodes: any[]; edges: any[] }, persona?: string, description?: string, isDraft: boolean = true, provider?: string, apiKey?: string) => {
+    saveAgent: async (name: string, graph?: { nodes: any[]; edges: any[] }, persona?: string, description?: string, isDraft: boolean = true, provider?: string, apiKey?: string, character?: any) => {
         return apiFetch('/agents', {
             method: 'POST',
             body: JSON.stringify({
@@ -22,12 +22,13 @@ export const agentApi = {
                 graph,
                 isDraft,
                 provider,
-                apiKey
+                apiKey,
+                character
             }),
         });
     },
 
-    updateAgent: async (id: string, updates: { name?: string; description?: string; persona?: string; graph?: { nodes: any[]; edges: any[] }; identities?: any; isDraft?: boolean; provider?: string; apiKey?: string }) => {
+    updateAgent: async (id: string, updates: { name?: string; description?: string; persona?: string; graph?: { nodes: any[]; edges: any[] }; identities?: any; isDraft?: boolean; provider?: string; apiKey?: string; character?: any }) => {
         return apiFetch(`/agents/${id}`, {
             method: 'PUT',
             body: JSON.stringify(updates),

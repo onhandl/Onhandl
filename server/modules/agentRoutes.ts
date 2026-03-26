@@ -98,14 +98,14 @@ export const agentRoutes: FastifyPluginAsync = async (fastify) => {
     });
 
     // Preview AI Persona Enhancement
-    fastify.post<{ Body: { name: string; persona: string; provider?: string; apiKey?: string } }>(
+    fastify.post<{ Body: { name: string; persona: string; provider?: string; apiKey?: string; model?: string } }>(
         '/agents/enhance',
         async (request, reply) => {
             try {
-                const { name, persona, provider, apiKey } = request.body;
+                const { name, persona, provider, apiKey, model } = request.body;
                 if (!name || !persona) return reply.code(400).send({ error: 'Name and Persona are required' });
 
-                const enhanced = await AgentEnhancer.enhancePersona(name, persona, provider, apiKey);
+                const enhanced = await AgentEnhancer.enhancePersona(name, persona, provider, apiKey, model);
                 return enhanced;
             } catch (err: any) {
                 return reply.code(500).send({ error: err.message });
@@ -114,7 +114,7 @@ export const agentRoutes: FastifyPluginAsync = async (fastify) => {
     );
 
     // Create a new agent
-    fastify.post<{ Body: { name: string; description?: string; persona?: string; graph?: any; identities?: any; character?: any; isDraft?: boolean; provider?: string; apiKey?: string } }>(
+    fastify.post<{ Body: { name: string; description?: string; persona?: string; graph?: any; identities?: any; character?: any; isDraft?: boolean; provider?: string; apiKey?: string; model?: string } }>(
         '/agents',
         async (request, reply) => {
             try {
@@ -122,25 +122,31 @@ export const agentRoutes: FastifyPluginAsync = async (fastify) => {
                 if (!token) return reply.code(401).send({ error: 'Unauthorized' });
 
                 const decoded = fastify.jwt.verify(token) as any;
-                const { name, description, persona, graph, identities, character, isDraft, provider, apiKey } = request.body;
+                const { name, description, persona, graph, identities, character, isDraft, provider, apiKey, model } = request.body;
 
                 const workspace = await Workspace.findOne({ ownerId: decoded.id });
                 if (!workspace) return reply.code(404).send({ error: 'No workspace found' });
 
                 let finalCharacter = character || {};
 
-                // If persona is provided, use AI to enhance the character bio/traits
-                if (persona) {
+                // If persona is provided, use AI to enhance the character bio/traits (skip if already provided/reviewed)
+                if (persona && (!finalCharacter.bio || !finalCharacter.instructions)) {
                     try {
-                        const enhanced = await AgentEnhancer.enhancePersona(name, persona, provider, apiKey);
+                        const enhanced = await AgentEnhancer.enhancePersona(name, persona, provider, apiKey, model);
+                        if (!enhanced.bio || !enhanced.instructions) {
+                            throw new Error('AI generated an incomplete character. Please try a more detailed persona summary.');
+                        }
                         finalCharacter = {
                             ...finalCharacter,
                             ...enhanced
                         };
                         request.log.info(`[AgentStudio] Successfully generated AI character for: ${name}`);
-                        request.log.info(`[AgentStudio] Character JSON stored in DB: ${JSON.stringify(enhanced, null, 2)}`);
-                    } catch (error) {
-                        request.log.warn('Persona enhancement failed, falling back to basic data: ' + error);
+                    } catch (error: any) {
+                        request.log.error('Persona enhancement failed: ' + error);
+                        return reply.code(400).send({
+                            error: 'Persona expansion failed',
+                            details: error.message || 'The AI was unable to generate a valid character from your persona summary.'
+                        });
                     }
                 }
 
@@ -152,7 +158,10 @@ export const agentRoutes: FastifyPluginAsync = async (fastify) => {
                     description: description || (finalCharacter as any).description || (finalCharacter.bio ? finalCharacter.bio : ''),
                     identities: identities || {},
                     character: finalCharacter,
-                    modelProvider: provider || 'gemini',
+                    modelProvider: provider || 'ollama',
+                    modelConfig: {
+                        modelName: model || 'qwen2.5:3b'
+                    },
                     isDraft: isDraft ?? true
                 });
 
@@ -211,12 +220,12 @@ export const agentRoutes: FastifyPluginAsync = async (fastify) => {
     );
 
     // Update an existing agent (Handles Auto-save and Persona Re-enhancement)
-    fastify.put<{ Params: { id: string }; Body: { name?: string; description?: string; persona?: string; graph?: any; identities?: any; isDraft?: boolean; provider?: string; apiKey?: string } }>(
+    fastify.put<{ Params: { id: string }; Body: { name?: string; description?: string; persona?: string; graph?: any; identities?: any; isDraft?: boolean; provider?: string; apiKey?: string; model?: string } }>(
         '/agents/:id',
         async (request, reply) => {
             try {
                 const { id } = request.params;
-                const { name, description, persona, graph, identities, isDraft, provider, apiKey } = request.body;
+                const { name, description, persona, graph, identities, isDraft, provider, apiKey, model } = request.body;
 
                 const agent = await AgentDefinition.findById(id);
                 if (!agent) return reply.code(404).send({ error: 'Agent not found' });
@@ -226,23 +235,29 @@ export const agentRoutes: FastifyPluginAsync = async (fastify) => {
                 if (identities) agent.identities = identities;
                 if (isDraft !== undefined) agent.isDraft = isDraft;
                 if (provider) agent.modelProvider = provider as any;
+                else if (!agent.modelProvider) agent.modelProvider = 'ollama';
 
-                // Re-enhance character if persona is updated
-                if (persona && persona !== agent.persona) {
+                if (model) agent.modelConfig.modelName = model;
+
+                // Re-enhance character if persona is updated (skip if already provided/reviewed)
+                if (persona && persona !== agent.persona && (!agent.character?.bio || !agent.character?.instructions)) {
                     try {
-                        const enhanced = await AgentEnhancer.enhancePersona(name || agent.name, persona, provider || agent.modelProvider, apiKey);
+                        const enhanced = await AgentEnhancer.enhancePersona(name || agent.name, persona, provider || agent.modelProvider, apiKey, model || agent.modelConfig.modelName);
+                        if (!enhanced.bio || !enhanced.instructions) {
+                            throw new Error('AI generated an incomplete character.');
+                        }
                         agent.character = {
                             ...agent.character,
                             ...enhanced
                         };
                         agent.persona = persona;
-                        request.log.info(`[AgentStudio] Successfully generated AI character for: ${agent.name}`);
-                        request.log.info(`[AgentStudio] Character JSON stored in DB: ${JSON.stringify(enhanced, null, 2)}`);
+                        request.log.info(`[AgentStudio] Successfully re-generated AI character for: ${agent.name}`);
 
                         // Also update the description if it was using the bio
                         if (!description) agent.description = (enhanced as any).description || agent.character?.bio;
-                    } catch (error) {
-                        request.log.warn('Persona re-enhancement failed: ' + error);
+                    } catch (error: any) {
+                        request.log.error('Persona re-enhancement failed: ' + error);
+                        return reply.code(400).send({ error: 'Persona expansion failed', details: error.message });
                     }
                 }
 

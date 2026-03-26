@@ -1,11 +1,13 @@
 import { IAIProvider } from './types';
 import { GeminiProvider } from './providers/gemini-provider';
 import { OpenAIProvider } from './providers/openai-provider';
+import { OllamaProvider } from './providers/ollama-provider';
 
 export class AIFactory {
     private static providers: Record<string, IAIProvider> = {
         gemini: new GeminiProvider(),
         openai: new OpenAIProvider(),
+        ollama: new OllamaProvider(),
     };
 
     static getProvider(name: string): IAIProvider {

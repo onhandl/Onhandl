@@ -1,3 +1,4 @@
+import { GoogleGenAI } from "@google/genai";
 import {
     IAIProvider,
     CompletionRequest,
@@ -6,8 +7,7 @@ import {
 import { buildSystemPrompt } from '../utils';
 
 export class GeminiProvider implements IAIProvider {
-    private baseUrl = 'https://generativelanguage.googleapis.com/v1beta';
-    private defaultModel = 'gemini-1.5-flash';
+    private defaultModel = 'gemini-2.0-flash';
 
     async generateCompletion(request: CompletionRequest): Promise<CompletionResponse> {
         const apiKey = request.apiKey || process.env.GEMINI_API_KEY;
@@ -16,8 +16,8 @@ export class GeminiProvider implements IAIProvider {
             throw new Error('Gemini API key is missing. Please provide one in the request or configure it on the server.');
         }
 
+        const ai = new GoogleGenAI({ apiKey });
         const model = request.model || this.defaultModel;
-        const url = `${this.baseUrl}/models/${model}:generateContent?key=${apiKey}`;
 
         let systemInstruction = '';
         if (request.character) {
@@ -29,51 +29,50 @@ export class GeminiProvider implements IAIProvider {
             parts: [{ text: msg.content }]
         }));
 
-        const requestBody: any = {
-            contents,
-            generationConfig: {
-                temperature: request.temperature ?? 0.7,
-                maxOutputTokens: request.maxTokens,
-            }
-        };
+        let responseText = '';
+        try {
+            const response = await ai.models.generateContent({
+                model: model,
+                contents,
+                config: {
+                    systemInstruction: systemInstruction || undefined,
+                    temperature: request.temperature ?? 0.7,
+                    maxOutputTokens: request.maxTokens,
+                }
+            });
+            responseText = response.text || '';
 
-        if (systemInstruction) {
-            requestBody.system_instruction = {
-                parts: [{ text: systemInstruction }]
+            return {
+                content: responseText,
+                usage: {
+                    promptTokens: response.usageMetadata?.promptTokenCount || 0,
+                    completionTokens: response.usageMetadata?.candidatesTokenCount || 0,
+                    totalTokens: response.usageMetadata?.totalTokenCount || 0,
+                },
+                model: model,
+                provider: 'gemini',
             };
+        } catch (err: any) {
+            const status = err?.status || err?.code;
+            const msg = err?.message || String(err);
+            if (status === 429 || msg.includes('RESOURCE_EXHAUSTED') || msg.includes('quota')) {
+                throw new Error(`Gemini API quota exhausted. Please provide your own Gemini API key at https://aistudio.google.com/apikey`);
+            }
+            if (status === 401 || msg.includes('API_KEY_INVALID') || msg.includes('API key not valid')) {
+                throw new Error(`Invalid Gemini API key. Please check your key and try again.`);
+            }
+            if (status === 404 || msg.includes('NOT_FOUND')) {
+                throw new Error(`Gemini model '${model}' not found. Check your API key permissions.`);
+            }
+            throw err;
         }
-
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestBody)
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(`Gemini API error: ${JSON.stringify(errorData.error)}`);
-        }
-
-        const data = await response.json();
-        const content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-
-        return {
-            content,
-            usage: {
-                promptTokens: data.usageMetadata?.promptTokenCount || 0,
-                completionTokens: data.usageMetadata?.candidatesTokenCount || 0,
-                totalTokens: data.usageMetadata?.totalTokenCount || 0,
-            },
-            model: model,
-            provider: 'gemini',
-        };
     }
 
     async testConnection(apiKey: string): Promise<boolean> {
         try {
-            const url = `${this.baseUrl}/models/${this.defaultModel}?key=${apiKey}`;
-            const response = await fetch(url);
-            return response.ok;
+            const ai = new GoogleGenAI({ apiKey });
+            await ai.models.list({ config: { pageSize: 1 } });
+            return true;
         } catch (error) {
             console.error('Gemini connection test failed:', error);
             return false;

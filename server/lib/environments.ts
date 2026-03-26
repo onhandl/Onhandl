@@ -6,6 +6,8 @@ export const ENV = {
     GEMINI_API_KEY: process.env.GEMINI_API_KEY as string,
     ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS?.split(",").map(origin => origin.trim()) || ["http://localhost:3000"],
     OPENAI_API_KEY: process.env.OPENAI_API_KEY as string,
+    OLLAMA_BASE_URL: process.env.OLLAMA_BASE_URL as string,
+    OLLAMA_MODEL: process.env.OLLAMA_MODEL as string,
 };
 
 const REQUIRED_ENV = [

@@ -109,7 +109,7 @@ const TelegramNode: React.FC<TelegramNodeProps> = ({ data, isConnectable, select
       </div>
 
       <div className="font-medium text-sm mt-6">{data.name}</div>
-      <div className="text-xs text-gray-500 mb-2">{data.description}</div>
+      <div className="text-xs text-black-500 mb-2">{data.description}</div>
 
       {/* Live Mode Toggle */}
       <div className="flex items-center justify-between mb-2">
@@ -187,7 +187,7 @@ const TelegramNode: React.FC<TelegramNodeProps> = ({ data, isConnectable, select
       {/* Display output data when the node is playing */}
       {data.isPlaying && data.outputData && (
         <div className="mt-2 p-2 bg-gray-50 border rounded-md">
-          <div className="text-xs text-gray-500 mb-1 flex items-center justify-between">
+          <div className="text-xs text-black-500 mb-1 flex items-center justify-between">
             <span>Telegram Bot</span>
             <span
               className={`text-xs px-1.5 py-0.5 rounded ${isConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
@@ -202,7 +202,7 @@ const TelegramNode: React.FC<TelegramNodeProps> = ({ data, isConnectable, select
                 {data.outputData.telegramInfo?.botName || 'Trading Bot'}
               </div>
               {data.outputData.lastMessage && (
-                <div className="text-xs text-gray-500 mt-1">
+                <div className="text-xs text-black-500 mt-1">
                   <div className="font-medium">Last Message:</div>
                   <div className="whitespace-pre-wrap break-words">
                     {data.outputData.lastMessage.text}
@@ -218,10 +218,10 @@ const TelegramNode: React.FC<TelegramNodeProps> = ({ data, isConnectable, select
       {data.executionStatus && (
         <div
           className={`absolute top-0 left-0 w-2 h-2 rounded-full m-1 ${data.executionStatus === 'success'
-              ? 'bg-green-500'
-              : data.executionStatus === 'error'
-                ? 'bg-red-500'
-                : 'bg-yellow-500'
+            ? 'bg-green-500'
+            : data.executionStatus === 'error'
+              ? 'bg-red-500'
+              : 'bg-yellow-500'
             }`}
         />
       )}

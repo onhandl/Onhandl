@@ -25,9 +25,13 @@ export const CellOutputSchema = z.object({
 });
 
 export const BuildTransferTxSchema = z.object({
-    inputs: z.array(CellInputSchema),
-    outputs: z.array(CellOutputSchema),
-    outputs_data: z.array(z.string().startsWith("0x")), // Hex strings
+    from_address: z.string().startsWith("ckt"),
+    to_address: z.string().startsWith("ckt"),
+    amount_shannons: z.string(),
+    private_key: z.string().startsWith("0x"),
+    inputs: z.array(CellInputSchema).optional(),
+    outputs: z.array(CellOutputSchema).optional(),
+    outputs_data: z.array(z.string().startsWith("0x")).optional(),
 });
 
 export type BuildTransferTxInput = z.infer<typeof BuildTransferTxSchema>;
@@ -53,10 +57,10 @@ export const BuildTransferTxTool: BlockchainTool<BuildTransferTxInput, any> = {
             version: "0x0",
             cell_deps: [], // Typically need secp256k1 deps, added by wallet higher up.
             header_deps: [],
-            inputs: input.inputs,
-            outputs: input.outputs,
-            outputs_data: input.outputs_data,
-            witnesses: input.inputs.map(() => "0x"), // Placeholder witnesses
+            inputs: input.inputs || [],
+            outputs: input.outputs || [],
+            outputs_data: input.outputs_data || [],
+            witnesses: (input.inputs || []).map(() => "0x"), // Placeholder witnesses
         };
     },
 };

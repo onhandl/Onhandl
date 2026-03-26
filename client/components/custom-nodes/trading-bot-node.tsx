@@ -52,12 +52,12 @@ const TradingBotNode: React.FC<TradingBotNodeProps> = ({ data, isConnectable, se
       <div className="absolute top-1 right-8 flex items-center text-xs">
         <div
           className={`flex items-center ${strategy === 'Aggressive'
-              ? 'text-red-600'
-              : strategy === 'Conservative'
-                ? 'text-green-600'
-                : strategy === 'Custom'
-                  ? 'text-purple-600'
-                  : 'text-blue-600'
+            ? 'text-red-600'
+            : strategy === 'Conservative'
+              ? 'text-green-600'
+              : strategy === 'Custom'
+                ? 'text-purple-600'
+                : 'text-blue-600'
             }`}
         >
           <span className="text-[10px]">{strategy}</span>
@@ -65,7 +65,7 @@ const TradingBotNode: React.FC<TradingBotNodeProps> = ({ data, isConnectable, se
       </div>
 
       <div className="font-medium text-sm mt-6">{data.name}</div>
-      <div className="text-xs text-gray-500 mb-2">{data.description}</div>
+      <div className="text-xs text-black-500 mb-2">{data.description}</div>
 
       {/* Wallet connection status indicator */}
       {isWalletConnected ? (
@@ -121,7 +121,7 @@ const TradingBotNode: React.FC<TradingBotNodeProps> = ({ data, isConnectable, se
       {/* Display output data when the node is playing */}
       {data.isPlaying && data.outputData && (
         <div className="mt-2 p-2 bg-gray-50 border rounded-md">
-          <div className="text-xs text-gray-500 mb-1">AI Trading Analysis</div>
+          <div className="text-xs text-black-500 mb-1">AI Trading Analysis</div>
 
           {data.outputData.recommendation && (
             <div className="mb-2">
@@ -144,7 +144,7 @@ const TradingBotNode: React.FC<TradingBotNodeProps> = ({ data, isConnectable, se
                 )}{' '}
                 {data.outputData.recommendation.token}
               </div>
-              <div className="text-xs text-gray-600 mt-1">
+              <div className="text-xs text-black-600 mt-1">
                 {data.outputData.recommendation.reason}
               </div>
             </div>
@@ -182,10 +182,10 @@ const TradingBotNode: React.FC<TradingBotNodeProps> = ({ data, isConnectable, se
       {data.executionStatus && (
         <div
           className={`absolute top-0 left-0 w-2 h-2 rounded-full m-1 ${data.executionStatus === 'success'
-              ? 'bg-green-500'
-              : data.executionStatus === 'error'
-                ? 'bg-red-500'
-                : 'bg-yellow-500'
+            ? 'bg-green-500'
+            : data.executionStatus === 'error'
+              ? 'bg-red-500'
+              : 'bg-yellow-500'
             }`}
         />
       )}
@@ -193,7 +193,7 @@ const TradingBotNode: React.FC<TradingBotNodeProps> = ({ data, isConnectable, se
       {/* Show processing indicator when node is playing but no output yet */}
       {data.isPlaying && !data.outputData && (
         <div className="mt-2 p-2 bg-gray-50 border rounded-md animate-pulse">
-          <div className="text-xs text-gray-500">AI analyzing market data...</div>
+          <div className="text-xs text-black-500">AI analyzing market data...</div>
         </div>
       )}
     </div>

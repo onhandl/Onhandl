@@ -106,7 +106,7 @@ export default function WhatsAppConfigModal({ onClose, onSave }: WhatsAppConfigM
                 setConnectionStatus(null);
               }}
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-black-500 mt-1">
               Get your access token from the{' '}
               <a
                 href="https://developers.facebook.com/apps/"
@@ -131,7 +131,7 @@ export default function WhatsAppConfigModal({ onClose, onSave }: WhatsAppConfigM
                 setConnectionStatus(null);
               }}
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-black-500 mt-1">
               Found in the WhatsApp Business Account settings in Meta Business Suite.
             </p>
           </div>
@@ -144,7 +144,7 @@ export default function WhatsAppConfigModal({ onClose, onSave }: WhatsAppConfigM
               value={webhookVerifyToken}
               onChange={(e) => setWebhookVerifyToken(e.target.value)}
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-black-500 mt-1">
               A custom string to verify webhook requests. If left empty, a random token will be
               generated.
             </p>
@@ -163,11 +163,10 @@ export default function WhatsAppConfigModal({ onClose, onSave }: WhatsAppConfigM
 
           {connectionStatus && (
             <div
-              className={`p-3 rounded-md ${
-                connectionStatus.success
+              className={`p-3 rounded-md ${connectionStatus.success
                   ? 'bg-green-50 border-green-200'
                   : 'bg-red-50 border-red-200'
-              } border flex items-start gap-2`}
+                } border flex items-start gap-2`}
             >
               {connectionStatus.success ? (
                 <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5" />

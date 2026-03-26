@@ -9,7 +9,7 @@ export interface IAgentDefinition extends Document {
     character?: CharacterSchema;
     identities: Record<string, any>; // Chain specific traits (addresses, lock scripts)
     memory: Record<string, any>; // Persistent agent memory
-    modelProvider: 'gemini' | 'openai';
+    modelProvider: 'gemini' | 'openai' | 'ollama';
     modelConfig: {
         modelName: string;
         temperature?: number;
@@ -31,9 +31,9 @@ const AgentDefinitionSchema: Schema = new Schema(
         character: { type: Schema.Types.Mixed },
         identities: { type: Schema.Types.Mixed, default: {} },
         memory: { type: Schema.Types.Mixed, default: {} },
-        modelProvider: { type: String, enum: ['gemini', 'openai'], default: 'gemini' },
+        modelProvider: { type: String, enum: ['gemini', 'openai', 'ollama'], default: 'ollama' },
         modelConfig: {
-            modelName: { type: String, default: 'gemini-1.5-flash' },
+            modelName: { type: String, default: 'qwen2.5:3b' },
             temperature: { type: Number, default: 0.7 },
             maxTokens: { type: Number },
         },

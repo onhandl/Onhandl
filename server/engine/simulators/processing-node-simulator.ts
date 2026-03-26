@@ -5,7 +5,8 @@ import { timestamp } from './base';
 export async function simulateProcessingNode(
     data: any,
     inputValues: Record<string, any>,
-    consoleOutput: string[]
+    consoleOutput: string[],
+    agent?: any
 ) {
     const outputs: Record<string, any> = {};
 
@@ -14,8 +15,10 @@ export async function simulateProcessingNode(
             inputValues['text'] ||
             data.inputs?.find((input: any) => input.key === 'text')?.value ||
             'Default text';
-        const model = data.inputs?.find((input: any) => input.key === 'model')?.value || 'gemini-1.5-flash';
-        const provider = data.modelProvider || 'gemini';
+
+        // Prioritize: Agent Config > Node Data > Defaults
+        const provider = agent?.modelProvider || data.modelProvider || 'ollama';
+        const model = agent?.modelConfig?.modelName || data.inputs?.find((input: any) => input.key === 'model')?.value || 'qwen2.5:3b';
 
         consoleOutput.push(`${timestamp()} Connecting to ${provider.toUpperCase()} API for ${model}...`);
 

@@ -36,7 +36,7 @@ const ConditionNode: React.FC<ConditionNodeProps> = ({ data, isConnectable, sele
       </div>
 
       <div className="font-medium text-sm mt-6">{data.name}</div>
-      <div className="text-xs text-gray-500 mb-2">{data.description}</div>
+      <div className="text-xs text-black-500 mb-2">{data.description}</div>
 
       {/* Input Handles */}
       {data.inputs?.map((input: any, index: number) => (
@@ -73,10 +73,10 @@ const ConditionNode: React.FC<ConditionNodeProps> = ({ data, isConnectable, sele
       {data.executionStatus && (
         <div
           className={`absolute top-0 left-0 w-2 h-2 rounded-full m-1 ${data.executionStatus === 'success'
-              ? 'bg-green-500'
-              : data.executionStatus === 'error'
-                ? 'bg-red-500'
-                : 'bg-yellow-500'
+            ? 'bg-green-500'
+            : data.executionStatus === 'error'
+              ? 'bg-red-500'
+              : 'bg-yellow-500'
             }`}
         />
       )}

@@ -55,14 +55,14 @@ export const Pricing: React.FC<PricingProps> = ({ pricingPlans, handleAnchorClic
                                             </span>
                                             {plan.period && (
                                                 <span
-                                                    className={`${plan.popular ? 'text-white/70' : 'text-gray-500 dark:text-gray-400'} ml-1`}
+                                                    className={`${plan.popular ? 'text-white/70' : 'text-black-500 dark:text-black-400'} ml-1`}
                                                 >
                                                     {plan.period}
                                                 </span>
                                             )}
                                         </div>
                                         <p
-                                            className={`${plan.popular ? 'text-white/80' : 'text-gray-600 dark:text-gray-400'} mb-6`}
+                                            className={`${plan.popular ? 'text-white/80' : 'text-black-600 dark:text-black-400'} mb-6`}
                                         >
                                             {plan.description}
                                         </p>
@@ -85,7 +85,7 @@ export const Pricing: React.FC<PricingProps> = ({ pricingPlans, handleAnchorClic
                                                     </svg>
                                                     <span
                                                         className={
-                                                            plan.popular ? 'text-white' : 'text-gray-700 dark:text-gray-300'
+                                                            plan.popular ? 'text-white' : 'text-black-700 dark:text-black-300'
                                                         }
                                                     >
                                                         {feature}
@@ -96,7 +96,7 @@ export const Pricing: React.FC<PricingProps> = ({ pricingPlans, handleAnchorClic
                                     </div>
                                     <div className="text-center">
                                         <p
-                                            className={`text-sm ${plan.popular ? 'text-white/70' : 'text-gray-500 dark:text-gray-400'} italic mb-2`}
+                                            className={`text-sm ${plan.popular ? 'text-white/70' : 'text-black-500 dark:text-black-400'} italic mb-2`}
                                         >
                                             Hover to see more details
                                         </p>
@@ -124,7 +124,7 @@ export const Pricing: React.FC<PricingProps> = ({ pricingPlans, handleAnchorClic
                                                             d="M5 13l4 4L19 7"
                                                         />
                                                     </svg>
-                                                    <span className="text-gray-700 dark:text-gray-300">{feature}</span>
+                                                    <span className="text-black-700 dark:text-black-300">{feature}</span>
                                                 </li>
                                             ))}
                                         </ul>

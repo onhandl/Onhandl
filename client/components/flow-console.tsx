@@ -71,11 +71,21 @@ export default function FlowConsole() {
     }
   }, [logs, isExpanded]);
 
-  // Auto-expand console when simulation starts
+  // Handle simulation start/stop feedback
+  const prevIsSimulating = useRef(isSimulating);
   useEffect(() => {
-    if (isSimulating && !isExpanded) {
+    if (prevIsSimulating.current && !isSimulating) {
+      const stopLog: LogEntry = {
+        timestamp: new Date().toLocaleTimeString(),
+        message: 'Simulation has been stopped/paused by user.',
+        type: 'warning',
+      };
+      setLogs(prev => [stopLog, ...prev]);
+    }
+    if (!prevIsSimulating.current && isSimulating) {
       setIsExpanded(true);
     }
+    prevIsSimulating.current = isSimulating;
   }, [isSimulating]);
 
   const clearLogs = () => {
@@ -180,12 +190,12 @@ export default function FlowConsole() {
                       <div
                         key={index}
                         className={`text-sm font-mono p-3 rounded-lg bg-muted/30 border-l-4 mb-2 transition-colors hover:bg-muted/50 ${log.type === 'error'
-                            ? 'border-destructive text-destructive'
-                            : log.type === 'success'
-                              ? 'border-primary text-foreground'
-                              : log.type === 'warning'
-                                ? 'border-accent text-accent-foreground'
-                                : 'border-muted-foreground/30 text-foreground'
+                          ? 'border-destructive text-destructive'
+                          : log.type === 'success'
+                            ? 'border-primary text-foreground'
+                            : log.type === 'warning'
+                              ? 'border-accent text-accent-foreground'
+                              : 'border-muted-foreground/30 text-foreground'
                           }`}
                       >
                         <span className="text-muted-foreground font-medium opacity-70">[{log.timestamp}]</span>

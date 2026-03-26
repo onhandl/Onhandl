@@ -52,7 +52,7 @@ export const HowItWorks: React.FC = () => {
                                             d="M5 13l4 4L19 7"
                                         />
                                     </svg>
-                                    <span className="text-gray-700 dark:text-gray-300">{item}</span>
+                                    <span className="text-black-700 dark:text-black-300">{item}</span>
                                 </li>
                             ))}
                         </ul>
@@ -107,7 +107,7 @@ export const HowItWorks: React.FC = () => {
                         <h3 className="text-2xl font-bold mb-4 dark:text-white">
                             Design your workflow with drag and drop
                         </h3>
-                        <p className="text-gray-600 dark:text-gray-400 mb-6">
+                        <p className="text-black-600 dark:text-black-400 mb-6">
                             Use our intuitive drag-and-drop interface to create your AI workflow. Connect
                             triggers, actions, and conditions to define how your agent behaves.
                         </p>
@@ -132,7 +132,7 @@ export const HowItWorks: React.FC = () => {
                                             d="M5 13l4 4L19 7"
                                         />
                                     </svg>
-                                    <span className="text-gray-700 dark:text-gray-300">{item}</span>
+                                    <span className="text-black-700 dark:text-black-300">{item}</span>
                                 </li>
                             ))}
                         </ul>
@@ -177,7 +177,7 @@ export const HowItWorks: React.FC = () => {
                         <h3 className="text-2xl font-bold mb-4 dark:text-white">
                             Test, deploy, and monitor your AI agent
                         </h3>
-                        <p className="text-gray-600 dark:text-gray-400 mb-6">
+                        <p className="text-black-600 dark:text-black-400 mb-6">
                             Test your AI agent in real-time, make adjustments as needed, and deploy it with a
                             single click. Monitor performance and scale as your needs grow.
                         </p>
@@ -202,7 +202,7 @@ export const HowItWorks: React.FC = () => {
                                             d="M5 13l4 4L19 7"
                                         />
                                     </svg>
-                                    <span className="text-gray-700 dark:text-gray-300">{item}</span>
+                                    <span className="text-black-700 dark:text-black-300">{item}</span>
                                 </li>
                             ))}
                         </ul>
@@ -222,7 +222,7 @@ export const HowItWorks: React.FC = () => {
                                     </div>
                                     <div className="grid grid-cols-2 gap-4 mb-4">
                                         <div className="bg-white dark:bg-foreground p-3 rounded-md shadow-sm">
-                                            <h5 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                                            <h5 className="text-xs font-medium text-black-500 dark:text-black-400 mb-1">
                                                 Active Agents
                                             </h5>
                                             <p className="text-lg font-bold dark:text-white">5</p>

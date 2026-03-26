@@ -9,7 +9,7 @@ export const Features: React.FC = () => {
                         Powerful Features
                     </h2>
                     <p
-                        className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto"
+                        className="text-black-600 dark:text-black-400 max-w-2xl mx-auto"
                         data-aos="fade-up"
                         data-aos-delay="100"
                     >
@@ -164,7 +164,7 @@ export const Features: React.FC = () => {
                                 {feature.icon}
                             </div>
                             <h3 className="text-xl font-semibold mb-2 dark:text-white">{feature.title}</h3>
-                            <p className="text-gray-600 dark:text-gray-400">{feature.description}</p>
+                            <p className="text-black-600 dark:text-black-400">{feature.description}</p>
                         </div>
                     ))}
                 </div>

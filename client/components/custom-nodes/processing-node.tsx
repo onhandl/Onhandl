@@ -30,7 +30,7 @@ const ProcessingNode: React.FC<ProcessingNodeProps> = ({ data, isConnectable, se
       </div>
 
       <div className="font-medium text-sm mt-6">{data.name}</div>
-      <div className="text-xs text-gray-500 mb-2">{data.description}</div>
+      <div className="text-xs text-black-500 mb-2">{data.description}</div>
 
       {/* Input Handles */}
       {data.inputs?.map((input: any, index: number) => (
@@ -59,7 +59,7 @@ const ProcessingNode: React.FC<ProcessingNodeProps> = ({ data, isConnectable, se
       {/* Display output data when the node is playing */}
       {data.isPlaying && data.outputData && (
         <div className="mt-2 p-2 bg-gray-50 border rounded-md">
-          <div className="text-xs text-gray-500 mb-1">AI Output</div>
+          <div className="text-xs text-black-500 mb-1">AI Output</div>
           <div className="text-xs break-words">{JSON.stringify(data.outputData, null, 2)}</div>
         </div>
       )}
@@ -68,10 +68,10 @@ const ProcessingNode: React.FC<ProcessingNodeProps> = ({ data, isConnectable, se
       {data.executionStatus && (
         <div
           className={`absolute top-0 left-0 w-2 h-2 rounded-full m-1 ${data.executionStatus === 'success'
-              ? 'bg-green-500'
-              : data.executionStatus === 'error'
-                ? 'bg-red-500'
-                : 'bg-yellow-500'
+            ? 'bg-green-500'
+            : data.executionStatus === 'error'
+              ? 'bg-red-500'
+              : 'bg-yellow-500'
             }`}
         />
       )}

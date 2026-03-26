@@ -13,6 +13,7 @@
         "@fastify/cookie": "9",
         "@fastify/cors": "9",
         "@fastify/jwt": "^6.7.1",
+        "@google/genai": "^1.46.0",
         "@nervosnetwork/ckb-sdk-core": "^0.109.5",
         "agenda": "^5.0.0",
         "bcrypt": "^6.0.0",
