@@ -89,8 +89,16 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
     );
 
     fastify.post('/logout', async (request, reply) => {
+        request.log.info('User logout sequence initiated');
+
         return reply
-            .clearCookie('auth_token', { path: '/' })
-            .send({ success: true });
+            .setCookie('auth_token', '', {
+                path: '/',
+                httpOnly: true,
+                sameSite: 'lax',
+                secure: process.env.NODE_ENV === 'production',
+                expires: new Date(0) // Force immediate expiration
+            })
+            .send({ success: true, message: 'Logged out successfully' });
     });
 };

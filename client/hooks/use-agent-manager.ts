@@ -142,8 +142,8 @@ export const useAgentManager = () => {
         return agentApi.chatWithAgent(provider, model, messages, apiKey);
     }, []);
 
-    const chatWithAgentStream = useCallback(async (provider: string, model: string, messages: any[], apiKey?: string, agentId?: string) => {
-        return agentApi.chatWithAgentStream(provider, model, messages, apiKey, agentId);
+    const chatWithAgentStream = useCallback(async (provider: string, model: string, messages: any[], apiKey?: string, agentId?: string, sessionId?: string) => {
+        return agentApi.chatWithAgentStream(provider, model, messages, apiKey, agentId, sessionId);
     }, []);
 
     return { saveAgent, updateAgent, loadAgents, listAgents, deleteAgent, loadAgentById, getTemplates, createAgentFromTemplate, chatWithAgent, chatWithAgentStream };

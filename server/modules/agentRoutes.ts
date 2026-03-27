@@ -6,6 +6,8 @@ import { Workspace } from '../models/Workspace';
 import { AgentEnhancer } from '../services/AgentEnhancer';
 import { validateCharacter } from '../characters/validator';
 import { WalletService } from '../services/WalletService';
+import { Orchestrator } from '../engine/orchestrator';
+import { Readable } from 'stream';
 
 export const agentRoutes: FastifyPluginAsync = async (fastify) => {
     // Get all agents for the authenticated user's workspace
@@ -441,4 +443,43 @@ export const agentRoutes: FastifyPluginAsync = async (fastify) => {
             return reply.code(500).send({ error: 'Failed to create agent from template' });
         }
     });
+
+    // Unified Agent Query Endpoint
+    fastify.post<{ Body: { prompt: string; agentId: string; sessionId: string } }>(
+        '/agent/query',
+        async (request, reply) => {
+            const { prompt, agentId, sessionId } = request.body;
+            // Assumes user authentication in a real scenario
+            const userId = (request as any).user?.id || '60c72b2f9b1d8e1f4c8b4567'; // Fallback for dev
+
+            try {
+                // Return an SSE stream
+                const readable = new Readable({
+                    read() { }
+                });
+
+                // Start orchestrator async and push to readable stream
+                Orchestrator.handleQuery(prompt, agentId, userId, sessionId, readable)
+                    .then(() => {
+                        readable.push(null); // End stream
+                    })
+                    .catch((err) => {
+                        console.error('[Agent Query Error]', err);
+                        readable.push(`data: ${JSON.stringify({ error: err.message })}\n\n`);
+                        readable.push(null);
+                    });
+
+                return reply
+                    .header('Content-Type', 'text/event-stream')
+                    .header('Cache-Control', 'no-cache')
+                    .header('Connection', 'keep-alive')
+                    .header('Access-Control-Allow-Origin', request.headers.origin || 'http://localhost:3000')
+                    .header('Access-Control-Allow-Credentials', 'true')
+                    .send(readable);
+
+            } catch (error: any) {
+                return reply.code(500).send({ error: error.message });
+            }
+        }
+    );
 };

@@ -66,11 +66,22 @@ export const agentApi = {
         });
     },
 
-    chatWithAgentStream: async (provider: string, model: string, messages: any[], apiKey?: string, agentId?: string) => {
-        // We use raw fetch here because apiFetch handles the full JSON response, 
-        // but for streaming we need the reader.
+    chatWithAgentStream: async (provider: string, model: string, messages: any[], apiKey?: string, agentId?: string, sessionId?: string) => {
         const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '') + '/api';
-        const url = `${baseUrl}/ai/stream`;
+
+        let url = `${baseUrl}/ai/stream`;
+        let body: any = { provider, model, messages, agentId };
+
+        // If it's a governed agent, route to the unified orchestrator
+        if (agentId) {
+            url = `${baseUrl}/agent/query`;
+            const lastUserMsg = messages.filter(m => m.role === 'user').pop();
+            body = {
+                prompt: lastUserMsg?.content || '',
+                agentId,
+                sessionId: sessionId || `session_${agentId}_${Date.now()}` // Fallback if UI doesn't manage it yet
+            };
+        }
 
         const headers: any = { 'Content-Type': 'application/json' };
         const effectiveApiKey = apiKey || (typeof window !== 'undefined' ? localStorage.getItem(`${provider.toLowerCase()}_api_key`) : null);
@@ -79,7 +90,7 @@ export const agentApi = {
         const response = await fetch(url, {
             method: 'POST',
             headers,
-            body: JSON.stringify({ provider, model, messages, agentId }),
+            body: JSON.stringify(body),
             credentials: 'include',
         });
 

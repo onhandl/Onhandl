@@ -12,6 +12,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  LogOut,
   Menu,
 } from 'lucide-react';
 import { Button } from '@/components/ui/buttons/button';
@@ -84,16 +85,23 @@ const Sidebar = () => {
             collapsed ? 'justify-center' : 'justify-start px-3'
           )}
           onClick={async () => {
+            console.log('Initiating logout...');
             try {
-              await apiFetch('/auth/logout', { method: 'POST' });
-              window.location.href = '/signin';
+              const res = await apiFetch('/auth/logout', { method: 'POST' });
+              console.log('Logout API successful:', res);
+
+              // Small delay to ensure the browser processes the Set-Cookie clear header
+              setTimeout(() => {
+                window.location.replace('/signin');
+              }, 100);
             } catch (err) {
-              console.error('Logout failed', err);
-              window.location.href = '/signin';
+              console.error('Logout API failed:', err);
+              // Fallback to direct redirect - if cookie is still there, middleware will bounce back
+              window.location.replace('/signin');
             }
           }}
         >
-          <Menu className={cn('h-5 w-5', !collapsed && 'mr-3')} />
+          <LogOut className={cn('h-5 w-5', !collapsed && 'mr-3')} />
           {!collapsed && <span>Logout</span>}
         </Button>
       </div>

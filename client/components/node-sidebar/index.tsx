@@ -14,6 +14,7 @@ import { WalletInfoSection } from './sections/wallet-info-section';
 import { TradingAnalysisSection } from './sections/trading-analysis-section';
 import { TradeInfoSection } from './sections/trade-info-section';
 import { FieldRenderer } from './ui/field-renderer';
+import { ConditionSettingsSection } from './sections/condition-settings-section';
 
 interface NodeSidebarProps {
     node: Node;
@@ -99,59 +100,71 @@ export default function NodeSidebar({ node, onClose, updateNodeData }: NodeSideb
 
             <Separator className="my-4" />
 
-            <div className="space-y-4">
-                <h4 className="font-medium">Inputs</h4>
-                {(() => {
-                    const inputsToRender = JSON.parse(JSON.stringify(nodeData.inputs || []));
+            {/* Specialized Logic Sections */}
+            {node.type === 'condition' && (
+                <ConditionSettingsSection
+                    nodeData={nodeData}
+                    nodeId={node.id}
+                    updateNodeData={updateNodeData}
+                    setNodeData={setNodeData}
+                />
+            )}
 
-                    if (node.type === 'blockchain_tool' && fetchedTools) {
-                        const netInput = inputsToRender.find((i: any) => i.key === 'network');
-                        if (netInput) netInput.options = Object.keys(fetchedTools);
-                        const selNet = netInput?.value || Object.keys(fetchedTools)[0];
+            {node.type !== 'condition' && (
+                <div className="space-y-4">
+                    <h4 className="font-medium">Inputs</h4>
+                    {(() => {
+                        const inputsToRender = JSON.parse(JSON.stringify(nodeData.inputs || []));
 
-                        const grpInput = inputsToRender.find((i: any) => i.key === 'action_group');
-                        if (grpInput && fetchedTools[selNet]) {
-                            grpInput.options = Object.keys(fetchedTools[selNet]);
-                        }
-                        const selGrp = grpInput?.value || (fetchedTools[selNet] ? Object.keys(fetchedTools[selNet])[0] : null);
+                        if (node.type === 'blockchain_tool' && fetchedTools) {
+                            const netInput = inputsToRender.find((i: any) => i.key === 'network');
+                            if (netInput) netInput.options = Object.keys(fetchedTools);
+                            const selNet = netInput?.value || Object.keys(fetchedTools)[0];
 
-                        const toolInput = inputsToRender.find((i: any) => i.key === 'tool_lookup');
-                        if (toolInput && selGrp && fetchedTools[selNet]?.[selGrp]) {
-                            toolInput.type = 'select';
-                            toolInput.options = fetchedTools[selNet][selGrp].map((t: any) => t.name);
-                        }
+                            const grpInput = inputsToRender.find((i: any) => i.key === 'action_group');
+                            if (grpInput && fetchedTools[selNet]) {
+                                grpInput.options = Object.keys(fetchedTools[selNet]);
+                            }
+                            const selGrp = grpInput?.value || (fetchedTools[selNet] ? Object.keys(fetchedTools[selNet])[0] : null);
 
-                        // Completely replace generic Payload input with Strict DB Schemas
-                        const selToolName = toolInput?.value || (toolInput?.options && toolInput.options.length > 0 ? toolInput.options[0] : null);
-                        const activeToolDef = selToolName ? fetchedTools[selNet]?.[selGrp]?.find((t: any) => t.name === selToolName) : null;
+                            const toolInput = inputsToRender.find((i: any) => i.key === 'tool_lookup');
+                            if (toolInput && selGrp && fetchedTools[selNet]?.[selGrp]) {
+                                toolInput.type = 'select';
+                                toolInput.options = fetchedTools[selNet][selGrp].map((t: any) => t.name);
+                            }
 
-                        const payloadIdx = inputsToRender.findIndex((i: any) => i.key === 'payload');
-                        if (payloadIdx !== -1) inputsToRender.splice(payloadIdx, 1);
+                            // Completely replace generic Payload input with Strict DB Schemas
+                            const selToolName = toolInput?.value || (toolInput?.options && toolInput.options.length > 0 ? toolInput.options[0] : null);
+                            const activeToolDef = selToolName ? fetchedTools[selNet]?.[selGrp]?.find((t: any) => t.name === selToolName) : null;
 
-                        if (activeToolDef && activeToolDef.schemaDef) {
-                            for (const [key, field] of Object.entries(activeToolDef.schemaDef)) {
-                                inputsToRender.push({
-                                    key,
-                                    label: (field as any).label,
-                                    type: (field as any).type,
-                                    placeholder: (field as any).placeholder || '',
-                                    options: (field as any).options || [],
-                                    value: nodeData.inputs?.find((i: any) => i.key === key)?.value || ''
-                                });
+                            const payloadIdx = inputsToRender.findIndex((i: any) => i.key === 'payload');
+                            if (payloadIdx !== -1) inputsToRender.splice(payloadIdx, 1);
+
+                            if (activeToolDef && activeToolDef.schemaDef) {
+                                for (const [key, field] of Object.entries(activeToolDef.schemaDef)) {
+                                    inputsToRender.push({
+                                        key,
+                                        label: (field as any).label,
+                                        type: (field as any).type,
+                                        placeholder: (field as any).placeholder || '',
+                                        options: (field as any).options || [],
+                                        value: nodeData.inputs?.find((i: any) => i.key === key)?.value || ''
+                                    });
+                                }
                             }
                         }
-                    }
-                    return inputsToRender.filter((i: any) => !['model', 'prompt'].includes(i.key));
-                })().map((input: any) => (
-                    <div key={input.key} className="space-y-2">
-                        <Label htmlFor={input.key}>{input.label}</Label>
-                        <FieldRenderer input={input} handleInputChange={handleInputChange} />
-                        {input.description && <p className="text-xs mt-1">{input.description}</p>}
-                    </div>
-                ))}
-            </div>
+                        return inputsToRender.filter((i: any) => !['model', 'prompt'].includes(i.key));
+                    })().map((input: any) => (
+                        <div key={input.key} className="space-y-2">
+                            <Label htmlFor={input.key}>{input.label}</Label>
+                            <FieldRenderer input={input} handleInputChange={handleInputChange} />
+                            {input.description && <p className="text-xs mt-1">{input.description}</p>}
+                        </div>
+                    ))}
+                </div>
+            )}
 
-            {nodeData.outputs && nodeData.outputs.length > 0 && (
+            {node.type !== 'condition' && nodeData.outputs && nodeData.outputs.length > 0 && (
                 <>
                     <Separator className="my-4" />
                     <div className="space-y-2">

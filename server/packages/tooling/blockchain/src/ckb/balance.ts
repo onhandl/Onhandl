@@ -42,7 +42,7 @@ export async function getCapacities(address: string): Promise<BI> {
 }
 
 // ─── Format Shannon → CKB ──────────────────────────────────────────────────────
-function formatCKB(shannons: BI): string {
+export function formatCKB(shannons: BI): string {
     // 1 CKB = 10^8 Shannons
     const ckb = shannons.toBigInt();
     const whole = ckb / BigInt(10 ** 8);

@@ -32,8 +32,8 @@ export class GeminiProvider implements IAIProvider {
             }
         });
 
-        for await (const chunk of result.stream) {
-            const chunkText = chunk.text();
+        for await (const chunk of result) {
+            const chunkText = chunk.text;
             if (chunkText) yield chunkText;
         }
     }
