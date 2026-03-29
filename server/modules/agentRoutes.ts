@@ -211,7 +211,7 @@ export const agentRoutes: FastifyPluginAsync = async (fastify) => {
                         data: {
                             name: finalCharacter.identity?.name || name,
                             description: agent.description,
-                            role: finalCharacter.identity?.role || 'Omniflow Agent',
+                            role: finalCharacter.identity?.role || 'FlawLess Agent',
                             persona: persona, // Store original persona for reference
                             traits: finalCharacter.character?.traits || [],
                             agentType: agentType,

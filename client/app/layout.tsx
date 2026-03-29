@@ -19,7 +19,7 @@ const fontMono = Roboto_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Omniflow',
+  title: 'FlawLess',
   description: 'Build AI Agents Without Code',
 };
 

@@ -5,7 +5,7 @@ export async function simulateTelegramSendMessage(data: any, inputValues: Record
     const outputs: Record<string, any> = {};
 
     const chatId = inputValues['chatId'] || data.inputs?.find((input: any) => input.key === 'chatId')?.value;
-    const message = inputValues['message'] || data.inputs?.find((input: any) => input.key === 'message')?.value || 'Hello from Omniflow!';
+    const message = inputValues['message'] || data.inputs?.find((input: any) => input.key === 'message')?.value || 'Hello from FlawLess!';
 
     if (!chatId) {
         const errorMsg = 'No Chat ID provided for Telegram message';

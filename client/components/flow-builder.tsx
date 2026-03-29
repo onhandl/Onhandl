@@ -498,7 +498,7 @@ function FlowBuilderContent() {
 
 export default function FlowBuilder() {
   return (
-    <Suspense fallback={<div className="flex h-screen w-screen items-center justify-center bg-card animate-pulse font-bold">Loading Omniflow Sandbox...</div>}>
+    <Suspense fallback={<div className="flex h-screen w-screen items-center justify-center bg-card animate-pulse font-bold">Loading FlawLess Sandbox...</div>}>
       <FlowBuilderContent />
     </Suspense>
   );

@@ -41,7 +41,7 @@ export async function simulateActionNode(data: any, inputValues: Record<string, 
 
             outputs['response'] = simulatedResponse;
             outputs['status'] = 200;
-            outputs['headers'] = { 'content-type': 'application/json', 'x-powered-by': 'Omniflow Simulator' };
+            outputs['headers'] = { 'content-type': 'application/json', 'x-powered-by': 'FlawLess Simulator' };
         } catch (error: any) {
             outputs['response'] = { error: error.message };
             outputs['status'] = 500;

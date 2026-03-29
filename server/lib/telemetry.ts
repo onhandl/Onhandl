@@ -1,7 +1,7 @@
 import { trace, metrics } from '@opentelemetry/api';
 
-const tracer = trace.getTracer('omniflow-orchestrator');
-const meter = metrics.getMeter('omniflow-metrics');
+const tracer = trace.getTracer('FlawLess-orchestrator');
+const meter = metrics.getMeter('FlawLess-metrics');
 
 // Define some basic metrics
 const requestCounter = meter.createCounter('orchestrator_requests_total', {

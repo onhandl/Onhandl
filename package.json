@@ -1,5 +1,5 @@
 {
-  "name": "omniflow-root",
+  "name": "FlawLess-root",
   "private": true,
   "scripts": {
     "dev": "pnpm --filter \"*\" dev",

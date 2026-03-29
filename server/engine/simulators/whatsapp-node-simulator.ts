@@ -5,7 +5,7 @@ export async function simulateWhatsAppSendMessage(data: any, inputValues: Record
     const outputs: Record<string, any> = {};
 
     const phoneNumber = inputValues['phoneNumber'] || data.inputs?.find((input: any) => input.key === 'phoneNumber')?.value;
-    const message = inputValues['message'] || data.inputs?.find((input: any) => input.key === 'message')?.value || 'Hello from Omniflow!';
+    const message = inputValues['message'] || data.inputs?.find((input: any) => input.key === 'message')?.value || 'Hello from FlawLess!';
 
     if (!phoneNumber) {
         const errorMsg = 'No phone number provided for WhatsApp message';

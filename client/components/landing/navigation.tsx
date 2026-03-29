@@ -18,7 +18,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                     <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center mr-2">
                         <span className="text-white font-bold text-xl">OF</span>
                     </div>
-                    <span className="text-xl font-bold">OmniFlow</span>
+                    <span className="text-xl font-bold">FlawLess</span>
                 </a>
                 <div className="hidden md:flex space-x-8">
                     {['Features', 'How It Works', 'Testimonials', 'Pricing', 'FAQ'].map((item) => (

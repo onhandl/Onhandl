@@ -18,7 +18,7 @@ export class AgentEnhancer {
         }
 
         const prompt = `
-You are an expert AI character designer for Omniflow, a decentralized agent platform.
+You are an expert AI character designer for FlawLess, a decentralized agent platform.
 Given an agent name, a summarized persona, and a strict target schema, expand the persona into a comprehensive character profile.
 
 CRITICAL REQUIREMENT:

@@ -40,7 +40,7 @@ const Sidebar = () => {
         {!collapsed && (
           <Link href="/dashboard" className="flex items-center gap-2">
             <Bot className="h-6 w-6" />
-            <span className="font-bold text-xl">Omniflow</span>
+            <span className="font-bold text-xl">FlawLess</span>
           </Link>
         )}
         {collapsed && (

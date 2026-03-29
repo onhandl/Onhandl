@@ -32,7 +32,7 @@ export default function SignupPage() {
             <div className="w-full max-w-md space-y-8 rounded-xl border border-border bg-card p-8 shadow-lg">
                 <div className="text-center">
                     <h2 className="text-3xl font-bold tracking-tight">Create an account</h2>
-                    <p className="mt-2 text-sm text-muted-foreground">Join OmniFlow today</p>
+                    <p className="mt-2 text-sm text-muted-foreground">Join FlawLess today</p>
                 </div>
 
                 {error && <div className="text-destructive text-sm text-center">{error}</div>}

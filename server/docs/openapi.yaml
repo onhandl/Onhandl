@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
-  title: Omniflow Agent API
-  description: API documentation for the Omniflow multi-agent orchestration service.
+  title: FlawLess Agent API
+  description: API documentation for the FlawLess multi-agent orchestration service.
   version: 1.0.0
 servers:
   - url: http://localhost:3001

@@ -38,7 +38,7 @@ export default function WhatsAppConfigModal({ onClose, onSave }: WhatsAppConfigM
 
     // Generate a random verify token if not provided
     const finalVerifyToken =
-      webhookVerifyToken || `omniflow_${Math.random().toString(36).substring(2, 15)}`;
+      webhookVerifyToken || `FlawLess_${Math.random().toString(36).substring(2, 15)}`;
 
     // Save the WhatsApp configuration
     onSave({
@@ -164,8 +164,8 @@ export default function WhatsAppConfigModal({ onClose, onSave }: WhatsAppConfigM
           {connectionStatus && (
             <div
               className={`p-3 rounded-md ${connectionStatus.success
-                  ? 'bg-green-50 border-green-200'
-                  : 'bg-red-50 border-red-200'
+                ? 'bg-green-50 border-green-200'
+                : 'bg-red-50 border-red-200'
                 } border flex items-start gap-2`}
             >
               {connectionStatus.success ? (

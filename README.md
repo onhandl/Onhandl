@@ -1,10 +1,10 @@
-# Omniflow — Product Summary
+# FlawLess — Product Summary
 
 ---
 
 ## 1. Project Overview
 
-**Omniflow** is an AI-native visual workflow automation platform that enables developers and non-technical users to build, deploy, and manage intelligent agents using a drag-and-drop sandbox interface. Agents are enriched with AI-generated personas, equipped with first-class CKB blockchain and Fiber Network tooling, and can be orchestrated to execute complex multi-step workflows entirely off-chain or anchored on-chain.
+**FlawLess** is an AI-native visual workflow automation platform that enables developers and non-technical users to build, deploy, and manage intelligent agents using a drag-and-drop sandbox interface. Agents are enriched with AI-generated personas, equipped with first-class CKB blockchain and Fiber Network tooling, and can be orchestrated to execute complex multi-step workflows entirely off-chain or anchored on-chain.
 
 It sits at the intersection of AI orchestration and decentralised infrastructure, offering a unified interface to chain together LLM actions, blockchain operations, and conventional API calls — all within a single branded flow builder.
 
@@ -14,7 +14,7 @@ It sits at the intersection of AI orchestration and decentralised infrastructure
 
 **Building blockchain-aware AI agents is hard.** Developers need to understand CKB's Cell Model, Fiber's multi-hop payment lifecycle, and how to wire these to LLM inference pipelines — across multiple disconnected tools and protocols.
 
-Omniflow solves this by:
+FlawLess solves this by:
 
 - **Abstracting Blockchain Complexity**: CKB RPC, cell indexing, transaction construction, Fiber channel lifecycle, and Biscuit authentication are pre-built as drag-and-droppable agent nodes with Zod-validated interfaces.
 - **Democratising AI Agents**: Any user can define an agent with a simple persona summary and our AI auto-expands it into a rich character schema (bio, traits, system instructions).
@@ -101,7 +101,7 @@ FIBER_NODE_URL=http://localhost:8227
 | `blockchain.ckb.indexer` | `get_live_cells_by_lock` | Query live cells by lock script |
 | `blockchain.ckb.indexer` | `get_capacity_by_lock` | Aggregate CKB balance for an address |
 | `blockchain.ckb.tx_builder` | `build_transfer_tx` | Deterministically build a CKB transfer transaction |
-| `blockchain.ckb.anchoring` | `anchor_data` | Write Omniflow run receipts / state into Cell data on-chain |
+| `blockchain.ckb.anchoring` | `anchor_data` | Write FlawLess run receipts / state into Cell data on-chain |
 
 ### Fiber Network Tooling
 
@@ -162,7 +162,7 @@ it will look like this http://localhost:3000/sandbox?agentId=69c4e884596fa8e3e3c
 - Native Fiber Payment Rails: Agents can autonomously open/close Fiber channels and route micro-payments as part of their workflow logic.
 - Security & Consent: Critical blockchain operations (like large transfers or channel settlements) require explicit user consent via the sandbox agent chat interaction, ensuring safety without sacrificing automation.
 - Biscuit-based authentication for secure Fiber RPC endpoints.
-- On-chain data anchoring for Omniflow state run receipts.
+- On-chain data anchoring for FlawLess state run receipts.
 
 ### UX & Dashboard
 - Rich dashboard displaying all workspace agents with AI-generated descriptions.
@@ -174,36 +174,36 @@ it will look like this http://localhost:3000/sandbox?agentId=69c4e884596fa8e3e3c
 ## 7. Future Functionality
 
 - **Multi-Agent Orchestration**: Connect multiple agents as sub-agents within a parent workflow graph, enabling complex delegation trees.
-- **Omniflow Runtime**: A lightweight headless execution runtime for deploying agent graphs to production without the sandbox UI.
+- **FlawLess Runtime**: A lightweight headless execution runtime for deploying agent graphs to production without the sandbox UI.
 - **Token-Gated Agents**: Integrate CKB cell ownership as agent access control — only wallets owning specific cells can invoke certain agents.
 - **Multi-Chain Expansion**: Extend the blockchain tooling namespace to support EVM chains (Base, Ethereum) and Solana with the same drag-and-drop abstraction.
 - **Telegram / Webhook Triggers**: Trigger agent executions directly from Telegram commands or inbound webhooks, enabling always-on bots.
 - **Collaborative Workspaces**: Multi-member workspaces with role-based access, shared agents, and team execution history.
-- **Agent Marketplace**: A curated directory where developers can publish and monetise agent workflows as reusable Omniflow packages.
+- **Agent Marketplace**: A curated directory where developers can publish and monetise agent workflows as reusable FlawLess packages.
 - **On-Chain Execution Receipts**: Automatically anchor agent run summaries (inputs, outputs, timestamps) into CKB Cell Data for auditability and verifiability.
 
 ---
 
 ## 8. Product Viability
 
-**Yes — Omniflow has a clear path to becoming a viable product and infrastructure component.**
+**Yes — FlawLess has a clear path to becoming a viable product and infrastructure component.**
 
 ### As a Product
-The core value proposition is a **low-code AI agent builder for blockchain developers**. This is currently an underserved segment: existing tools like n8n or Zapier have no native blockchain primitives, and CKB-specific developer tooling is largely code-only. Omniflow bridges this gap.
+The core value proposition is a **low-code AI agent builder for blockchain developers**. This is currently an underserved segment: existing tools like n8n or Zapier have no native blockchain primitives, and CKB-specific developer tooling is largely code-only. FlawLess bridges this gap.
 
 The AI-enhanced persona system makes agent creation accessible to non-expert users, while the typed CKB/Fiber tooling layer provides the rigour expert blockchain developers demand.
 
 Monetisation paths include:
 - **Hosted SaaS tiers** (free for personal use, pay-per-seat for teams).
 - **Premium Templates + Marketplace** (revenue share with template creators).
-- **API Access** for organizations embedding the Omniflow Runtime in their own products.
+- **API Access** for organizations embedding the FlawLess Runtime in their own products.
 
 ### As Infrastructure
-The `packages/tooling/blockchain` module is designed to be **modular and composable**. It can be published as a standalone npm package (`@omniflow/ckb-tools`), allowing any AI agent framework (LangChain, AutoGen, etc.) to consume structured, validated CKB and Fiber tools without reinventing the wheel.
+The `packages/tooling/blockchain` module is designed to be **modular and composable**. It can be published as a standalone npm package (`@FlawLess/ckb-tools`), allowing any AI agent framework (LangChain, AutoGen, etc.) to consume structured, validated CKB and Fiber tools without reinventing the wheel.
 
 The `BlockchainTool<TInput, TOutput>` interface is MCP-compatible (Model Context Protocol), meaning these tools could be exposed as an MCP server — making them instantly usable across any AI coding assistant or agent runtime that supports the standard.
 
-The combination of visual workflow authoring, first-class CKB/Fiber integration, and AI character expansion positions Omniflow as the **de-facto developer experience layer for the Nervos CKB ecosystem**.
+The combination of visual workflow authoring, first-class CKB/Fiber integration, and AI character expansion positions FlawLess as the **de-facto developer experience layer for the Nervos CKB ecosystem**.
 
 ---
 
@@ -220,8 +220,8 @@ The combination of visual workflow authoring, first-class CKB/Fiber integration,
 Clone the repository and install dependencies:
 
 ```bash
-git clone https://github.com/FadhilMulinya/Omniflow.git
-cd Omniflow
+git clone https://github.com/FadhilMulinya/FlawLess.git
+cd FlawLess
 pnpm install
 ```
 

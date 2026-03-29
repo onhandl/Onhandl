@@ -10,7 +10,7 @@ export const Footer: React.FC = () => {
                             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center mr-2">
                                 <span className="text-white font-bold text-xl">OF</span>
                             </div>
-                            <span className="text-xl font-bold">OmniFlow</span>
+                            <span className="text-xl font-bold">FlawLess</span>
                         </a>
                         <p className="text-black-400 mb-4">
                             Build powerful AI agents without code. Automate your workflows and save hours of
@@ -45,7 +45,7 @@ export const Footer: React.FC = () => {
                     </div>
                 </div>
                 <div className="border-t border-gray-800 mt-12 pt-8 text-center text-black-500 text-sm">
-                    <p>© {new Date().getFullYear()} OmniFlow. All rights reserved.</p>
+                    <p>© {new Date().getFullYear()} FlawLess. All rights reserved.</p>
                 </div>
             </div>
         </footer>
