@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/buttons/button';
 import { Panel } from '@xyflow/react';
 import { Badge } from '@/components/ui/feedback/badge';
 import { createPortal } from 'react-dom';
 import {
     Plus, Save, Upload, Key, Share2, Rocket, MessageSquare,
-    Loader2, MoreVertical, Play, Square,
+    Loader2, MoreVertical, Play, Square, ExternalLink,
 } from 'lucide-react';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
 
@@ -72,6 +72,7 @@ function DesktopToolbar(props: FlowToolbarProps) {
             )}
             <Button variant="outline" size="sm" className="bg-purple-500" onClick={onApiKeys}>
                 <Key className="h-4 w-4 mr-2" /> API Keys
+                <ExternalLink className="h-3 w-3 ml-1 opacity-60" />
             </Button>
             <Button variant="outline" size="sm" className="bg-purple-500" onClick={onAddNode}>
                 <Plus className="h-4 w-4 mr-2" /> Add Node
@@ -101,10 +102,13 @@ function MobileToolbar(props: FlowToolbarProps) {
         onApiKeys, onAddNode, onSave, onLoad, onTemplates,
         onToggleSimulation, onPublish, onChat, onExport } = props;
     const [open, setOpen] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => { setMounted(true); }, []);
 
     const close = (fn: () => void) => () => { fn(); setOpen(false); };
 
-    if (typeof document === 'undefined') return null;
+    if (!mounted) return null;
 
     return createPortal(
         <div className="md:hidden">
@@ -173,6 +177,7 @@ function MobileToolbar(props: FlowToolbarProps) {
                         </button>
                         <button onClick={close(onApiKeys)} className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm text-foreground hover:bg-accent/40 rounded-lg transition-colors">
                             <Key className="h-4 w-4 text-muted-foreground" /> API Keys
+                            <ExternalLink className="h-3 w-3 ml-auto text-muted-foreground/50" />
                         </button>
                     </div>
                 </div>

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, Plus, X, Loader2, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/buttons/button';
 import { apiFetch } from '@/lib/api-client';
-import { PublicNav } from '@/components/public-nav';
+import { Navigation } from '@/components/landing/navigation';
 
 export default function NewPostPage() {
   const router = useRouter();
@@ -60,7 +60,7 @@ export default function NewPostPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <PublicNav />
+      <Navigation />
 
       <main className="max-w-3xl mx-auto px-6 pt-28 pb-16 space-y-8">
         {/* Back */}

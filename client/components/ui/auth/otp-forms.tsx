@@ -52,14 +52,13 @@ export function OtpVerifyForm({ email, onSubmit, onBack, error, loading, purpose
 
       {error && <div className="rounded-md bg-destructive/10 p-3 text-center text-sm text-destructive border border-destructive/20">{error}</div>}
 
-      <div className="flex gap-2 justify-center" onPaste={handlePaste}>
+      <div className="flex gap-1.5 sm:gap-2 justify-center" onPaste={handlePaste}>
         {digits.map((d, i) => (
           <input key={i} ref={(el) => { inputsRef.current[i] = el; }}
             type="text" inputMode="numeric" maxLength={1} value={d}
             onChange={(e) => handleChange(i, e.target.value)}
             onKeyDown={(e) => handleKey(i, e)}
-            className="w-11 text-center text-xl font-bold rounded-lg border border-input bg-background shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-all"
-            style={{ height: "52px" }} />
+            className="w-10 sm:w-11 h-12 sm:h-[52px] text-center text-lg sm:text-xl font-bold rounded-lg border border-input bg-background shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-all" />
         ))}
       </div>
 

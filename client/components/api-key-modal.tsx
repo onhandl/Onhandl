@@ -1,88 +1,74 @@
 'use client';
 
-import { useState } from 'react';
-import { X, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { X, KeyRound, CheckCircle2, AlertCircle, ExternalLink, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { aiApi } from '@/api';
-import { Button, Input, Label, Tabs, TabsContent, TabsList, TabsTrigger, useToast } from '@/components/ui';
+import { apiFetch } from '@/lib/api-client';
 
 interface ApiKeyModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (provider: string, apiKey: string) => void;
+  // kept for backward-compat with flow-builder, but no longer used
+  onSave?: (provider: string, apiKey: string) => void;
 }
 
-export default function ApiKeyModal({ isOpen, onClose, onSave }: ApiKeyModalProps) {
-  const [activeTab, setActiveTab] = useState('gemini');
-  const [geminiKey, setGeminiKey] = useState('');
-  const [openaiKey, setOpenaiKey] = useState('');
-  const [anthropicKey, setAnthropicKey] = useState('');
-  const [testingConnection, setTestingConnection] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<null | {
-    success: boolean;
-    message: string;
-  }>(null);
-  const { toast } = useToast();
+interface KeyStatus {
+  hasGemini: boolean;
+  hasOpenai: boolean;
+  hasOllama: boolean;
+  openaiBaseUrl?: string;
+  openaiModel?: string;
+  ollamaBaseUrl?: string;
+  ollamaModel?: string;
+}
 
-  const handleSave = () => {
-    let key = '';
+const PROVIDERS = [
+  {
+    id: 'gemini',
+    label: 'Google Gemini',
+    description: 'Used for persona enhancement and agent AI calls.',
+    statusKey: 'hasGemini' as keyof KeyStatus,
+  },
+  {
+    id: 'openai',
+    label: 'OpenAI',
+    description: 'Compatible with any OpenAI-format provider or proxy.',
+    statusKey: 'hasOpenai' as keyof KeyStatus,
+    extraFields: [
+      { key: 'openaiBaseUrl' as keyof KeyStatus, label: 'Base URL' },
+      { key: 'openaiModel'   as keyof KeyStatus, label: 'Model'    },
+    ],
+  },
+  {
+    id: 'ollama',
+    label: 'Ollama (Local)',
+    description: 'Local LLM server — no API key required.',
+    statusKey: 'hasOllama' as keyof KeyStatus,
+    extraFields: [
+      { key: 'ollamaBaseUrl' as keyof KeyStatus, label: 'Base URL' },
+      { key: 'ollamaModel'   as keyof KeyStatus, label: 'Model'    },
+    ],
+  },
+];
 
-    switch (activeTab) {
-      case 'gemini':
-        key = geminiKey;
-        break;
-      case 'openai':
-        key = openaiKey;
-        break;
-      case 'anthropic':
-        key = anthropicKey;
-        break;
-    }
+export default function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
+  const router = useRouter();
+  const [status, setStatus] = useState<KeyStatus | null>(null);
+  const [loading, setLoading] = useState(false);
 
-    if (!key) {
-      toast({
-        title: 'API Key Required',
-        description: 'Please enter an API key before saving.',
-        variant: 'destructive',
-      });
-      return;
-    }
+  useEffect(() => {
+    if (!isOpen) return;
+    setLoading(true);
+    apiFetch('/auth/api-keys')
+      .then(setStatus)
+      .catch(() => setStatus(null))
+      .finally(() => setLoading(false));
+  }, [isOpen]);
 
-    onSave(activeTab, key);
-
-    toast({
-      title: 'API Key Saved',
-      description: `Your ${activeTab.toUpperCase()} API key has been saved.`,
-    });
-
+  const goToSettings = () => {
     onClose();
-  };
-
-  const testConnection = async () => {
-    setTestingConnection(true);
-    setConnectionStatus(null);
-
-    try {
-      const currentKey = activeTab === 'gemini' ? geminiKey : activeTab === 'openai' ? openaiKey : anthropicKey;
-
-      if (!currentKey) {
-        throw new Error(`Please enter an API key for ${activeTab} first`);
-      }
-
-      const data = await aiApi.testConnection(activeTab, currentKey);
-
-      setConnectionStatus({
-        success: true,
-        message: data.message,
-      });
-    } catch (error: any) {
-      setConnectionStatus({
-        success: false,
-        message: error.message,
-      });
-    } finally {
-      setTestingConnection(false);
-    }
+    router.push('/settings');
   };
 
   return (
@@ -90,141 +76,94 @@ export default function ApiKeyModal({ isOpen, onClose, onSave }: ApiKeyModalProp
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="w-full max-w-md bg-card rounded-xl shadow-2xl border border-border overflow-hidden"
+            initial={{ opacity: 0, scale: 0.95, y: 16 }}
+            animate={{ opacity: 1, scale: 1,    y: 0  }}
+            exit={{    opacity: 0, scale: 0.95, y: 16 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full max-w-md bg-card rounded-2xl shadow-2xl border border-border overflow-hidden"
           >
-            <div className="flex justify-between items-center p-6 border-b border-border bg-muted/30">
-              <h3 className="font-bold text-xl">Configure AI API Keys</h3>
-              <Button variant="ghost" size="icon" onClick={onClose}>
+            {/* Header */}
+            <div className="flex justify-between items-center px-6 py-5 border-b border-border/60 bg-muted/20">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <KeyRound className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base leading-tight">AI Provider Keys</h3>
+                  <p className="text-xs text-muted-foreground">Managed in your profile settings</p>
+                </div>
+              </div>
+              <button
+                onClick={onClose}
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
+              >
                 <X className="h-4 w-4" />
-              </Button>
+              </button>
             </div>
 
-            <Tabs defaultValue="gemini" value={activeTab} onValueChange={setActiveTab} className="p-4">
-              <TabsList className="grid grid-cols-3 mb-4">
-                <TabsTrigger value="gemini">Gemini</TabsTrigger>
-                <TabsTrigger value="openai">OpenAI</TabsTrigger>
-                <TabsTrigger value="anthropic">Anthropic</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="gemini" className="space-y-4">
-                <div>
-                  <Label htmlFor="gemini-key">Gemini API Key</Label>
-                  <Input
-                    id="gemini-key"
-                    type="password"
-                    placeholder="Enter your Gemini API key"
-                    value={geminiKey}
-                    onChange={(e) => {
-                      setGeminiKey(e.target.value);
-                      setConnectionStatus(null);
-                    }}
-                  />
+            {/* Body */}
+            <div className="px-6 py-5 space-y-3">
+              {loading ? (
+                <div className="flex items-center justify-center py-8 gap-2 text-muted-foreground">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="text-sm">Loading key status…</span>
                 </div>
+              ) : !status ? (
+                <p className="text-sm text-muted-foreground text-center py-6">
+                  Could not load key status. Go to Settings to configure.
+                </p>
+              ) : (
+                PROVIDERS.map((p) => {
+                  const saved = !!status[p.statusKey];
+                  return (
+                    <div key={p.id} className="rounded-xl border border-border/60 bg-background/60 p-4 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-semibold text-foreground">{p.label}</span>
+                        <span className={`flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full ${
+                          saved
+                            ? 'bg-emerald-500/10 text-emerald-500'
+                            : 'bg-muted/60 text-muted-foreground'
+                        }`}>
+                          {saved
+                            ? <><CheckCircle2 className="w-3 h-3" /> Configured</>
+                            : <><AlertCircle  className="w-3 h-3" /> Not set</>}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{p.description}</p>
 
-                <div className="flex justify-end">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={testConnection}
-                    disabled={testingConnection || !geminiKey}
-                  >
-                    {testingConnection ? 'Testing...' : 'Test Connection'}
-                  </Button>
-                </div>
+                      {/* Non-secret config values */}
+                      {p.extraFields?.map(({ key, label }) => {
+                        const val = status[key] as string | undefined;
+                        return val ? (
+                          <div key={String(key)} className="flex items-center gap-2 text-xs">
+                            <span className="text-muted-foreground w-16 shrink-0">{label}:</span>
+                            <span className="font-mono text-foreground/80 truncate">{val}</span>
+                          </div>
+                        ) : null;
+                      })}
 
-                {connectionStatus && activeTab === 'gemini' && (
-                  <div className={`p-4 rounded-lg flex items-start gap-3 border ${connectionStatus.success
-                    ? 'bg-primary/5 border-primary/20 text-foreground'
-                    : 'bg-destructive/5 border-destructive/20 text-destructive'
-                    }`}>
-                    {connectionStatus.success ? (
-                      <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
-                    ) : (
-                      <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
-                    )}
-                    <div className="text-sm font-medium">{connectionStatus.message}</div>
-                  </div>
-                )}
-              </TabsContent>
+                      {/* Secret key placeholder */}
+                      {saved && (
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="text-muted-foreground w-16 shrink-0">API Key:</span>
+                          <span className="font-mono text-foreground/50 tracking-widest">••••••••••••</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
 
-              <TabsContent value="openai" className="space-y-4">
-                <div>
-                  <Label htmlFor="openai-key">OpenAI API Key</Label>
-                  <Input
-                    id="openai-key"
-                    type="password"
-                    placeholder="sk-..."
-                    value={openaiKey}
-                    onChange={(e) => {
-                      setOpenaiKey(e.target.value);
-                      setConnectionStatus(null);
-                    }}
-                  />
-                </div>
-
-                <div className="flex justify-end">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={testConnection}
-                    disabled={testingConnection || !openaiKey}
-                  >
-                    {testingConnection ? 'Testing...' : 'Test Connection'}
-                  </Button>
-                </div>
-
-                <div className="p-4 rounded-lg bg-muted/50 border border-border">
-                  <p className="text-xs">
-                    <strong>Note:</strong> Your OpenAI key is stored locally in your browser and used to execute your agents.
-                    If no key is provided, the agent will attempt to use the system's default model (if available).
-                  </p>
-                </div>
-
-                {connectionStatus && activeTab === 'openai' && (
-                  <div className={`p-4 rounded-lg flex items-start gap-3 border ${connectionStatus.success
-                    ? 'bg-primary/5 border-primary/20 text-foreground'
-                    : 'bg-destructive/5 border-destructive/20 text-destructive'
-                    }`}>
-                    {connectionStatus.success ? (
-                      <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
-                    ) : (
-                      <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
-                    )}
-                    <div className="text-sm font-medium">{connectionStatus.message}</div>
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="anthropic" className="space-y-4">
-                <div>
-                  <Label htmlFor="anthropic-key">Anthropic API Key</Label>
-                  <Input
-                    id="anthropic-key"
-                    type="password"
-                    placeholder="sk-ant-..."
-                    value={anthropicKey}
-                    onChange={(e) => {
-                      setAnthropicKey(e.target.value);
-                      setConnectionStatus(null);
-                    }}
-                  />
-                </div>
-                <div className="p-4 rounded-lg bg-muted/50 border border-border">
-                  <p className="text-sm font-medium">Anthropic integration coming soon!</p>
-                </div>
-              </TabsContent>
-            </Tabs>
-
-            <div className="flex justify-end p-6 border-t border-border bg-muted/30 gap-3">
-              <Button variant="outline" onClick={onClose} className="rounded-full px-6">
-                Cancel
-              </Button>
-              <Button onClick={handleSave} className="rounded-full px-8 shadow-lg hover:shadow-primary/20">
-                Save API Key
-              </Button>
+            {/* Footer */}
+            <div className="px-6 pb-5">
+              <button
+                onClick={goToSettings}
+                className="w-full flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground text-sm font-semibold rounded-xl hover:bg-primary/90 transition-colors shadow-md shadow-primary/20"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Edit Keys in Settings
+              </button>
             </div>
           </motion.div>
         </div>

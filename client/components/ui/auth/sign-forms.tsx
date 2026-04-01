@@ -32,15 +32,13 @@ export function SignInForm({ onSubmit, onForgotPassword, error, loading }: SignI
           <Input id="email" name="email" type="text" placeholder="m@example.com" required autoComplete="email" />
         </div>
         <div className="grid gap-2">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="password-signin">Password</Label>
-            {onForgotPassword && (
-              <button type="button" onClick={onForgotPassword} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-                Forgot password?
-              </button>
-            )}
-          </div>
+          <Label htmlFor="password-signin">Password</Label>
           <PasswordInput id="password-signin" name="password" required autoComplete="current-password" placeholder="Password" />
+          {onForgotPassword && (
+            <button type="button" onClick={onForgotPassword} className="text-xs text-muted-foreground hover:text-foreground transition-colors text-right w-full">
+              Forgot password?
+            </button>
+          )}
         </div>
         <Button type="submit" variant="outline" className="mt-2" disabled={loading}>
           {loading ? "Signing in…" : "Sign In"}
@@ -102,7 +100,7 @@ interface AuthFormContainerProps {
 
 function AuthFormContainer({ isSignIn, onToggle, onSignIn, onSignUp, onForgotPassword, error, loading }: AuthFormContainerProps) {
   return (
-    <div className="mx-auto grid w-[350px] gap-2">
+    <div className="mx-auto grid w-full gap-2">
       {isSignIn
         ? <SignInForm onSubmit={onSignIn} onForgotPassword={onForgotPassword} error={error} loading={loading} />
         : <SignUpForm onSubmit={onSignUp} error={error} loading={loading} />
@@ -130,9 +128,9 @@ export function AuthUI({ defaultSignIn = true, onSignIn, onSignUp, onForgotPassw
   const [isSignIn, setIsSignIn] = useState(defaultSignIn);
 
   return (
-    <div className="w-full min-h-screen flex items-center justify-center bg-background p-6">
+    <div className="w-full min-h-screen flex items-center justify-center bg-background px-4 py-8">
       <style>{`input[type="password"]::-ms-reveal, input[type="password"]::-ms-clear { display: none; }`}</style>
-      <div className="w-full max-w-[400px] rounded-2xl border border-border/60 bg-card shadow-xl shadow-black/5 p-8">
+      <div className="w-full max-w-[400px] rounded-2xl border border-border/60 bg-card shadow-xl shadow-black/5 p-5 sm:p-8">
         <div className="flex items-center gap-2.5 mb-8">
           <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" fill="white"/></svg>

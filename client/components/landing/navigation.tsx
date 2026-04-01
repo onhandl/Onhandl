@@ -7,18 +7,22 @@ import { Menu, X, Zap, LayoutDashboard } from 'lucide-react';
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '') + '/api';
 
 interface NavigationProps {
-    isMobileMenuOpen: boolean;
-    setIsMobileMenuOpen: (open: boolean) => void;
-    handleAnchorClick: (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => void;
+    isMobileMenuOpen?: boolean;
+    setIsMobileMenuOpen?: (open: boolean) => void;
+    handleAnchorClick?: (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => void;
 }
 
 const navLinks = ['Features', 'How It Works', 'Pricing', 'FAQ'];
 
 export const Navigation: React.FC<NavigationProps> = ({
-    isMobileMenuOpen,
-    setIsMobileMenuOpen,
+    isMobileMenuOpen: externalOpen,
+    setIsMobileMenuOpen: externalSetOpen,
     handleAnchorClick,
 }) => {
+    const [internalOpen, setInternalOpen] = useState(false);
+    const isMobileMenuOpen = externalOpen ?? internalOpen;
+    const setIsMobileMenuOpen = externalSetOpen ?? setInternalOpen;
+
     const [scrolled, setScrolled] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
@@ -34,6 +38,13 @@ export const Navigation: React.FC<NavigationProps> = ({
             .catch(() => setIsAuthenticated(false));
     }, []);
 
+    const onAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+        if (handleAnchorClick) {
+            handleAnchorClick(e, targetId);
+        }
+        // If no handler provided (standalone page), just let the href navigate normally
+    };
+
     return (
         <motion.nav
             initial={{ y: -80, opacity: 0 }}
@@ -47,7 +58,7 @@ export const Navigation: React.FC<NavigationProps> = ({
         >
             <div className="max-w-7xl mx-auto px-5 py-3 flex justify-between items-center">
                 {/* Logo */}
-                <a href="#" className="flex items-center gap-2.5 group">
+                <a href="/" className="flex items-center gap-2.5 group">
                     <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-md shadow-primary/30 group-hover:shadow-lg group-hover:shadow-primary/40 transition-shadow duration-200">
                         <Zap className="w-4 h-4 text-white fill-white" />
                     </div>
@@ -59,9 +70,9 @@ export const Navigation: React.FC<NavigationProps> = ({
                     {navLinks.map((item) => (
                         <a
                             key={item}
-                            href={`#${item.toLowerCase().replace(/ /g, '-')}`}
+                            href={`/#${item.toLowerCase().replace(/ /g, '-')}`}
                             className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground rounded-xl hover:bg-accent/40 transition-all duration-200 cursor-pointer"
-                            onClick={(e) => handleAnchorClick(e, `#${item.toLowerCase().replace(/ /g, '-')}`)}
+                            onClick={(e) => onAnchorClick(e, `#${item.toLowerCase().replace(/ /g, '-')}`)}
                         >
                             {item}
                         </a>
@@ -83,7 +94,6 @@ export const Navigation: React.FC<NavigationProps> = ({
                 {/* CTA — swaps based on auth state */}
                 <div className="hidden md:flex items-center gap-3">
                     {isAuthenticated === null ? (
-                        /* Loading — invisible placeholder to avoid layout shift */
                         <div className="w-32 h-9" />
                     ) : isAuthenticated ? (
                         <a
@@ -135,10 +145,10 @@ export const Navigation: React.FC<NavigationProps> = ({
                             {navLinks.map((item) => (
                                 <a
                                     key={item}
-                                    href={`#${item.toLowerCase().replace(/ /g, '-')}`}
+                                    href={`/#${item.toLowerCase().replace(/ /g, '-')}`}
                                     className="px-4 py-3 text-sm font-medium rounded-xl hover:bg-accent/40 transition-colors cursor-pointer"
                                     onClick={(e) => {
-                                        handleAnchorClick(e, `#${item.toLowerCase().replace(/ /g, '-')}`);
+                                        onAnchorClick(e, `#${item.toLowerCase().replace(/ /g, '-')}`);
                                         setIsMobileMenuOpen(false);
                                     }}
                                 >

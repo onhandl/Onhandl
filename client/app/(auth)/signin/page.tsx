@@ -92,8 +92,8 @@ export default function SigninPage() {
     };
 
     const wrapper = (children: React.ReactNode) => (
-        <div className="w-full min-h-screen flex items-center justify-center p-6 bg-background">
-            <div className="w-full max-w-[350px]">{children}</div>
+        <div className="w-full min-h-screen flex items-center justify-center px-4 py-8 bg-background">
+            <div className="w-full max-w-[400px] rounded-2xl border border-border/60 bg-card shadow-xl shadow-black/5 p-5 sm:p-8">{children}</div>
         </div>
     );
 

@@ -150,7 +150,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
             .select('username email name whatsapp telegramUsername avatarUrl bio tokens plan planExpiry notifications savedPaymentMethods apiKeys profileViews isAdmin createdAt updatedAt')
             .lean();
         if (!user) return reply.code(404).send({ error: 'User not found' });
-        return reply.send(user);
+        return reply.send({ avatarUrl: '', ...user });
     });
 
     // ─── Get avatar URL (lightweight) ────────────────────────────────────────

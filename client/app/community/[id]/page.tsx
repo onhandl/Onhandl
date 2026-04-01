@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Calendar, User, ArrowLeft, Tag, Zap } from 'lucide-react';
-import { PublicNav } from '@/components/public-nav';
+import { Navigation } from '@/components/landing/navigation';
 
 const API = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '') + '/api';
 
@@ -22,7 +22,7 @@ export default async function CommunityPostPage({ params }: { params: Promise<{ 
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <PublicNav />
+      <Navigation />
 
       <main className="max-w-3xl mx-auto px-6 pt-28 pb-16">
         <Link

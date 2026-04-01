@@ -14,6 +14,8 @@ import { simulateCryptoTrade } from './simulators/crypto/trade-simulator';
 import { simulateBlockchainNode } from './simulators/blockchain-node-simulator';
 import { enhancedLog, timestamp } from './simulators/base';
 import { executionEmitter } from '../services/ExecutionEmitter';
+import { User } from '../models/User';
+import { tokensForExecution, getNodeLimit, PLANS, PlanId } from '../lib/tokens';
 
 interface SaveQueue {
     [executionId: string]: Promise<any>;
@@ -56,6 +58,39 @@ export class FlowEngine {
 
         const nodeDocs = await AgentNode.find({ agentId: agent._id });
         const edgeDocs = await AgentEdge.find({ agentId: agent._id });
+
+        // ── Token & node-limit enforcement ────────────────────────────────────
+        const connectedNodeIds = new Set<string>();
+        edgeDocs.forEach(e => { connectedNodeIds.add(e.source); connectedNodeIds.add(e.target); });
+        const connectedCount = connectedNodeIds.size;
+
+        const user = execution.triggeredBy ? await User.findById(execution.triggeredBy) : null;
+        if (user) {
+            const planId = (user.plan ?? 'free') as PlanId;
+            const nodeLimit = getNodeLimit(planId);
+
+            if (nodeLimit !== -1 && connectedCount > nodeLimit) {
+                execution.status = 'failed';
+                execution.error = `Node limit exceeded: your ${PLANS[planId]?.name ?? planId} plan allows up to ${nodeLimit} connected nodes. This agent has ${connectedCount}. Upgrade to run larger flows.`;
+                await execution.save();
+                executionEmitter.emit(`execution-${executionId}`, { status: 'failed', error: execution.error });
+                return;
+            }
+
+            const cost = tokensForExecution(connectedCount);
+            if (user.tokens < cost) {
+                execution.status = 'failed';
+                execution.error = `Insufficient tokens: this execution requires ${cost} tokens (${connectedCount} nodes × 50) but you only have ${user.tokens}. Top up or upgrade your plan.`;
+                await execution.save();
+                executionEmitter.emit(`execution-${executionId}`, { status: 'failed', error: execution.error });
+                return;
+            }
+
+            // Deduct upfront
+            await User.findByIdAndUpdate(user._id, { $inc: { tokens: -cost } });
+            console.log(`[FlowEngine] 🪙 Deducted ${cost} tokens from user ${user._id} (${connectedCount} nodes)`);
+        }
+        // ─────────────────────────────────────────────────────────────────────
 
         // Map database nodes back to the format the engine expects
         const nodes = nodeDocs.map((n: IAgentNode) => ({

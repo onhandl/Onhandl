@@ -2,12 +2,12 @@
  * Token System — FlawLess Platform
  *
  * Tokens are the internal currency for AI operations.
- * Each LLM call consumes tokens based on provider, model, and operation type.
+ * Each node execution consumes 50 tokens. Each LLM call also deducts tokens.
  */
 
 // ── Plan Definitions ──────────────────────────────────────────────────────────
 
-export type PlanId = 'free' | 'starter' | 'pro' | 'unlimited';
+export type PlanId = 'free' | 'starter' | 'pro' | 'max' | 'enterprise' | 'unlimited';
 export type BillingCycle = 'monthly' | 'quarterly' | 'yearly';
 
 export interface Plan {
@@ -15,6 +15,7 @@ export interface Plan {
     name: string;
     monthlyPrice: number;       // USD base price (monthly)
     agentLimit: number;         // max agents (-1 = unlimited)
+    nodeLimit: number;          // max connected nodes per agent (-1 = unlimited)
     canDelete: boolean;
     canReEdit: boolean;
     tokenRefillMonthly: number; // tokens granted each month
@@ -27,11 +28,14 @@ export const PLANS: Record<PlanId, Plan> = {
         name: 'Free',
         monthlyPrice: 0,
         agentLimit: 3,
+        nodeLimit: 5,
         canDelete: false,
         canReEdit: false,
         tokenRefillMonthly: 500,
         features: [
             'Up to 3 agents',
+            'Max 5 nodes per agent',
+            '50 tokens per node execution',
             '500 tokens / month',
             'Community support',
             'Basic templates',
@@ -42,11 +46,14 @@ export const PLANS: Record<PlanId, Plan> = {
         name: 'Starter',
         monthlyPrice: 8,
         agentLimit: 10,
+        nodeLimit: 20,
         canDelete: true,
         canReEdit: true,
         tokenRefillMonthly: 5_000,
         features: [
             'Up to 10 agents',
+            'Max 20 nodes per agent',
+            '50 tokens per node execution',
             '5,000 tokens / month',
             'Email support',
             'All templates',
@@ -58,11 +65,14 @@ export const PLANS: Record<PlanId, Plan> = {
         name: 'Pro',
         monthlyPrice: 16,
         agentLimit: 100,
+        nodeLimit: 50,
         canDelete: true,
         canReEdit: true,
         tokenRefillMonthly: 25_000,
         features: [
             'Up to 100 agents',
+            'Max 50 nodes per agent',
+            '50 tokens per node execution',
             '25,000 tokens / month',
             'Priority support',
             'Custom personas',
@@ -70,21 +80,61 @@ export const PLANS: Record<PlanId, Plan> = {
             'Embed & PWA export',
         ],
     },
-    unlimited: {
-        id: 'unlimited',
-        name: 'Unlimited',
+    max: {
+        id: 'max',
+        name: 'Max',
         monthlyPrice: 30,
         agentLimit: -1,
+        nodeLimit: -1,
         canDelete: true,
         canReEdit: true,
         tokenRefillMonthly: 100_000,
         features: [
             'Unlimited agents',
+            'Unlimited nodes per agent',
+            '50 tokens per node execution',
             '100,000 tokens / month',
             'Dedicated support',
             'White-label embeds',
             'Revenue dashboard',
             'Custom billing',
+        ],
+    },
+    enterprise: {
+        id: 'enterprise',
+        name: 'Enterprise',
+        monthlyPrice: 0, // custom pricing
+        agentLimit: -1,
+        nodeLimit: -1,
+        canDelete: true,
+        canReEdit: true,
+        tokenRefillMonthly: -1, // custom
+        features: [
+            'Unlimited agents',
+            'Unlimited nodes per agent',
+            'Custom token allowance',
+            'SLA support',
+            'SSO / SAML',
+            'Custom integrations',
+            'Dedicated instance',
+        ],
+    },
+    // kept for backward compat with existing DB records
+    unlimited: {
+        id: 'unlimited',
+        name: 'Unlimited',
+        monthlyPrice: 30,
+        agentLimit: -1,
+        nodeLimit: -1,
+        canDelete: true,
+        canReEdit: true,
+        tokenRefillMonthly: 100_000,
+        features: [
+            'Unlimited agents',
+            'Unlimited nodes per agent',
+            '100,000 tokens / month',
+            'Dedicated support',
+            'Revenue dashboard',
         ],
     },
 };
@@ -99,12 +149,11 @@ export const BILLING_DISCOUNTS: Record<BillingCycle, number> = {
 
 /**
  * Calculate final price for a plan + billing cycle.
- * Returns the total amount charged at the start of each period.
  */
 export function calculatePrice(planId: PlanId, cycle: BillingCycle): {
-    unitPrice: number;   // price per month after discount
-    totalCharged: number; // amount charged per billing period
-    discount: number;    // fraction (0.10 = 10%)
+    unitPrice: number;
+    totalCharged: number;
+    discount: number;
     months: number;
 } {
     const plan = PLANS[planId];
@@ -117,9 +166,11 @@ export function calculatePrice(planId: PlanId, cycle: BillingCycle): {
 
 // ── Token Costs ───────────────────────────────────────────────────────────────
 
-/** How many platform tokens one LLM token costs (approximate). */
+/** Platform token costs per operation */
 export const TOKEN_COSTS: Record<string, number> = {
-    // Character generation (one-off, expensive)
+    // Per connected node executed in a flow run
+    node_execution: 50,
+    // Character generation (one-off)
     enhance_persona: 50,
     // Per agent query
     agent_query: 5,
@@ -131,13 +182,25 @@ export const TOKEN_COSTS: Record<string, number> = {
     export_pwa: 5,
 };
 
+/** Tokens deducted for executing a flow with N connected nodes */
+export function tokensForExecution(nodeCount: number): number {
+    return nodeCount * TOKEN_COSTS.node_execution;
+}
+
 /** New-user welcome bonus */
 export const WELCOME_TOKENS = 1_000;
 
-/**
- * Deduct tokens from a user balance.
- * Returns false if the user doesn't have enough tokens.
- */
+/** Returns false if the user doesn't have enough tokens for an operation */
 export function canAfford(currentTokens: number, operation: keyof typeof TOKEN_COSTS): boolean {
     return currentTokens >= (TOKEN_COSTS[operation] ?? 0);
+}
+
+/** Returns false if the user can't afford to run N nodes */
+export function canAffordExecution(currentTokens: number, nodeCount: number): boolean {
+    return currentTokens >= tokensForExecution(nodeCount);
+}
+
+/** Returns the node limit for a plan (-1 = unlimited) */
+export function getNodeLimit(planId: PlanId): number {
+    return (PLANS[planId] ?? PLANS.free).nodeLimit;
 }

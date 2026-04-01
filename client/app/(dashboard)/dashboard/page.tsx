@@ -2,15 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { UpgradeModal } from '@/components/modals/upgrade-modal';
 import { motion } from 'framer-motion';
 import { apiFetch } from '@/lib/api-client';
 import CreateAgentModal from '@/components/create-agent-modal';
 import EditAgentModal from '@/components/edit-agent-modal';
+import { UpgradePricingModal } from '@/components/modals/upgrade-pricing-modal';
 import { Button } from '@/components/ui/buttons/button';
 import {
   Plus,
-  Settings,
   Zap,
   Activity,
   Bot,
@@ -21,10 +20,31 @@ import {
   Circle,
   MoreHorizontal,
   Coins,
+  Sparkles,
   Crown,
+  Info,
 } from 'lucide-react';
 
 const ease = [0.16, 1, 0.3, 1] as [number, number, number, number];
+
+const planMeta: Record<string, { label: string; color: string }> = {
+  free:       { label: 'Free',       color: 'bg-muted/60 text-muted-foreground border-border/40' },
+  starter:    { label: 'Starter',    color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
+  pro:        { label: 'Pro',        color: 'bg-primary/10 text-primary border-primary/20' },
+  max:        { label: 'Max',        color: 'bg-violet-500/10 text-violet-500 border-violet-500/20' },
+  enterprise: { label: 'Enterprise', color: 'bg-amber-500/10 text-amber-500 border-amber-500/20' },
+  unlimited:  { label: 'Unlimited',  color: 'bg-violet-500/10 text-violet-500 border-violet-500/20' },
+};
+
+function PlanBadge({ plan }: { plan: string }) {
+  const meta = planMeta[plan] ?? planMeta.free;
+  return (
+    <span className={`hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold border px-3 py-1.5 rounded-full ${meta.color}`}>
+      <Sparkles className="w-3 h-3" />
+      {meta.label}
+    </span>
+  );
+}
 
 function StatCard({
   icon: Icon,
@@ -189,14 +209,19 @@ export default function DashboardPage() {
                 {userPlan.tokens.toLocaleString()} tokens
               </div>
             )}
-            {/* Upgrade button */}
-            {userPlan?.plan === 'free' && (
-              <Link href="/marketplace">
-                <span className="inline-flex items-center gap-1.5 text-xs font-semibold bg-primary/10 text-primary border border-primary/20 px-3 py-1.5 rounded-full hover:bg-primary/15 transition-colors cursor-pointer">
-                  <Crown className="w-3.5 h-3.5" />
-                  Upgrade
-                </span>
-              </Link>
+            {/* Plan badge */}
+            {userPlan && (
+              <PlanBadge plan={userPlan.plan} />
+            )}
+            {/* Upgrade button — shown for free & starter plans */}
+            {userPlan && ['free', 'starter'].includes(userPlan.plan) && (
+              <button
+                onClick={() => setUpgradeOpen(true)}
+                className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold bg-gradient-to-r from-amber-500/15 to-primary/15 text-amber-500 border border-amber-500/30 px-3 py-1.5 rounded-full hover:from-amber-500/25 hover:to-primary/25 transition-all cursor-pointer"
+              >
+                <Crown className="w-3 h-3" />
+                Upgrade
+              </button>
             )}
             <Button
               onClick={() => setIsCreateModalOpen(true)}
@@ -208,27 +233,50 @@ export default function DashboardPage() {
           </div>
         </motion.div>
 
-        {/* Upgrade banner for free plan */}
+
+        {/* Free plan info banner */}
         {userPlan?.plan === 'free' && (
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1, ease }}
-            className="mb-6 flex items-center justify-between gap-4 rounded-2xl border border-primary/20 bg-primary/5 px-5 py-3.5"
+            transition={{ duration: 0.4, delay: 0.05, ease }}
+            className="mb-6 rounded-2xl border border-border/50 bg-muted/20 px-5 py-4"
           >
-            <div className="flex items-center gap-3">
-              <Crown className="w-4 h-4 text-primary flex-shrink-0" />
-              <div>
-                <p className="text-sm font-semibold">You're on the Free plan</p>
-                <p className="text-xs text-muted-foreground">Limited to 3 agents &amp; 500 tokens/month. Upgrade for more power.</p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                  <Info className="w-4 h-4 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground mb-1">Free Plan includes</p>
+                  <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1.5">
+                      <Bot className="w-3 h-3 text-primary" />
+                      Up to <strong className="text-foreground">3 agents</strong>
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <Zap className="w-3 h-3 text-amber-500" />
+                      Max <strong className="text-foreground">5 connected nodes</strong> per agent
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <Coins className="w-3 h-3 text-amber-500" />
+                      <strong className="text-foreground">50 tokens</strong> per node executed
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <TrendingUp className="w-3 h-3 text-emerald-500" />
+                      <strong className="text-foreground">500 tokens</strong> / month
+                    </span>
+                  </div>
+                </div>
               </div>
+              <button
+                onClick={() => setUpgradeOpen(true)}
+                className="shrink-0 inline-flex items-center gap-2 text-xs font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-xl hover:bg-primary/90 transition-colors cursor-pointer shadow-md shadow-primary/20 whitespace-nowrap"
+              >
+                <Crown className="w-3.5 h-3.5" />
+                Upgrade Plan
+              </button>
             </div>
-            <button
-              onClick={() => setUpgradeOpen(true)}
-              className="flex-shrink-0 text-xs font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-xl hover:bg-primary/90 transition-colors cursor-pointer"
-            >
-              Upgrade now
-            </button>
           </motion.div>
         )}
 
@@ -313,7 +361,11 @@ export default function DashboardPage() {
         agent={editingAgent}
         onSuccess={handleEditSuccess}
       />
-      <UpgradeModal isOpen={upgradeOpen} onClose={() => setUpgradeOpen(false)} currentPlan={userPlan?.plan} />
+      <UpgradePricingModal
+        isOpen={upgradeOpen}
+        onClose={() => setUpgradeOpen(false)}
+        currentPlan={userPlan?.plan}
+      />
     </div>
   );
 }

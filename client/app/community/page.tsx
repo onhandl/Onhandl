@@ -1,4 +1,4 @@
-import { PublicNav } from '@/components/public-nav';
+import { Navigation } from '@/components/landing/navigation';
 import { CommunityFeed } from './CommunityFeed';
 
 const API = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '') + '/api';
@@ -19,7 +19,7 @@ export default async function CommunityPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <PublicNav />
+      <Navigation />
 
       <main className="max-w-6xl mx-auto px-6 pt-28 pb-16 space-y-8">
         <div className="space-y-1">

@@ -52,7 +52,7 @@ const UserSchema: Schema = new Schema(
         isEmailVerified: { type: Boolean, default: false },
         isAdmin: { type: Boolean, default: false },
         tokens: { type: Number, default: 0 },
-        plan: { type: String, enum: ['free', 'starter', 'pro', 'unlimited'], default: 'free' },
+        plan: { type: String, enum: ['free', 'starter', 'pro', 'max', 'enterprise', 'unlimited'], default: 'free' },
         planExpiry: { type: Date },
         planBillingCycle: { type: String, enum: ['monthly', 'quarterly', 'yearly'] },
         notifications: {

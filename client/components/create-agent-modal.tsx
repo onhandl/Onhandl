@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
     Dialog,
@@ -8,17 +8,15 @@ import {
     DialogHeader,
     DialogTitle,
     DialogDescription,
-    DialogFooter
 } from '@/components/ui/overlays/dialog';
 import { Button } from '@/components/ui/buttons/button';
 import { Input } from '@/components/ui/forms/input';
 import { Textarea } from '@/components/ui/forms/textarea';
 import { Label } from '@/components/ui/forms/label';
-import { Sparkles, Loader2 } from 'lucide-react';
+import { Cpu, Wand2, Loader2, Check, ChevronRight } from 'lucide-react';
 import { agentApi } from '@/api/agent-api';
 import { useToast } from '@/components/ui/notifications/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/selection/select';
-import { useEffect } from 'react';
 
 interface CreateAgentModalProps {
     isOpen: boolean;
@@ -51,14 +49,9 @@ export default function CreateAgentModal({ isOpen, onClose, onComplete }: Create
 
     const handleNext = async () => {
         if (!name || !persona) {
-            toast({
-                title: 'Missing fields',
-                description: 'Please provide both a name and a persona summary.',
-                variant: 'destructive',
-            });
+            toast({ title: 'Missing fields', description: 'Provide both a name and a persona.', variant: 'destructive' });
             return;
         }
-
         setIsLoading(true);
         try {
             if (provider === 'ollama') {
@@ -70,12 +63,8 @@ export default function CreateAgentModal({ isOpen, onClose, onComplete }: Create
             const data = await agentApi.enhancePersona(name, persona, provider, apiKey, model, agentType);
             setEnhancedData(data);
             setStep(2);
-        } catch (error: any) {
-            toast({
-                title: 'Expansion Failed',
-                description: error.message || 'The AI failed to expand your persona. Please try again.',
-                variant: 'destructive',
-            });
+        } catch (err: any) {
+            toast({ title: 'Expansion failed', description: err.message || 'AI failed to expand persona.', variant: 'destructive' });
         } finally {
             setIsLoading(false);
         }
@@ -84,36 +73,17 @@ export default function CreateAgentModal({ isOpen, onClose, onComplete }: Create
     const handleCreate = async () => {
         setIsLoading(true);
         try {
-            // Send the pre-expanded character with the selected chain for auto-provisioning
             const agent = await agentApi.saveAgent(
-                name,
-                undefined,
-                persona,
-                undefined,
-                true,
-                provider,
-                apiKey,
-                enhancedData,
-                agentType,
-                selectedChain
+                name, undefined, persona, undefined, true,
+                provider, apiKey, enhancedData, agentType, selectedChain
             );
-            toast({
-                title: 'Agent Created',
-                description: 'Your agent has been initialized with the reviewed persona.',
-            });
+            toast({ title: 'Agent created' });
             if (onComplete) onComplete(agent._id);
             onClose();
-            setStep(1);
-            setEnhancedData(null);
-            setName('');
-            setPersona('');
+            setStep(1); setEnhancedData(null); setName(''); setPersona('');
             router.push(`/sandbox?agentId=${agent._id}`);
-        } catch (error: any) {
-            toast({
-                title: 'Creation Failed',
-                description: error.message || 'Something went wrong while creating your agent.',
-                variant: 'destructive',
-            });
+        } catch (err: any) {
+            toast({ title: 'Creation failed', description: err.message || 'Something went wrong.', variant: 'destructive' });
         } finally {
             setIsLoading(false);
         }
@@ -121,51 +91,67 @@ export default function CreateAgentModal({ isOpen, onClose, onComplete }: Create
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[550px] max-h-[90vh] flex flex-col border-primary/20 bg-card/95 backdrop-blur-xl shadow-2xl">
-                <DialogHeader>
-                    <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-4 border border-primary/20">
-                        <Sparkles className="text-primary h-6 w-6" />
-                    </div>
-                    <DialogTitle className="text-2xl font-extrabold tracking-tight">
-                        {step === 1 ? 'Create AI Agent' : 'Review Agent Persona'}
-                    </DialogTitle>
-                    <DialogDescription className="text-muted-foreground">
-                        {step === 1
-                            ? 'Give your agent a name and a brief persona. Our AI will expand this into a comprehensive character.'
-                            : 'Review the AI-generated character traits and instructions before finalizing.'}
-                    </DialogDescription>
-                </DialogHeader>
+            <DialogContent className="sm:max-w-[560px] max-h-[90vh] flex flex-col bg-card border-border/60 shadow-xl p-0 overflow-hidden gap-0">
+                <div className="h-px w-full bg-gradient-to-r from-primary/70 to-primary/10" />
 
-                <div className="flex-1 overflow-y-auto min-h-0 py-4">
+                {/* Header */}
+                <div className="px-6 pt-5 pb-4 border-b border-border/50">
+                    <DialogHeader>
+                        <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/15 flex items-center justify-center shrink-0">
+                                <Cpu className="h-4 w-4 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <DialogTitle className="text-base font-bold leading-snug">
+                                    {step === 1 ? 'Create AI Agent' : 'Review Persona'}
+                                </DialogTitle>
+                                <DialogDescription className="text-xs text-muted-foreground leading-snug mt-0">
+                                    {step === 1
+                                        ? 'Name your agent and describe its persona — AI expands the rest.'
+                                        : 'Review the AI-generated character before finalizing.'}
+                                </DialogDescription>
+                            </div>
+                            {/* Step indicator */}
+                            <div className="flex items-center gap-1.5 shrink-0">
+                                {[1, 2].map((s) => (
+                                    <div key={s} className={`h-1.5 rounded-full transition-all ${s === step ? 'w-6 bg-primary' : s < step ? 'w-3 bg-primary/40' : 'w-3 bg-border'}`} />
+                                ))}
+                            </div>
+                        </div>
+                    </DialogHeader>
+                </div>
+
+                {/* Body */}
+                <div className="flex-1 overflow-y-auto px-6 py-5">
                     {step === 1 ? (
-                        <div className="space-y-6">
-                            <div className="space-y-2">
-                                <Label htmlFor="name" className="text-sm font-bold uppercase tracking-wider opacity-70">Agent Name</Label>
+                        <div className="space-y-4">
+                            <div className="space-y-1.5">
+                                <Label htmlFor="name" className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Agent Name</Label>
                                 <Input
                                     id="name"
                                     placeholder="e.g. Satoshi, Trading Bot, Fiber Guide"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className="bg-black/20 text-white border-border/50 focus:border-primary/50 transition-all rounded-xl h-12 placeholder:text-white/40"
+                                    className="h-10 rounded-xl bg-background border-border/60 focus-visible:ring-primary/30 text-sm"
                                 />
                             </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="persona" className="text-sm font-bold uppercase tracking-wider opacity-70">Persona Summary</Label>
+                            <div className="space-y-1.5">
+                                <Label htmlFor="persona" className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Persona Summary</Label>
                                 <Textarea
                                     id="persona"
-                                    placeholder="e.g. A helpful assistant that specialized in CKB transactions and Fiber network payments."
+                                    placeholder="e.g. A helpful assistant specialized in CKB transactions and Fiber network payments."
                                     value={persona}
                                     onChange={(e) => setPersona(e.target.value)}
-                                    className="bg-black/20 text-white border-border/50 focus:border-primary/50 min-h-[120px] transition-all rounded-xl py-3 placeholder:text-white/40"
+                                    className="min-h-[96px] rounded-xl bg-background border-border/60 focus-visible:ring-primary/30 text-sm resize-none"
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2 col-span-2">
-                                    <Label className="text-sm font-bold uppercase tracking-wider opacity-70">Target Blockchain (Auto-Wallet)</Label>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1.5 col-span-2">
+                                    <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Blockchain Network</Label>
                                     <Select value={selectedChain} onValueChange={setSelectedChain}>
-                                        <SelectTrigger className="bg-black/20 text-white border-border/50 focus:border-primary/50 rounded-xl h-12">
+                                        <SelectTrigger className="h-10 rounded-xl bg-background border-border/60 text-sm">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -176,24 +162,24 @@ export default function CreateAgentModal({ isOpen, onClose, onComplete }: Create
                                     </Select>
                                 </div>
 
-                                <div className="space-y-2 col-span-2">
-                                    <Label className="text-sm font-bold uppercase tracking-wider opacity-70">Agent Class (Schema Profile)</Label>
+                                <div className="space-y-1.5 col-span-2">
+                                    <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Agent Class</Label>
                                     <Select value={agentType} onValueChange={setAgentType}>
-                                        <SelectTrigger className="bg-black/20 text-white border-border/50 focus:border-primary/50 rounded-xl h-12">
+                                        <SelectTrigger className="h-10 rounded-xl bg-background border-border/60 text-sm">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="operational_agent">Operational Agent (Workflows & Default)</SelectItem>
-                                            <SelectItem value="financial_agent">Financial Agent (High Security & Balances)</SelectItem>
-                                            <SelectItem value="social_agent">Social Agent (Community & Platforms)</SelectItem>
+                                            <SelectItem value="operational_agent">Operational — Workflows & Default</SelectItem>
+                                            <SelectItem value="financial_agent">Financial — High Security & Balances</SelectItem>
+                                            <SelectItem value="social_agent">Social — Community & Platforms</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label className="text-sm font-bold uppercase tracking-wider opacity-70">AI Provider</Label>
+                                <div className="space-y-1.5">
+                                    <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">AI Provider</Label>
                                     <Select value={provider} onValueChange={setProvider}>
-                                        <SelectTrigger className="bg-black/20 text-white border-border/50 focus:border-primary/50 rounded-xl h-12">
+                                        <SelectTrigger className="h-10 rounded-xl bg-background border-border/60 text-sm">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -204,105 +190,102 @@ export default function CreateAgentModal({ isOpen, onClose, onComplete }: Create
                                     </Select>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="apiKey" className="text-sm font-bold uppercase tracking-wider opacity-70">
-                                        {provider === 'ollama' ? 'Ollama Base URL' : 'API Key (Optional)'}
+                                <div className="space-y-1.5">
+                                    <Label htmlFor="apiKey" className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                        {provider === 'ollama' ? 'Ollama URL' : 'API Key'}
                                     </Label>
                                     <Input
                                         id="apiKey"
                                         type={provider === 'ollama' ? 'text' : 'password'}
-                                        placeholder={provider === 'ollama' ? 'http://localhost:11434' : 'Optional SDK Key'}
+                                        placeholder={provider === 'ollama' ? 'http://localhost:11434' : 'Optional'}
                                         value={apiKey}
                                         onChange={(e) => setApiKey(e.target.value)}
-                                        className="bg-black/20 text-white border-border/50 focus:border-primary/50 transition-all rounded-xl h-12 placeholder:text-white/40"
+                                        className="h-10 rounded-xl bg-background border-border/60 focus-visible:ring-primary/30 text-sm"
                                     />
                                 </div>
 
                                 {provider === 'ollama' && (
-                                    <div className="space-y-2 col-span-2">
-                                        <Label htmlFor="model" className="text-sm font-bold uppercase tracking-wider opacity-70">Ollama Model</Label>
+                                    <div className="space-y-1.5 col-span-2">
+                                        <Label htmlFor="model" className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Ollama Model</Label>
                                         <Input
                                             id="model"
-                                            placeholder="e.g. qwen2.5:3b, llama3, etc."
+                                            placeholder="e.g. qwen2.5:3b, llama3"
                                             value={model}
                                             onChange={(e) => setModel(e.target.value)}
-                                            className="bg-black/20 text-white border-border/50 focus:border-primary/50 transition-all rounded-xl h-12 placeholder:text-white/40"
+                                            className="h-10 rounded-xl bg-background border-border/60 focus-visible:ring-primary/30 text-sm"
                                         />
                                     </div>
                                 )}
                             </div>
                         </div>
                     ) : (
-                        <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-primary/20">
-                            <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 space-y-3">
-                                <div className="flex justify-between items-center">
-                                    <h4 className="text-xs font-bold uppercase tracking-widest text-primary">Expanded Bio</h4>
-                                    <Sparkles className="h-3 w-3 text-primary animate-pulse" />
-                                </div>
-                                <p className="text-sm leading-relaxed italic opacity-90">"{enhancedData?.bio}"</p>
+                        <div className="space-y-4">
+                            <div className="rounded-xl bg-primary/5 border border-primary/15 p-4 space-y-2">
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-primary">AI-Expanded Bio</p>
+                                <p className="text-sm leading-relaxed text-foreground/90">"{enhancedData?.bio}"</p>
                             </div>
 
                             <div className="space-y-2">
-                                <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">System Instructions</h4>
-                                <div className="space-y-1">
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">System Instructions</p>
+                                <div className="space-y-1.5">
                                     {enhancedData?.instructions?.map((inst: string, idx: number) => (
-                                        <div key={idx} className="p-3 text-xs bg-muted/30 border border-border/50 rounded-lg flex gap-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-primary/40 mt-1 shrink-0" />
-                                            <span>{inst}</span>
+                                        <div key={idx} className="flex gap-2.5 p-3 rounded-lg bg-muted/30 border border-border/40 text-xs">
+                                            <div className="w-1 h-1 rounded-full bg-primary/50 mt-1.5 shrink-0" />
+                                            <span className="text-foreground/80 leading-relaxed">{inst}</span>
                                         </div>
                                     ))}
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
-                                <div className="space-y-2">
-                                    <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Personality</h4>
-                                    <div className="flex flex-wrap gap-1">
-                                        {enhancedData?.traits?.personality?.map((t: string, idx: number) => (
-                                            <span key={idx} className="px-2 py-1 text-[10px] bg-primary/10 text-primary border border-primary/20 rounded-md capitalize">{t}</span>
-                                        ))}
+                                {[
+                                    { label: 'Personality', items: enhancedData?.traits?.personality, color: 'bg-primary/8 text-primary border-primary/15' },
+                                    { label: 'Knowledge', items: enhancedData?.traits?.knowledge, color: 'bg-emerald-500/8 text-emerald-600 border-emerald-500/15' },
+                                ].map(({ label, items, color }) => (
+                                    <div key={label} className="space-y-2">
+                                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
+                                        <div className="flex flex-wrap gap-1">
+                                            {items?.map((t: string, i: number) => (
+                                                <span key={i} className={`px-2 py-0.5 text-[10px] font-medium border rounded-md capitalize ${color}`}>{t}</span>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Knowledge</h4>
-                                    <div className="flex flex-wrap gap-1">
-                                        {enhancedData?.traits?.knowledge?.map((t: string, idx: number) => (
-                                            <span key={idx} className="px-2 py-1 text-[10px] bg-secondary/10 text-secondary border border-secondary/20 rounded-md capitalize">{t}</span>
-                                        ))}
-                                    </div>
-                                </div>
+                                ))}
                             </div>
                         </div>
                     )}
                 </div>
 
-                <DialogFooter className="pt-4 gap-2 border-t border-border/50">
+                {/* Footer */}
+                <div className="px-6 py-4 border-t border-border/50 flex items-center justify-end gap-2">
                     {step === 1 ? (
                         <>
-                            <Button variant="ghost" onClick={onClose} className="rounded-xl font-bold">Cancel</Button>
+                            <Button variant="ghost" onClick={onClose} className="h-9 px-4 rounded-xl text-sm">Cancel</Button>
                             <Button
                                 onClick={handleNext}
                                 disabled={isLoading}
-                                className="rounded-xl font-bold px-8 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 flex gap-2 transition-all transform active:scale-95"
+                                className="h-9 px-5 rounded-xl text-sm bg-primary hover:bg-primary/90 shadow-md shadow-primary/20"
                             >
-                                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                                Expand Persona
+                                {isLoading
+                                    ? <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />Expanding…</>
+                                    : <><Wand2 className="h-3.5 w-3.5 mr-1.5" />Expand Persona<ChevronRight className="h-3.5 w-3.5 ml-0.5" /></>}
                             </Button>
                         </>
                     ) : (
                         <>
-                            <Button variant="ghost" onClick={() => setStep(1)} className="rounded-xl font-bold">Back</Button>
+                            <Button variant="ghost" onClick={() => setStep(1)} className="h-9 px-4 rounded-xl text-sm">Back</Button>
                             <Button
                                 onClick={handleCreate}
                                 disabled={isLoading}
-                                className="rounded-xl font-bold px-8 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 flex gap-2 transition-all transform active:scale-95"
+                                className="h-9 px-5 rounded-xl text-sm bg-primary hover:bg-primary/90 shadow-md shadow-primary/20"
                             >
-                                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                                Finalize & Create
+                                {isLoading
+                                    ? <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />Creating…</>
+                                    : <><Check className="h-3.5 w-3.5 mr-1.5" />Finalize & Create</>}
                             </Button>
                         </>
                     )}
-                </DialogFooter>
+                </div>
             </DialogContent>
         </Dialog>
     );

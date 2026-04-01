@@ -27,26 +27,26 @@ FlawLess solves this by:
 ### User Flow
 1. User signs up → a Workspace is auto-provisioned.
 2. From the Dashboard, user clicks **"Create Agent"** and inputs a Name + Persona summary.
-3. Backend calls AI (Gemini or OpenAI) to expand the persona into a full `CharacterSchema` (bio, traits, instructions, description).
+3. Backend calls the default platform model or also user-selected model to expand the persona into a full `CharacterSchema` (bio, traits, instructions, description).
 4. User is redirected to the **Sandbox** flow builder with a pre-seeded Character node.
-5. User drags CKB/Fiber/AI nodes from the Node Library and connects them visually.
-6. All changes auto-save to MongoDB via debounced node/edge synchronisation.
+5. User drags nodes from the Node Library and connects them visually.
+6. All changes auto-save to our DB via debounced node/edge synchronisation.
 
 ### Agent Flow
 ```
 [User Intent via Telegram/Webhook/Dashboard] 
-  → [FlowEngine loads agent graph from AgentNode + AgentEdge collections] 
-  → [Executes nodes sequentially with tool dispatch] 
-  → [CKB tools → CKB Testnet RPC] 
-  → [Fiber tools → Fiber Node RPC] 
-  → [AI tools → LLM provider API] 
-  → [Console output streamed back to Sandbox UI]
+```markdown
+  → [FlowEngine resolves Agent Graph & Execution Context] 
+  → [Step-wise Execution via Tool Dispatcher] 
+  → [External Integrations (AI / Blockchain / APIs)] 
+  → [State Persistence & Real-time Event Streaming]
+```
 ```
 
 ### Key UI Components
 - **Dashboard** — Agent cards with AI-generated descriptions. Create / Edit modals with provider selection.
 - **Sandbox** — React Flow canvas with drag-drop node library, live flow console, properties sidebar.
-- **Node Library** — Hierarchical CKB/Fiber tooling nodes + generic input/output/processing nodes.
+- **Node Library** — Hierarchical tooling nodes + generic input/output/processing nodes.
 - **Flow Console** — Real-time execution log viewer docked at the bottom of the sandbox.
 
 ### Backend Architecture
@@ -70,21 +70,26 @@ FlawLess solves this by:
 | Monorepo | pnpm workspaces (client, server, tooling packages) |
 
 ### AI / Agent Stack
-- **Agent Enhancer**: `AgentEnhancer.ts` — calls Gemini or OpenAI (via shared proxy `share-ai.ckbdev.com`) to generate character schemas from persona summaries.
+- **Agent Enhancer**: `AgentEnhancer.ts` — calls preferred model to generate character schemas from persona summaries.
 - **Flow Engine**: `FlowEngine.ts` — orchestrates sequential execution of agent node graphs.
 - **Provider Selection**: Users can override system API keys per-agent at creation time; keys are stored in browser `localStorage` per-provider slot.
 
+```
 ### Environment Variables
 ```
-GEMINI_API_KEY=...
-OPENAI_API_KEY=...
-OPENAI_BASE_URL=https://share-ai.ckbdev.com/v1
-OPENAI_MODEL=gpt-5.4
-MONGO_URI=mongodb+srv://...
-JWT_SECRET=...
-CKB_NODE_URL=http://localhost:8114
-CKB_INDEXER_URL=http://localhost:8116
-FIBER_NODE_URL=http://localhost:8227
+GEMINI_API_KEY=
+MONGO_URI=
+JWT_SECRET=
+OPENAI_API_KEY=
+OPENAI_BASE_URL=
+OPENAI_MODEL=
+OLLAMA_BASE_URL=
+OLLAMA_MODEL=
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=
+SMTP_USER=
+SMTP_PASS=
+
 ```
 
 ---
@@ -164,10 +169,32 @@ it will look like this http://localhost:3000/sandbox?agentId=69c4e884596fa8e3e3c
 - Biscuit-based authentication for secure Fiber RPC endpoints.
 - On-chain data anchoring for FlawLess state run receipts.
 
+### Agent Marketplace & Creator Revenue
+- Publish agents publicly to the FlawLess Marketplace for other users to discover and purchase.
+- Agents can be listed with pricing; revenue flows to the creator via prefered  payment integration.
+- **Creator Revenue Sharing**: Creators earn a percentage of every sale made through their published agents — building passive income from automation workflows they design.
+- Revenue analytics dashboard showing earnings, sales history, and per-agent performance.
+
+### Community & Blog
+- Public Community hub at `/community` — a collaborative knowledge-sharing space open to all registered users.
+- **FlawLess Official** posts: curated announcements, tutorials, and updates published by the FlawLess team.
+- **Community** posts: any registered user can create and publish blog posts — share workflows, tips, agent use cases, and stories.
+- Filter tabs to browse All, FlawLess Official, and Community posts independently.
+- Full CMS at `/community/new`: title, rich body with character count, and tag management with add/remove controls.
+
+### Support System
+- Built-in support ticket system accessible from the dashboard sidebar.
+- Users submit tickets with a subject and detailed message directly within the platform.
+- Real-time status tracking: Open → In Progress → Resolved → Closed.
+- Admin dashboard aggregates all tickets with the ability to update status and post admin notes/responses.
+- Admin notes appear inline within the user's ticket view for seamless communication.
+
 ### UX & Dashboard
 - Rich dashboard displaying all workspace agents with AI-generated descriptions.
+- Plan badge prominently shown per user (Free / Starter / Pro / Max / Enterprise).
 - Modals for agent creation and editing with provider & API key fields.
 - Smooth animated transitions and premium UI with Radix UI + Framer Motion.
+- Floating AI assistant widget available on all pages for quick queries without leaving context.
 
 ---
 
@@ -179,7 +206,6 @@ it will look like this http://localhost:3000/sandbox?agentId=69c4e884596fa8e3e3c
 - **Multi-Chain Expansion**: Extend the blockchain tooling namespace to support EVM chains (Base, Ethereum) and Solana with the same drag-and-drop abstraction.
 - **Telegram / Webhook Triggers**: Trigger agent executions directly from Telegram commands or inbound webhooks, enabling always-on bots.
 - **Collaborative Workspaces**: Multi-member workspaces with role-based access, shared agents, and team execution history.
-- **Agent Marketplace**: A curated directory where developers can publish and monetise agent workflows as reusable FlawLess packages.
 - **On-Chain Execution Receipts**: Automatically anchor agent run summaries (inputs, outputs, timestamps) into CKB Cell Data for auditability and verifiability.
 
 ---
@@ -194,8 +220,10 @@ The core value proposition is a **low-code AI agent builder for blockchain devel
 The AI-enhanced persona system makes agent creation accessible to non-expert users, while the typed CKB/Fiber tooling layer provides the rigour expert blockchain developers demand.
 
 Monetisation paths include:
-- **Hosted SaaS tiers** (free for personal use, pay-per-seat for teams).
-- **Premium Templates + Marketplace** (revenue share with template creators).
+- **Hosted SaaS tiers** (Free, Starter, Pro, Max, Enterprise) — tiered token allowances, agent limits, and priority execution.
+- **Creator Marketplace Revenue Share** — platform takes a percentage of agent sales; creators earn the rest via Stripe direct payouts.
+- **Community-driven growth** — the blog/community hub drives organic discovery; Official posts keep users informed without external channels.
+- **Support infrastructure** — built-in ticketing removes friction and keeps users within the platform ecosystem.
 - **API Access** for organizations embedding the FlawLess Runtime in their own products.
 
 ### As Infrastructure

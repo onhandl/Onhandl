@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { agentApi } from '@/api/agent-api';
 import { Input } from '@/components/ui/forms/input';
@@ -14,7 +15,7 @@ import {
   Search, Star, Eye, ShoppingCart, Loader2, Bot, Zap,
   TrendingUp, Package, Filter, User,
 } from 'lucide-react';
-import { PublicNav } from '@/components/public-nav';
+import { Navigation } from '@/components/landing/navigation';
 
 const CATEGORIES = ['All', 'Trading Bot', 'Analytics', 'DeFi Assistant', 'Portfolio Manager', 'Data Feed', 'Custom'];
 const NETWORKS   = ['All', 'Ethereum', 'CKB', 'Solana', 'Polygon'];
@@ -37,6 +38,7 @@ const ease = [0.16, 1, 0.3, 1] as [number, number, number, number];
 
 // ── Agent Card ────────────────────────────────────────────────────
 function AgentCard({ agent, index }: { agent: any; index: number }) {
+  const router   = useRouter();
   const mkt      = agent.marketplace || {};
   const isFree   = mkt.pricing?.type !== 'paid';
   const price    = mkt.pricing?.price;
@@ -50,9 +52,9 @@ function AgentCard({ agent, index }: { agent: any; index: number }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.04, ease }}
     >
-      <Link
-        href={`/marketplace/agent/${agent._id}`}
-        className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/60 hover:border-[#9AB17A]/40 hover:bg-zinc-900 transition-all duration-200 overflow-hidden"
+      <div
+        onClick={() => router.push(`/marketplace/agent/${agent._id}`)}
+        className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/60 hover:border-[#9AB17A]/40 hover:bg-zinc-900 transition-all duration-200 overflow-hidden cursor-pointer"
       >
         {/* Accent bar */}
         <div className="h-0.5 bg-gradient-to-r from-[#9AB17A]/80 to-[#C3CC9B]/20" />
@@ -74,16 +76,21 @@ function AgentCard({ agent, index }: { agent: any; index: number }) {
             {agent.description || 'No description provided.'}
           </p>
 
-          {/* Creator */}
+          {/* Creator — standalone <a>, no longer nested inside another <a> */}
           {agent.creator && (
-            <Link href={`/creators/${agent.creator._id}`} onClick={(e) => e.stopPropagation()}
-              className="flex items-center gap-1.5 mt-3 group/creator">
+            <Link
+              href={`/creators/${agent.creator._id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-1.5 mt-3 group/creator w-fit"
+            >
               <div className="w-5 h-5 rounded-full bg-zinc-700 flex items-center justify-center overflow-hidden flex-shrink-0">
                 {agent.creator.avatarUrl
                   ? <img src={agent.creator.avatarUrl} alt="" className="w-full h-full object-cover" />
                   : <User className="w-3 h-3 text-zinc-400" />}
               </div>
-              <span className="text-[11px] text-zinc-500 group-hover/creator:text-[#9AB17A] transition-colors truncate">{agent.creator.name}</span>
+              <span className="text-[11px] text-zinc-500 group-hover/creator:text-[#9AB17A] transition-colors truncate">
+                {agent.creator.name}
+              </span>
             </Link>
           )}
 
@@ -111,7 +118,7 @@ function AgentCard({ agent, index }: { agent: any; index: number }) {
             {isFree ? 'Use Agent' : 'Buy Agent'}
           </Button>
         </div>
-      </Link>
+      </div>
     </motion.div>
   );
 }
@@ -154,7 +161,7 @@ export default function MarketplacePage() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
-      <PublicNav />
+      <Navigation />
 
       {/* ── Hero banner ── */}
       <div className="relative overflow-hidden border-b border-zinc-800/60 pt-20">
