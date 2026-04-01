@@ -140,16 +140,57 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
         }
     );
 
-    // ─── Current user (plan + tokens) ───────────────────────────────────────
+    // ─── Current user ────────────────────────────────────────────────────────
     fastify.get('/me', async (request, reply) => {
         const token = (request.cookies as any)['auth_token'];
         if (!token) return reply.code(401).send({ error: 'Unauthorized' });
         let decoded: any;
         try { decoded = fastify.jwt.verify(token); } catch { return reply.code(401).send({ error: 'Invalid token' }); }
-        const user = await User.findById(decoded.id).select('-password');
+        const user = await User.findById(decoded.id)
+            .select('username email name whatsapp telegramUsername avatarUrl bio tokens plan planExpiry notifications savedPaymentMethods apiKeys profileViews isAdmin createdAt updatedAt')
+            .lean();
         if (!user) return reply.code(404).send({ error: 'User not found' });
-        return user;
+        return reply.send(user);
     });
+
+    // ─── Get avatar URL (lightweight) ────────────────────────────────────────
+    fastify.get('/me/avatar', async (request, reply) => {
+        const token = (request.cookies as any)['auth_token'];
+        if (!token) return reply.code(401).send({ error: 'Unauthorized' });
+        let decoded: any;
+        try { decoded = fastify.jwt.verify(token); } catch { return reply.code(401).send({ error: 'Invalid token' }); }
+        const user = await User.findById(decoded.id).select('avatarUrl name username').lean();
+        if (!user) return reply.code(404).send({ error: 'User not found' });
+        return reply.send({
+            avatarUrl: (user as any).avatarUrl || null,
+            name:      (user as any).name      || (user as any).username || null,
+        });
+    });
+
+    // ─── Update profile (username, email, contacts, avatarUrl) ──────────────
+    fastify.post<{ Body: { username?: string; email?: string; whatsapp?: string; telegramUsername?: string; avatarUrl?: string } }>(
+        '/me',
+        async (request, reply) => {
+            const token = (request.cookies as any)['auth_token'];
+            if (!token) return reply.code(401).send({ error: 'Unauthorized' });
+            let decoded: any;
+            try { decoded = fastify.jwt.verify(token); } catch { return reply.code(401).send({ error: 'Invalid token' }); }
+
+            const { username, email, whatsapp, telegramUsername, avatarUrl } = request.body;
+            const $set: Record<string, any> = {};
+            if (username)              $set.username        = username;
+            if (email)                 $set.email           = email;
+            if (whatsapp !== undefined)          $set.whatsapp        = whatsapp;
+            if (telegramUsername !== undefined)  $set.telegramUsername = telegramUsername;
+            if (avatarUrl !== undefined)         $set.avatarUrl        = avatarUrl;
+
+            const user = await User.findByIdAndUpdate(decoded.id, { $set }, { new: true })
+                .select('username email name whatsapp telegramUsername avatarUrl bio tokens plan profileViews')
+                .lean();
+            if (!user) return reply.code(404).send({ error: 'User not found' });
+            return reply.send(user);
+        }
+    );
 
     // ─── Logout ──────────────────────────────────────────────────────────────
     fastify.post('/logout', async (request, reply) => {

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { UpgradeModal } from '@/components/modals/upgrade-modal';
 import { motion } from 'framer-motion';
 import { apiFetch } from '@/lib/api-client';
 import CreateAgentModal from '@/components/create-agent-modal';
@@ -19,6 +20,8 @@ import {
   CheckCircle2,
   Circle,
   MoreHorizontal,
+  Coins,
+  Crown,
 } from 'lucide-react';
 
 const ease = [0.16, 1, 0.3, 1] as [number, number, number, number];
@@ -136,12 +139,17 @@ export default function DashboardPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingAgent, setEditingAgent] = useState<any>(null);
+  const [userPlan, setUserPlan] = useState<{ plan: string; tokens: number } | null>(null);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   useEffect(() => {
     apiFetch('/agents')
       .then(setAgents)
       .catch((e: any) => setError(e.message))
       .finally(() => setLoading(false));
+    apiFetch('/auth/me')
+      .then((u) => setUserPlan({ plan: u.plan ?? 'free', tokens: u.tokens ?? 0 }))
+      .catch(() => {});
   }, []);
 
   const handleEditSuccess = (updated: any) =>
@@ -158,14 +166,14 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-full bg-background">
-      <div className="max-w-7xl mx-auto px-5 py-7">
+      <div className="max-w-7xl mx-auto px-4 md:px-5 py-5 md:py-7">
 
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease }}
-          className="flex items-center justify-between mb-7"
+          className="flex items-center justify-between mb-5"
         >
           <div>
             <h1 className="text-2xl font-extrabold tracking-tight">Agent Studio</h1>
@@ -173,14 +181,56 @@ export default function DashboardPage() {
               {agents.length} agent{agents.length !== 1 ? 's' : ''} in your workspace
             </p>
           </div>
-          <Button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-all shadow-md shadow-primary/20 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/25 cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            New Agent
-          </Button>
+          <div className="flex items-center gap-3">
+            {/* Token balance pill */}
+            {userPlan && (
+              <div className="hidden sm:flex items-center gap-1.5 text-xs font-medium bg-amber-500/10 text-amber-600 border border-amber-500/20 px-3 py-1.5 rounded-full">
+                <Coins className="w-3.5 h-3.5" />
+                {userPlan.tokens.toLocaleString()} tokens
+              </div>
+            )}
+            {/* Upgrade button */}
+            {userPlan?.plan === 'free' && (
+              <Link href="/marketplace">
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold bg-primary/10 text-primary border border-primary/20 px-3 py-1.5 rounded-full hover:bg-primary/15 transition-colors cursor-pointer">
+                  <Crown className="w-3.5 h-3.5" />
+                  Upgrade
+                </span>
+              </Link>
+            )}
+            <Button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-all shadow-md shadow-primary/20 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/25 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              New Agent
+            </Button>
+          </div>
         </motion.div>
+
+        {/* Upgrade banner for free plan */}
+        {userPlan?.plan === 'free' && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1, ease }}
+            className="mb-6 flex items-center justify-between gap-4 rounded-2xl border border-primary/20 bg-primary/5 px-5 py-3.5"
+          >
+            <div className="flex items-center gap-3">
+              <Crown className="w-4 h-4 text-primary flex-shrink-0" />
+              <div>
+                <p className="text-sm font-semibold">You're on the Free plan</p>
+                <p className="text-xs text-muted-foreground">Limited to 3 agents &amp; 500 tokens/month. Upgrade for more power.</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setUpgradeOpen(true)}
+              className="flex-shrink-0 text-xs font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-xl hover:bg-primary/90 transition-colors cursor-pointer"
+            >
+              Upgrade now
+            </button>
+          </motion.div>
+        )}
 
         {/* Stats strip */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
@@ -263,6 +313,7 @@ export default function DashboardPage() {
         agent={editingAgent}
         onSuccess={handleEditSuccess}
       />
+      <UpgradeModal isOpen={upgradeOpen} onClose={() => setUpgradeOpen(false)} currentPlan={userPlan?.plan} />
     </div>
   );
 }

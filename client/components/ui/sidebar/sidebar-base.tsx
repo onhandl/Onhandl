@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Sheet, SheetContent } from '../overlays/sheet';
+import { Sheet, SheetContent, SheetTitle, SheetDescription } from '../overlays/sheet';
 import { cn } from '@/lib/utils';
 import { useSidebar, SIDEBAR_WIDTH_MOBILE } from './use-sidebar';
 
@@ -55,6 +55,8 @@ export const Sidebar = React.forwardRef<
                         }
                         side={side}
                     >
+                        <SheetTitle className="sr-only">Navigation</SheetTitle>
+                        <SheetDescription className="sr-only">Site navigation menu</SheetDescription>
                         <div className="flex h-full w-full flex-col">{children}</div>
                     </SheetContent>
                 </Sheet>

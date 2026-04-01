@@ -54,7 +54,7 @@ export default function NodeSidebar({ node, onClose, updateNodeData }: NodeSideb
     };
 
     return (
-        <div className="w-80 h-full border-l border-border bg-card p-6 overflow-y-auto pb-20 shadow-xl">
+        <div className="w-full md:w-80 h-full border-l border-border bg-card p-4 md:p-6 overflow-y-auto pb-20 shadow-xl">
             <div className="flex justify-between items-start mb-2">
                 <div>
                     <h3 className="font-bold text-xl">{nodeData.name}</h3>

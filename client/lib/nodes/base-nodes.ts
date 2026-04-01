@@ -1,47 +1,5 @@
 export const baseNodes = [
     {
-        type: 'action',
-        category: 'processing',
-        name: 'API Call',
-        description: 'Executes an API request',
-        icon: 'Globe',
-        inputs: [
-            {
-                key: 'url',
-                label: 'URL',
-                type: 'string',
-                placeholder: 'https://api.example.com',
-                value: 'https://api.example.com',
-            },
-            {
-                key: 'headers',
-                label: 'Headers',
-                type: 'object',
-                placeholder: 'Authorization: Bearer token',
-                value: { Authorization: 'Bearer token' },
-            },
-            {
-                key: 'body',
-                label: 'Body',
-                type: 'object',
-                placeholder: "{ message: 'Hello, AI!' }",
-                value: { message: 'Hello, AI!' },
-            },
-            {
-                key: 'method',
-                label: 'Method',
-                type: 'select',
-                options: ['GET', 'POST', 'PUT', 'DELETE'],
-                value: 'GET',
-            },
-        ],
-        outputs: [
-            { key: 'response', label: 'Response', type: 'object' },
-            { key: 'status', label: 'Status Code', type: 'number' },
-        ],
-        meta: { apiKey: true, env: false },
-    },
-    {
         type: 'input',
         category: 'input',
         name: 'Text Input',
@@ -93,11 +51,53 @@ export const baseNodes = [
         meta: { styling: true },
     },
     {
+        type: 'action',
+        category: 'processing',
+        name: 'API Call',
+        description: 'Executes an HTTP API request',
+        icon: 'Globe',
+        inputs: [
+            {
+                key: 'url',
+                label: 'URL',
+                type: 'string',
+                placeholder: 'https://api.example.com',
+                value: 'https://api.example.com',
+            },
+            {
+                key: 'method',
+                label: 'Method',
+                type: 'select',
+                options: ['GET', 'POST', 'PUT', 'DELETE'],
+                value: 'GET',
+            },
+            {
+                key: 'headers',
+                label: 'Headers',
+                type: 'object',
+                placeholder: 'Authorization: Bearer token',
+                value: { Authorization: 'Bearer token' },
+            },
+            {
+                key: 'body',
+                label: 'Body',
+                type: 'object',
+                placeholder: "{ message: 'Hello' }",
+                value: {},
+            },
+        ],
+        outputs: [
+            { key: 'response', label: 'Response', type: 'object' },
+            { key: 'status', label: 'Status Code', type: 'number' },
+        ],
+        meta: { apiKey: false, env: false },
+    },
+    {
         type: 'condition',
-        category: 'condition',
-        name: 'If/Else',
+        category: 'processing',
+        name: 'If / Else',
         id: 'if_else',
-        description: 'Simple binary logic router (True/False)',
+        description: 'Binary logic router — routes flow on True or False',
         icon: 'Split',
         inputs: [],
         outputs: [],
@@ -105,10 +105,10 @@ export const baseNodes = [
     },
     {
         type: 'condition',
-        category: 'condition',
+        category: 'processing',
         name: 'Intent Router',
         id: 'intent_router',
-        description: 'Multi-branch logic router for different intents or cases',
+        description: 'Multi-branch router — routes flow based on detected intent or matched case',
         icon: 'GitBranchPlus',
         inputs: [],
         outputs: [],
@@ -117,9 +117,9 @@ export const baseNodes = [
     {
         id: 'text_processor',
         type: 'processing',
-        category: 'processors',
+        category: 'processing',
         name: 'AI Text Analyzer',
-        description: 'Analyzes text using AI models (Gemini, GPT, etc.) for general purpose understanding.',
+        description: 'Analyzes text using AI (Gemini, GPT, etc.) for general-purpose understanding.',
         icon: 'Bot',
         inputs: [
             {
@@ -143,8 +143,8 @@ export const baseNodes = [
         name: 'Financial Processor',
         description: 'AI processor specialized for Web3 transactions, balance checks, and financial analysis.',
         type: 'processing',
-        category: 'processors',
-        icon: 'Wallet', // Added icon
+        category: 'processing',
+        icon: 'Wallet',
         inputs: [
             {
                 key: 'text',
@@ -161,15 +161,15 @@ export const baseNodes = [
             { key: 'message', label: 'Confirmation Message', type: 'string' },
             { key: 'result', label: 'Full Extraction', type: 'object' },
         ],
-        meta: { apiKey: true, streaming: true }, // Added meta
+        meta: { apiKey: true, streaming: true },
     },
     {
         id: 'social_processor',
         name: 'Social Processor',
-        description: 'AI processor specialized for social interaction, community engagement, and tone consistency.',
+        description: 'AI processor for social interaction, community engagement, and tone consistency.',
         type: 'processing',
-        category: 'processors',
-        icon: 'MessageSquare', // Added icon
+        category: 'processing',
+        icon: 'MessageSquare',
         inputs: [
             {
                 key: 'text',
@@ -185,15 +185,15 @@ export const baseNodes = [
             { key: 'message', label: 'Draft Response', type: 'string' },
             { key: 'result', label: 'Full Analysis', type: 'object' },
         ],
-        meta: { apiKey: true, streaming: true }, // Added meta
+        meta: { apiKey: true, streaming: true },
     },
     {
         id: 'operational_processor',
         name: 'Operational Processor',
-        description: 'AI processor specialized for task coordination, scheduling, and system monitoring.',
+        description: 'AI processor for task coordination, scheduling, and system monitoring.',
         type: 'processing',
-        category: 'processors',
-        icon: 'Settings', // Added icon
+        category: 'processing',
+        icon: 'Settings',
         inputs: [
             {
                 key: 'text',
@@ -209,35 +209,13 @@ export const baseNodes = [
             { key: 'message', label: 'Acknowledgement', type: 'string' },
             { key: 'result', label: 'Execution Plan', type: 'object' },
         ],
-        meta: { apiKey: true, streaming: true }, // Added meta
-    },
-    {
-        type: 'input',
-        category: 'input',
-        name: 'File Upload',
-        description: 'Accepts file uploads from the user',
-        icon: 'FileUp',
-        inputs: [
-            {
-                key: 'accept',
-                label: 'Accepted Types',
-                type: 'string',
-                placeholder: '.pdf,.docx,image/*',
-                value: '.pdf,.docx,image/*',
-            },
-            { key: 'maxSize', label: 'Max Size (MB)', type: 'number', placeholder: '5', value: 5 },
-        ],
-        outputs: [
-            { key: 'file', label: 'File', type: 'object' },
-            { key: 'content', label: 'Content', type: 'string' },
-        ],
-        meta: { multiple: false },
+        meta: { apiKey: true, streaming: true },
     },
     {
         type: 'processing',
         category: 'processing',
         name: 'Data Transformer',
-        description: 'Transforms data from one format to another',
+        description: 'Transforms and reshapes data between nodes',
         icon: 'FileJson',
         inputs: [
             { key: 'data', label: 'Input Data', type: 'object', placeholder: '{}', value: {} },
@@ -251,82 +229,5 @@ export const baseNodes = [
         ],
         outputs: [{ key: 'result', label: 'Transformed Data', type: 'object' }],
         meta: { sandbox: true },
-    },
-    {
-        type: 'output',
-        category: 'output',
-        name: 'Chart Output',
-        description: 'Displays data as a chart',
-        icon: 'BarChart',
-        inputs: [
-            { key: 'data', label: 'Chart Data', type: 'object', placeholder: '[]', value: [] },
-            {
-                key: 'type',
-                label: 'Chart Type',
-                type: 'select',
-                options: ['Bar', 'Line', 'Pie', 'Scatter'],
-                value: 'Bar',
-            },
-            {
-                key: 'title',
-                label: 'Chart Title',
-                type: 'string',
-                placeholder: 'Chart Title',
-                value: 'Chart Title',
-            },
-        ],
-        outputs: [],
-        meta: { interactive: true },
-    },
-    {
-        type: 'condition',
-        category: 'condition',
-        name: 'Switch Case',
-        description: 'Routes based on multiple conditions',
-        icon: 'SwitchCamera',
-        inputs: [
-            {
-                key: 'value',
-                label: 'Input Value',
-                type: 'string',
-                placeholder: 'Value to evaluate',
-                value: '',
-            },
-            {
-                key: 'cases',
-                label: 'Cases',
-                type: 'object',
-                placeholder: "{case1: 'value1', case2: 'value2'}",
-                value: { case1: 'value1', case2: 'value2' },
-            },
-        ],
-        outputs: [
-            { key: 'case1', label: 'Case 1', type: 'boolean' },
-            { key: 'case2', label: 'Case 2', type: 'boolean' },
-            { key: 'default', label: 'Default', type: 'boolean' },
-        ],
-        meta: { dynamic: true },
-    },
-    {
-        type: 'input',
-        category: 'input',
-        name: 'Webhook Trigger',
-        description: 'Triggers flow on webhook call',
-        icon: 'Webhook',
-        inputs: [
-            {
-                key: 'endpoint',
-                label: 'Endpoint',
-                type: 'string',
-                placeholder: '/api/webhook',
-                value: '/api/webhook',
-            },
-            { key: 'method', label: 'Method', type: 'select', options: ['GET', 'POST'], value: 'POST' },
-        ],
-        outputs: [
-            { key: 'payload', label: 'Payload', type: 'object' },
-            { key: 'headers', label: 'Headers', type: 'object' },
-        ],
-        meta: { authentication: false },
     },
 ];

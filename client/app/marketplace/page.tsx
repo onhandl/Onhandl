@@ -12,8 +12,9 @@ import {
 } from '@/components/ui/selection/select';
 import {
   Search, Star, Eye, ShoppingCart, Loader2, Bot, Zap,
-  TrendingUp, Package, Filter,
+  TrendingUp, Package, Filter, User,
 } from 'lucide-react';
+import { PublicNav } from '@/components/public-nav';
 
 const CATEGORIES = ['All', 'Trading Bot', 'Analytics', 'DeFi Assistant', 'Portfolio Manager', 'Data Feed', 'Custom'];
 const NETWORKS   = ['All', 'Ethereum', 'CKB', 'Solana', 'Polygon'];
@@ -26,7 +27,7 @@ const PRICING_FILTERS = [
 const CATEGORY_META: Record<string, { color: string; dim: string }> = {
   'Trading Bot':        { color: 'text-blue-400',    dim: 'bg-blue-500/10 border-blue-500/20'    },
   Analytics:            { color: 'text-emerald-400', dim: 'bg-emerald-500/10 border-emerald-500/20' },
-  'DeFi Assistant':     { color: 'text-purple-400',  dim: 'bg-purple-500/10 border-purple-500/20' },
+  'DeFi Assistant':     { color: 'text-[#9AB17A]',  dim: 'bg-[#9AB17A]/10 border-[#9AB17A]/20' },
   'Portfolio Manager':  { color: 'text-orange-400',  dim: 'bg-orange-500/10 border-orange-500/20' },
   'Data Feed':          { color: 'text-cyan-400',    dim: 'bg-cyan-500/10 border-cyan-500/20'    },
   Custom:               { color: 'text-zinc-400',    dim: 'bg-zinc-500/10 border-zinc-500/20'    },
@@ -51,29 +52,42 @@ function AgentCard({ agent, index }: { agent: any; index: number }) {
     >
       <Link
         href={`/marketplace/agent/${agent._id}`}
-        className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/60 hover:border-purple-500/40 hover:bg-zinc-900 transition-all duration-200 overflow-hidden"
+        className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/60 hover:border-[#9AB17A]/40 hover:bg-zinc-900 transition-all duration-200 overflow-hidden"
       >
         {/* Accent bar */}
-        <div className="h-0.5 bg-gradient-to-r from-purple-600/80 to-violet-500/20" />
+        <div className="h-0.5 bg-gradient-to-r from-[#9AB17A]/80 to-[#C3CC9B]/20" />
 
         <div className="p-5 flex flex-col flex-1">
           <div className="flex items-start justify-between mb-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/20 to-violet-500/10 border border-purple-500/20 flex items-center justify-center group-hover:from-purple-600/30 transition-all duration-200">
-              <Bot className="h-5 w-5 text-purple-400" />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#9AB17A]/20 to-[#C3CC9B]/10 border border-[#9AB17A]/20 flex items-center justify-center group-hover:from-[#9AB17A]/30 transition-all duration-200">
+              <Bot className="h-5 w-5 text-[#9AB17A]" />
             </div>
             <Badge className={`text-[10px] border font-semibold ${meta.dim} ${meta.color}`}>
               {category}
             </Badge>
           </div>
 
-          <h3 className="font-semibold text-sm leading-tight line-clamp-1 mb-1.5 group-hover:text-purple-300 transition-colors text-zinc-100">
+          <h3 className="font-semibold text-sm leading-tight line-clamp-1 mb-1.5 group-hover:text-[#C3CC9B] transition-colors text-zinc-100">
             {agent.name}
           </h3>
           <p className="text-xs text-zinc-400 line-clamp-2 flex-1 leading-relaxed">
             {agent.description || 'No description provided.'}
           </p>
 
-          <div className="mt-4 flex items-center justify-between">
+          {/* Creator */}
+          {agent.creator && (
+            <Link href={`/creators/${agent.creator._id}`} onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-1.5 mt-3 group/creator">
+              <div className="w-5 h-5 rounded-full bg-zinc-700 flex items-center justify-center overflow-hidden flex-shrink-0">
+                {agent.creator.avatarUrl
+                  ? <img src={agent.creator.avatarUrl} alt="" className="w-full h-full object-cover" />
+                  : <User className="w-3 h-3 text-zinc-400" />}
+              </div>
+              <span className="text-[11px] text-zinc-500 group-hover/creator:text-[#9AB17A] transition-colors truncate">{agent.creator.name}</span>
+            </Link>
+          )}
+
+          <div className="mt-3 flex items-center justify-between">
             <div className="flex items-center gap-3 text-xs text-zinc-500">
               <span className="flex items-center gap-1.5">
                 <Eye className="h-3 w-3" />
@@ -84,14 +98,14 @@ function AgentCard({ agent, index }: { agent: any; index: number }) {
                 {(mkt.stats?.rating || 0).toFixed(1)}
               </span>
             </div>
-            <span className={`text-sm font-bold ${isFree ? 'text-emerald-400' : 'text-purple-400'}`}>
+            <span className={`text-sm font-bold ${isFree ? 'text-emerald-400' : 'text-[#9AB17A]'}`}>
               {isFree ? 'Free' : `${currency} ${price}`}
             </span>
           </div>
 
           <Button
             size="sm"
-            className="mt-3 w-full bg-purple-600/15 hover:bg-purple-600 border border-purple-500/25 text-purple-300 hover:text-white text-xs font-semibold transition-all duration-200 cursor-pointer"
+            className="mt-3 w-full bg-[#9AB17A]/15 hover:bg-[#9AB17A] border border-[#9AB17A]/25 text-[#C3CC9B] hover:text-black text-xs font-semibold transition-all duration-200 cursor-pointer"
           >
             <ShoppingCart className="h-3.5 w-3.5 mr-1.5" />
             {isFree ? 'Use Agent' : 'Buy Agent'}
@@ -140,12 +154,13 @@ export default function MarketplacePage() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
+      <PublicNav />
 
       {/* ── Hero banner ── */}
-      <div className="relative overflow-hidden border-b border-zinc-800/60">
+      <div className="relative overflow-hidden border-b border-zinc-800/60 pt-20">
         {/* Background glow */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full bg-purple-600/10 blur-[80px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full bg-[#9AB17A]/10 blur-[80px]" />
         </div>
 
         <div className="max-w-7xl mx-auto px-5 py-10 relative">
@@ -156,9 +171,11 @@ export default function MarketplacePage() {
             className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5"
           >
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-purple-500/30 bg-purple-500/8 text-xs font-semibold text-purple-400 mb-3">
-                <Package className="w-3 h-3" />
-                Agent Marketplace
+              <div className="flex items-center gap-3 mb-3">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#9AB17A]/30 bg-[#9AB17A]/8 text-xs font-semibold text-[#9AB17A]">
+                  <Package className="w-3 h-3" />
+                  Agent Marketplace
+                </div>
               </div>
               <h1 className="text-3xl font-extrabold tracking-tight mb-1">
                 Discover AI Agents
@@ -171,7 +188,7 @@ export default function MarketplacePage() {
             <div className="flex items-center gap-3">
               <div className="hidden sm:flex items-center gap-4 text-xs text-zinc-500 pr-4 border-r border-zinc-800">
                 <span className="flex items-center gap-1.5">
-                  <TrendingUp className="w-3.5 h-3.5 text-purple-400" />
+                  <TrendingUp className="w-3.5 h-3.5 text-[#9AB17A]" />
                   {total} Agents
                 </span>
                 <span className="flex items-center gap-1.5">
@@ -180,7 +197,7 @@ export default function MarketplacePage() {
                 </span>
               </div>
               <Link href="/sandbox">
-                <Button size="sm" className="bg-purple-600 hover:bg-purple-500 text-white shadow-md shadow-purple-600/25 cursor-pointer">
+                <Button size="sm" className="bg-[#9AB17A] hover:bg-[#C3CC9B] text-black shadow-md shadow-[#9AB17A]/25 cursor-pointer">
                   <Zap className="h-3.5 w-3.5 mr-1.5" />
                   Build Your Own
                 </Button>
@@ -205,7 +222,7 @@ export default function MarketplacePage() {
               placeholder="Search agents…"
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              className="pl-9 bg-zinc-900 border-zinc-800 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-purple-500/40"
+              className="pl-9 bg-zinc-900 border-zinc-800 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-[#9AB17A]/40"
             />
           </div>
 
@@ -235,7 +252,7 @@ export default function MarketplacePage() {
                 onClick={() => { setPricing(f.value); setPage(1); }}
                 className={`px-4 py-2 text-xs font-semibold transition-all cursor-pointer ${
                   pricing === f.value
-                    ? 'bg-purple-600 text-white'
+                    ? 'bg-[#9AB17A] text-black'
                     : 'bg-zinc-900 text-zinc-400 hover:text-zinc-200'
                 }`}
               >
@@ -255,7 +272,7 @@ export default function MarketplacePage() {
               exit={{ opacity: 0 }}
               className="flex flex-col items-center justify-center py-24 gap-3"
             >
-              <Loader2 className="h-7 w-7 animate-spin text-purple-500" />
+              <Loader2 className="h-7 w-7 animate-spin text-[#9AB17A]" />
               <p className="text-sm text-zinc-500">Fetching agents…</p>
             </motion.div>
           ) : agents.length === 0 ? (
@@ -266,8 +283,8 @@ export default function MarketplacePage() {
               exit={{ opacity: 0 }}
               className="text-center py-24 border border-dashed border-zinc-800 rounded-2xl"
             >
-              <div className="w-12 h-12 rounded-2xl bg-purple-600/10 flex items-center justify-center mx-auto mb-4">
-                <Bot className="h-6 w-6 text-purple-400" />
+              <div className="w-12 h-12 rounded-2xl bg-[#9AB17A]/10 flex items-center justify-center mx-auto mb-4">
+                <Bot className="h-6 w-6 text-[#9AB17A]" />
               </div>
               <p className="text-zinc-300 font-semibold mb-1">No agents found</p>
               <p className="text-sm text-zinc-500">Try adjusting your filters or search term.</p>

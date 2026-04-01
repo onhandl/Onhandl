@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Zap } from 'lucide-react';
+import { Menu, X, Zap, LayoutDashboard } from 'lucide-react';
+
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '') + '/api';
 
 interface NavigationProps {
     isMobileMenuOpen: boolean;
@@ -18,11 +20,18 @@ export const Navigation: React.FC<NavigationProps> = ({
     handleAnchorClick,
 }) => {
     const [scrolled, setScrolled] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 30);
         window.addEventListener('scroll', onScroll, { passive: true });
         return () => window.removeEventListener('scroll', onScroll);
+    }, []);
+
+    useEffect(() => {
+        fetch(`${API_BASE}/auth/me`, { credentials: 'include' })
+            .then((r) => setIsAuthenticated(r.ok))
+            .catch(() => setIsAuthenticated(false));
     }, []);
 
     return (
@@ -63,22 +72,43 @@ export const Navigation: React.FC<NavigationProps> = ({
                     >
                         Marketplace
                     </a>
+                    <a
+                        href="/community"
+                        className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground rounded-xl hover:bg-accent/40 transition-all duration-200 cursor-pointer"
+                    >
+                        Community
+                    </a>
                 </div>
 
-                {/* CTA */}
+                {/* CTA — swaps based on auth state */}
                 <div className="hidden md:flex items-center gap-3">
-                    <a
-                        href="/signin"
-                        className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 cursor-pointer"
-                    >
-                        Sign In
-                    </a>
-                    <a
-                        href="/signup"
-                        className="px-5 py-2 bg-primary hover:bg-primary/90 text-white text-sm font-semibold rounded-xl transition-all duration-200 shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 cursor-pointer"
-                    >
-                        Get Started Free
-                    </a>
+                    {isAuthenticated === null ? (
+                        /* Loading — invisible placeholder to avoid layout shift */
+                        <div className="w-32 h-9" />
+                    ) : isAuthenticated ? (
+                        <a
+                            href="/dashboard"
+                            className="flex items-center gap-2 px-5 py-2 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold rounded-xl transition-all duration-200 shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 cursor-pointer"
+                        >
+                            <LayoutDashboard className="w-4 h-4" />
+                            Dashboard
+                        </a>
+                    ) : (
+                        <>
+                            <a
+                                href="/signin"
+                                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 cursor-pointer"
+                            >
+                                Sign In
+                            </a>
+                            <a
+                                href="/signup"
+                                className="px-5 py-2 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold rounded-xl transition-all duration-200 shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 cursor-pointer"
+                            >
+                                Get Started Free
+                            </a>
+                        </>
+                    )}
                 </div>
 
                 {/* Mobile burger */}
@@ -123,17 +153,38 @@ export const Navigation: React.FC<NavigationProps> = ({
                                 Marketplace
                             </a>
                             <a
-                                href="/signin"
-                                className="px-4 py-3 text-sm font-medium rounded-xl hover:bg-accent/40 transition-colors"
+                                href="/community"
+                                className="px-4 py-3 text-sm font-medium rounded-xl hover:bg-accent/40 transition-colors cursor-pointer"
+                                onClick={() => setIsMobileMenuOpen(false)}
                             >
-                                Sign In
+                                Community
                             </a>
-                            <a
-                                href="/signup"
-                                className="mt-2 px-4 py-3 bg-primary text-white text-sm font-semibold rounded-xl text-center shadow-md shadow-primary/25"
-                            >
-                                Get Started Free
-                            </a>
+
+                            {isAuthenticated ? (
+                                <a
+                                    href="/dashboard"
+                                    className="mt-2 flex items-center justify-center gap-2 px-4 py-3 bg-primary text-primary-foreground text-sm font-semibold rounded-xl text-center shadow-md shadow-primary/25"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                >
+                                    <LayoutDashboard className="w-4 h-4" />
+                                    Dashboard
+                                </a>
+                            ) : (
+                                <>
+                                    <a
+                                        href="/signin"
+                                        className="px-4 py-3 text-sm font-medium rounded-xl hover:bg-accent/40 transition-colors"
+                                    >
+                                        Sign In
+                                    </a>
+                                    <a
+                                        href="/signup"
+                                        className="mt-2 px-4 py-3 bg-primary text-primary-foreground text-sm font-semibold rounded-xl text-center shadow-md shadow-primary/25"
+                                    >
+                                        Get Started Free
+                                    </a>
+                                </>
+                            )}
                         </div>
                     </motion.div>
                 )}

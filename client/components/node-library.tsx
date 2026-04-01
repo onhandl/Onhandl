@@ -9,9 +9,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface NodeLibraryProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
+  onTapAdd?: (nodeType: string, nodeData: any) => void;
 }
 
-export default function NodeLibrary({ isOpen, setIsOpen }: NodeLibraryProps) {
+export default function NodeLibrary({ isOpen, setIsOpen, onTapAdd }: NodeLibraryProps) {
   const onClose = () => setIsOpen(false);
   const [activeTab, setActiveTab] = useState('all');
   const [blockchainTools, setBlockchainTools] = useState<any[]>([]);
@@ -64,52 +65,48 @@ export default function NodeLibrary({ isOpen, setIsOpen }: NodeLibraryProps) {
     event.dataTransfer.effectAllowed = 'move';
   };
 
-  const renderToolNode = (tool: any) => (
-    <motion.div
-      key={tool.name}
-      whileHover={{ scale: 1.02, x: 4 }}
-      className="p-3 mb-2 border border-border rounded-lg cursor-grab bg-card hover:bg-muted/50 transition-all shadow-sm group"
-      draggable
-      onDragStart={(event: any) => {
-        // Build inputs from uiSchema if present
-        const toolInputs = tool.schemaDef
-          ? Object.entries(tool.schemaDef).map(([key, config]: [string, any]) => ({
-            key,
-            label: config.label,
-            type: config.type,
-            placeholder: config.placeholder || '',
-            value: ''
-          }))
-          : [];
+  const renderToolNode = (tool: any) => {
+    const toolInputs = tool.schemaDef
+      ? Object.entries(tool.schemaDef).map(([key, config]: [string, any]) => ({
+          key, label: config.label, type: config.type,
+          placeholder: config.placeholder || '', value: ''
+        }))
+      : [];
+    const toolOutputs = [
+      { key: 'result', label: 'Result', type: 'object' },
+      { key: 'status', label: 'Status', type: 'string' },
+    ];
+    const nodeData = {
+      name: tool.name.split('.').pop(),
+      description: tool.description,
+      tool: tool.name,
+      chain: tool.network,
+      params: {},
+      inputs: toolInputs,
+      outputs: toolOutputs,
+    };
 
-        // Add standard output handles
-        const toolOutputs = [
-          { key: 'result', label: 'Result', type: 'object' },
-          { key: 'status', label: 'Status', type: 'string' }
-        ];
-
-        onDragStart(event, 'blockchain_tool', {
-          name: tool.name.split('.').pop(),
-          description: tool.description,
-          tool: tool.name,
-          chain: tool.network,
-          params: {},
-          inputs: toolInputs,
-          outputs: toolOutputs
-        });
-      }}
-    >
-      <div className="flex items-center gap-3">
-        <div className="bg-primary/10 p-2 rounded-md group-hover:bg-primary/20 transition-colors">
-          <Box className="w-4 h-4 text-primary" />
+    return (
+      <motion.div
+        key={tool.name}
+        whileHover={{ scale: 1.02, x: 4 }}
+        className="p-3 mb-2 border border-border rounded-lg cursor-grab bg-card hover:bg-muted/50 transition-all shadow-sm group"
+        draggable
+        onClick={() => { onTapAdd?.('blockchain_tool', nodeData); setIsOpen(false); }}
+        onDragStart={(event: any) => onDragStart(event, 'blockchain_tool', nodeData)}
+      >
+        <div className="flex items-center gap-3">
+          <div className="bg-primary/10 p-2 rounded-md group-hover:bg-primary/20 transition-colors">
+            <Box className="w-4 h-4 text-primary" />
+          </div>
+          <div className="flex-1">
+            <div className="font-semibold text-xs truncate">{tool.name.split('.').pop()}</div>
+            <div className="text-[10px] line-clamp-1">{tool.description}</div>
+          </div>
         </div>
-        <div className="flex-1">
-          <div className="font-semibold text-xs truncate">{tool.name.split('.').pop()}</div>
-          <div className="text-[10px] line-clamp-1">{tool.description}</div>
-        </div>
-      </div>
-    </motion.div>
-  );
+      </motion.div>
+    );
+  };
 
   return (
     <AnimatePresence>
@@ -119,13 +116,16 @@ export default function NodeLibrary({ isOpen, setIsOpen }: NodeLibraryProps) {
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.3 }}
-          className="w-96 bg-card rounded-xl shadow-2xl border border-border overflow-hidden flex flex-col h-[600px]"
+          className="fixed md:relative inset-x-0 bottom-[60px] md:bottom-auto top-0 md:top-auto md:w-96 w-full bg-card rounded-t-xl md:rounded-xl shadow-2xl border border-border overflow-hidden flex flex-col h-[70vh] md:h-[600px] z-40"
         >
           <div className="flex justify-between items-center p-5 border-b border-border bg-muted/20">
-            <h3 className="font-bold text-lg flex items-center gap-3">
-              <Layers3 className="w-5 h-5 text-primary" />
-              Node Library
-            </h3>
+            <div>
+              <h3 className="font-bold text-lg flex items-center gap-3">
+                <Layers3 className="w-5 h-5 text-primary" />
+                Node Library
+              </h3>
+              <p className="text-[10px] text-muted-foreground mt-0.5 md:hidden">Tap a node to add it · drag on desktop</p>
+            </div>
             <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
               <X className="h-4 w-4" />
             </Button>
@@ -145,9 +145,43 @@ export default function NodeLibrary({ isOpen, setIsOpen }: NodeLibraryProps) {
               ))}
             </TabsList>
 
-            <TabsContent value={activeTab} className="mt-0 flex-1 overflow-y-auto p-4 custom-scrollbar">
-              {activeTab === 'blockchain' || activeTab === 'all' ? (
-                <div className="space-y-4">
+            <TabsContent value={activeTab} className="mt-0 flex-1 overflow-y-auto p-4 custom-scrollbar space-y-4">
+              {/* Static node definitions — all tabs except pure blockchain tools */}
+              {(() => {
+                const filtered = nodeDefinitions.filter(
+                  node => activeTab === 'all' || node.category === activeTab
+                );
+                if (filtered.length === 0) return null;
+                return (
+                  <div className="space-y-2">
+                    {filtered.map((node, index) => (
+                      <motion.div
+                        key={index}
+                        whileHover={{ scale: 1.02 }}
+                        className="p-4 border border-border rounded-xl cursor-grab bg-card hover:bg-muted/50 transition-all shadow-sm group"
+                        draggable
+                        onClick={() => { onTapAdd?.(node.type, node); setIsOpen(false); }}
+                        onDragStart={(event: any) => onDragStart(event, node.type, node)}
+                      >
+                        <div className="flex justify-between items-center">
+                          <div className="space-y-1">
+                            <div className="font-bold text-sm group-hover:text-primary transition-colors">{node.name}</div>
+                            <div className="text-xs line-clamp-2">{node.description}</div>
+                          </div>
+                          <Layers3 className="w-4 h-4 group-hover:text-primary transition-colors" />
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                );
+              })()}
+
+              {/* API blockchain tools tree — shown in All and Blockchain tabs */}
+              {(activeTab === 'blockchain' || activeTab === 'all') && Object.keys(groupedTools).length > 0 && (
+                <div className="space-y-1">
+                  {activeTab === 'all' && (
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-1 pb-1">Blockchain Tools</p>
+                  )}
                   {Object.entries(groupedTools).map(([network, categories]: [string, any]) => (
                     <div key={network} className="space-y-1">
                       <button
@@ -193,30 +227,6 @@ export default function NodeLibrary({ isOpen, setIsOpen }: NodeLibraryProps) {
                       )}
                     </div>
                   ))}
-                </div>
-              ) : null}
-
-              {(activeTab !== 'blockchain') && (
-                <div className="space-y-2">
-                  {nodeDefinitions
-                    .filter(node => activeTab === 'all' || node.category === activeTab)
-                    .map((node, index) => (
-                      <motion.div
-                        key={index}
-                        whileHover={{ scale: 1.02 }}
-                        className="p-4 border border-border rounded-xl cursor-grab bg-card hover:bg-muted/50 transition-all shadow-sm group"
-                        draggable
-                        onDragStart={(event: any) => onDragStart(event, node.type, node)}
-                      >
-                        <div className="flex justify-between items-center">
-                          <div className="space-y-1">
-                            <div className="font-bold text-sm group-hover:text-primary transition-colors">{node.name}</div>
-                            <div className="text-xs line-clamp-2">{node.description}</div>
-                          </div>
-                          <Layers3 className="w-4 h-4 group-hover:text-primary transition-colors" />
-                        </div>
-                      </motion.div>
-                    ))}
                 </div>
               )}
             </TabsContent>

@@ -11,6 +11,7 @@ export interface IPurchase extends Document {
     stripeSessionId?: string;
     cryptoTxHash?: string;
     network?: string;
+    proxyAgentId?: Types.ObjectId;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -27,6 +28,7 @@ const PurchaseSchema: Schema = new Schema(
         stripeSessionId: { type: String },
         cryptoTxHash: { type: String },
         network: { type: String },
+        proxyAgentId: { type: Schema.Types.ObjectId, ref: 'AgentDefinition' },
     },
     { timestamps: true }
 );

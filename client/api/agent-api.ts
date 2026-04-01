@@ -82,6 +82,9 @@ export const agentApi = {
 
     getMyPurchases: async () => apiFetch('/marketplace/purchases/mine'),
 
+    useMarketplaceAgent: async (id: string) =>
+        apiFetch(`/marketplace/${id}/use`, { method: 'POST', body: JSON.stringify({}) }),
+
     // ── Payments ──────────────────────────────────────────────────────────────
     getStripeConnectUrl: async () => apiFetch('/payments/stripe/connect-url'),
 

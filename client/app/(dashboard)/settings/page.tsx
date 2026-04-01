@@ -2,70 +2,40 @@
 
 import { useState, useEffect } from 'react';
 import { apiFetch } from '@/lib/api-client';
-import { Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, Input, Label, useToast } from '@/components/ui';
+import { useToast } from '@/components/ui';
+import { Loader2, User, KeyRound, CreditCard, Bell, Coins, ChevronRight } from 'lucide-react';
+import { UpgradeModal } from '@/components/modals/upgrade-modal';
+import { ProfileSection }         from './components/profile-section';
+import { BillingSection }         from './components/billing-section';
+import { ApiKeysCard }            from './components/api-keys-card';
+import { PaymentMethodsCard }     from './components/payment-methods-card';
+import { NotificationsCard }      from './components/notifications-card';
 
-import { Loader2, Save, CheckCircle2, User, Mail, Phone, MessageCircle } from 'lucide-react';
+type Section = 'profile' | 'billing' | 'api-keys' | 'payments' | 'notifications';
+
+const NAV: { key: Section; label: string; icon: React.ElementType; description: string }[] = [
+  { key: 'profile',       label: 'Profile',           icon: User,        description: 'Your account info'       },
+  { key: 'billing',       label: 'Billing & Tokens',  icon: Coins,       description: 'Plan, usage & upgrade'   },
+  { key: 'api-keys',      label: 'AI Provider Keys',  icon: KeyRound,    description: 'Gemini, OpenAI, Ollama'   },
+  { key: 'payments',      label: 'Payment Methods',   icon: CreditCard,  description: 'Stripe & crypto wallets'  },
+  { key: 'notifications', label: 'Notifications',     icon: Bell,        description: 'Alerts & digests'         },
+];
 
 export default function SettingsPage() {
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [user, setUser] = useState({
-    username: '',
-    email: '',
-    whatsapp: '',
-    telegramUsername: '',
-  });
+  const [loading,      setLoading]     = useState(true);
+  const [active,       setActive]      = useState<Section>('profile');
+  const [upgradeOpen,  setUpgradeOpen] = useState(false);
+  const [tokenInfo,    setTokenInfo]   = useState<{ tokens: number; plan: string } | null>(null);
+  const [user,         setUser]        = useState({ username: '', email: '', whatsapp: '', telegramUsername: '', avatarUrl: '' });
   const { toast } = useToast();
 
   useEffect(() => {
-    async function fetchUser() {
-      try {
-        const data = await apiFetch('/me');
-        setUser({
-          username: data.username || '',
-          email: data.email || '',
-          whatsapp: data.whatsapp || '',
-          telegramUsername: data.telegramUsername || '',
-        });
-      } catch (err: any) {
-        toast({
-          title: 'Error',
-          description: 'Failed to load user profile.',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchUser();
+    apiFetch('/auth/me').then((data: any) => {
+      setUser({ username: data.username || '', email: data.email || '', whatsapp: data.whatsapp || '', telegramUsername: data.telegramUsername || '', avatarUrl: data.avatarUrl || '' });
+      setTokenInfo({ tokens: data.tokens ?? 0, plan: data.plan ?? 'free' });
+    }).catch(() => toast({ title: 'Error', description: 'Failed to load profile.', variant: 'destructive' }))
+      .finally(() => setLoading(false));
   }, [toast]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    setSaved(false);
-    try {
-      await apiFetch('/me', {
-        method: 'POST',
-        body: JSON.stringify(user),
-      });
-      setSaved(true);
-      toast({
-        title: 'Success',
-        description: 'Profile updated successfully!',
-      });
-      setTimeout(() => setSaved(false), 3000);
-    } catch (err: any) {
-      toast({
-        title: 'Error',
-        description: err.message || 'Failed to update profile.',
-        variant: 'destructive',
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -75,166 +45,96 @@ export default function SettingsPage() {
     );
   }
 
+  const activeNav = NAV.find((n) => n.key === active)!;
+
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-          Settings
-        </h1>
-        <p className="mt-2">Manage your account settings and preferences.</p>
+    <div className="min-h-full bg-background">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-6">
+
+        {/* Page header */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-extrabold tracking-tight">Settings</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Manage your account, billing, integrations and preferences.</p>
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-5">
+
+          {/* ── Sidebar nav (desktop) / horizontal scroll (mobile) ── */}
+          <aside className="md:w-56 flex-shrink-0">
+            {/* Mobile: horizontal pill row */}
+            <div className="flex md:hidden gap-2 overflow-x-auto pb-2 scrollbar-none">
+              {NAV.map(({ key, label, icon: Icon }) => (
+                <button key={key} onClick={() => setActive(key)}
+                  className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
+                    active === key
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted/60'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* Desktop: vertical nav card */}
+            <nav className="hidden md:flex flex-col rounded-2xl border border-border/60 bg-card overflow-hidden">
+              {NAV.map(({ key, label, icon: Icon, description }, idx) => (
+                <button key={key} onClick={() => setActive(key)}
+                  className={`group flex items-center gap-3 px-4 py-3.5 text-left transition-colors cursor-pointer ${
+                    idx !== NAV.length - 1 ? 'border-b border-border/40' : ''
+                  } ${
+                    active === key
+                      ? 'bg-primary/8 text-foreground'
+                      : 'hover:bg-muted/30 text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${
+                    active === key ? 'bg-primary/15' : 'bg-muted/40 group-hover:bg-muted/60'
+                  }`}>
+                    <Icon className={`w-4 h-4 ${active === key ? 'text-primary' : ''}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-semibold leading-tight ${active === key ? 'text-foreground' : ''}`}>{label}</p>
+                    <p className="text-[10px] text-muted-foreground/70 mt-0.5 truncate">{description}</p>
+                  </div>
+                  {active === key && <ChevronRight className="w-3.5 h-3.5 text-primary flex-shrink-0" />}
+                </button>
+              ))}
+            </nav>
+          </aside>
+
+          {/* ── Content panel ── */}
+          <div className="flex-1 min-w-0">
+            {/* Section heading */}
+            <div className="mb-4 hidden md:block">
+              <div className="flex items-center gap-2">
+                <activeNav.icon className="w-4 h-4 text-primary" />
+                <h2 className="text-lg font-bold">{activeNav.label}</h2>
+              </div>
+              <p className="text-sm text-muted-foreground mt-0.5">{activeNav.description}</p>
+            </div>
+
+            {active === 'profile' && (
+              <ProfileSection user={user} setUser={setUser} />
+            )}
+            {active === 'billing' && (
+              <BillingSection tokenInfo={tokenInfo} onUpgrade={() => setUpgradeOpen(true)} />
+            )}
+            {active === 'api-keys' && (
+              <ApiKeysCard />
+            )}
+            {active === 'payments' && (
+              <PaymentMethodsCard />
+            )}
+            {active === 'notifications' && (
+              <NotificationsCard />
+            )}
+          </div>
+        </div>
       </div>
 
-      <Card className="border-border shadow-lg hover:shadow-xl transition-shadow duration-300">
-        <CardHeader className="border-b border-border/50 bg-muted/5">
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5 text-primary" />
-            User Profile
-          </CardTitle>
-          <CardDescription>Update your contact information and public identifiers.</CardDescription>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <form id="settings-form" onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="username" className="text-foreground font-medium">
-                  Username
-                </Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="username"
-                    value={user.username}
-                    onChange={(e) => setUser({ ...user, username: e.target.value })}
-                    placeholder="Your username"
-                    className="pl-9 bg-background border-border focus:ring-2 focus:ring-ring transition-all"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-foreground font-medium">
-                  Email Address
-                </Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    value={user.email}
-                    onChange={(e) => setUser({ ...user, email: e.target.value })}
-                    placeholder="your@email.com"
-                    className="pl-9 bg-background border-border focus:ring-2 focus:ring-ring transition-all"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="whatsapp" className="text-foreground font-medium">
-                  WhatsApp Number
-                </Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="whatsapp"
-                    value={user.whatsapp}
-                    onChange={(e) => setUser({ ...user, whatsapp: e.target.value })}
-                    placeholder="+1234567890"
-                    className="pl-9 bg-background border-border focus:ring-2 focus:ring-ring transition-all"
-                  />
-                </div>
-                <p className="text-xs mt-1">
-                  Include country code (e.g., +1 for US)
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="telegram" className="text-foreground font-medium">
-                  Telegram Username
-                </Label>
-                <div className="relative">
-                  <MessageCircle className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="telegram"
-                    value={user.telegramUsername}
-                    onChange={(e) => setUser({ ...user, telegramUsername: e.target.value })}
-                    placeholder="username"
-                    className="pl-9 bg-background border-border focus:ring-2 focus:ring-ring transition-all"
-                  />
-                </div>
-                <p className="text-xs mt-1">
-                  Your Telegram username without the @ symbol
-                </p>
-              </div>
-            </div>
-          </form>
-        </CardContent>
-        <CardFooter className="flex justify-end border-t border-border/50 pt-6 bg-muted/5">
-          <Button
-            type="submit"
-            form="settings-form"
-            disabled={saving}
-            className="rounded-full px-8 shadow-md hover:shadow-lg transition-all duration-300 bg-primary hover:opacity-90"
-          >
-            {saving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving Changes...
-              </>
-            ) : saved ? (
-              <>
-                <CheckCircle2 className="mr-2 h-4 w-4" />
-                Saved!
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                Save Profile Changes
-              </>
-            )}
-          </Button>
-        </CardFooter>
-      </Card>
-
-      <Card className="border-border/50 shadow-sm bg-muted/5">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-muted-foreground">
-            <MessageCircle className="h-5 w-5" />
-            Notifications
-          </CardTitle>
-          <CardDescription>Configure how you receive alerts and summaries. (Coming Soon)</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-4 rounded-lg bg-background border border-border/50">
-            <div className="space-y-1">
-              <p className="font-medium text-foreground">Telegram Alerts</p>
-              <p className="text-xs text-muted-foreground">Get instant trade execution notifications.</p>
-            </div>
-            <div className="w-11 h-6 bg-muted rounded-full relative cursor-not-allowed opacity-50">
-              <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full"></div>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between p-4 rounded-lg bg-background border border-border/50">
-            <div className="space-y-1">
-              <p className="font-medium text-foreground">Daily Summaries</p>
-              <p className="text-xs text-muted-foreground">Receive daily performance reports.</p>
-            </div>
-            <div className="w-11 h-6 bg-muted rounded-full relative cursor-not-allowed opacity-50">
-              <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full"></div>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between p-4 rounded-lg bg-background border border-border/50">
-            <div className="space-y-1">
-              <p className="font-medium text-foreground">Email Notifications</p>
-              <p className="text-xs text-muted-foreground">Get important updates via email.</p>
-            </div>
-            <div className="w-11 h-6 bg-muted rounded-full relative cursor-not-allowed opacity-50">
-              <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full"></div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <UpgradeModal isOpen={upgradeOpen} onClose={() => setUpgradeOpen(false)} currentPlan={tokenInfo?.plan} />
     </div>
   );
 }

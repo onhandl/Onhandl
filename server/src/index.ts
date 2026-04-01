@@ -10,11 +10,19 @@ import { agentRoutes } from '../modules/agentRoutes'
 import { executionRoutes } from '../modules/executionRoutes'
 import { teleCronRoutes } from '../modules/teleCronRoutes'
 import { aiRoutes } from '../modules/aiRoutes'
+import { botRoutes } from '../modules/botRoutes'
 import { templateRoutes } from '../modules/templateRoutes'
 import toolsRoutes from '../modules/toolsRoutes'
 import { exportRoutes } from '../modules/exportRoutes'
 import { marketplaceRoutes } from '../modules/marketplaceRoutes'
 import { paymentRoutes } from '../modules/paymentRoutes'
+import { blogRoutes } from '../modules/blogRoutes'
+import { supportRoutes } from '../modules/supportRoutes'
+import { adminRoutes } from '../modules/admin/index'
+import { waitlistRoutes } from '../modules/waitlistRoutes'
+import { userSettingsRoutes } from '../modules/userSettingsRoutes'
+import { reviewRoutes } from '../modules/reviewRoutes'
+import { creatorRoutes } from '../modules/creatorRoutes'
 import { syncBlockchainToolsToDb } from '../services/ToolSyncer'
 import { ENV } from '../lib/environments'
 import { startWorkers } from '../workers/agenda'
@@ -46,6 +54,7 @@ fastify.register(fastifyCookie)
 
 fastify.register(authRoutes, { prefix: '/api/auth' })
 fastify.register(aiRoutes, { prefix: '/api/ai' })
+fastify.register(botRoutes, { prefix: '/api/bot' })
 fastify.register(userRoutes, { prefix: '/api' })
 fastify.register(workspaceRoutes, { prefix: '/api' })
 fastify.register(agentRoutes, { prefix: '/api' })
@@ -56,6 +65,13 @@ fastify.register(toolsRoutes, { prefix: '/api/tools' })
 fastify.register(exportRoutes, { prefix: '/api' })
 fastify.register(marketplaceRoutes, { prefix: '/api' })
 fastify.register(paymentRoutes, { prefix: '/api/payments' })
+fastify.register(blogRoutes, { prefix: '/api' })
+fastify.register(supportRoutes, { prefix: '/api' })
+fastify.register(adminRoutes, { prefix: '/api/admin' })
+fastify.register(waitlistRoutes, { prefix: '/api' })
+fastify.register(userSettingsRoutes, { prefix: '/api/auth' })
+fastify.register(reviewRoutes, { prefix: '/api' })
+fastify.register(creatorRoutes, { prefix: '/api' })
 
 fastify.get('/api/health', async () => ({ status: 'ok' }))
 

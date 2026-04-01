@@ -1,7 +1,7 @@
 export const blockchainNodes = [
     {
         type: 'blockchain_tool',
-        category: 'action',
+        category: 'blockchain',
         name: 'Blockchain Action',
         description: 'Execute read/write operations across multiple blockchains',
         icon: 'Link',

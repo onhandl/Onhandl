@@ -1,254 +1,214 @@
 'use client';
 
-import type React from 'react';
 import { useState, useRef, useEffect } from 'react';
-import { Send, Trash2, Download, Copy, Bot } from 'lucide-react';
-import { Button, Card, CardContent, CardFooter, CardHeader, CardTitle, Input, ScrollArea, Tabs, TabsList, TabsTrigger } from '@/components/ui';
+import { Send, Trash2, Bot, Zap, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { apiFetch } from '@/lib/api-client';
 
 type Message = {
   id: string;
   content: string;
-  sender: 'user' | 'bot';
-  timestamp: Date;
+  role: 'user' | 'assistant';
 };
 
-type BotMode = 'general' | 'analysis' | 'tasks';
+const SUGGESTED = [
+  'How do I create my first agent?',
+  'What are the pricing plans?',
+  'How does the token system work?',
+  'What blockchain features are available?',
+];
 
-const BotInterface = () => {
+export default function BotPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [mode, setMode] = useState<BotMode>('general');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [loading, setLoading] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setMessages([
-      {
-        id: '1',
-        content: "Hello! I'm your assistant. How can I help you today?",
-        sender: 'bot',
-        timestamp: new Date(),
-      },
-    ]);
-  }, []);
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, loading]);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  const send = async (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed || loading) return;
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+    const userMsg: Message = { id: Date.now().toString(), content: trimmed, role: 'user' };
+    const history = messages.map((m) => ({ role: m.role, content: m.content }));
 
-  const handleSendMessage = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!input.trim()) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: input,
-      sender: 'user',
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMsg]);
     setInput('');
-    setIsProcessing(true);
+    setLoading(true);
 
-    // Simulate bot thinking
-    setTimeout(() => {
-      const botResponse = generateBotResponse(input, mode);
-      setMessages((prev) => [...prev, botResponse]);
-      setIsProcessing(false);
-    }, 1000);
-  };
-
-  const generateBotResponse = (userInput: string, currentMode: BotMode): Message => {
-    const lowerInput = userInput.toLowerCase();
-    let response = '';
-
-    // Basic intent detection
-    if (lowerInput.includes('hello') || lowerInput.includes('hi') || lowerInput.includes('hey')) {
-      response = 'Hello there! How can I assist you today?';
-    } else if (lowerInput.includes('bye') || lowerInput.includes('goodbye')) {
-      response = 'Goodbye! Feel free to come back if you need anything else.';
-    } else if (lowerInput.includes('thank')) {
-      response = "You're welcome! Is there anything else I can help with?";
-    } else if (lowerInput.includes('help')) {
-      response =
-        'I can help with general questions, data analysis, and task management. What do you need assistance with?';
-    } else {
-      // Mode-specific responses
-      switch (currentMode) {
-        case 'general':
-          response = `I understand you're asking about "${userInput}". As a general assistant, I can provide information, answer questions, or direct you to other capabilities.`;
-          break;
-        case 'analysis':
-          response = `I can help analyze "${userInput}". In the analysis mode, I can process data, generate insights, and create visualizations.`;
-          break;
-        case 'tasks':
-          if (lowerInput.includes('create') || lowerInput.includes('add')) {
-            response = `Task created: "${userInput.replace(/create|add/i, '').trim()}". Is there anything else you'd like to add to this task?`;
-          } else {
-            response = `I can help manage your tasks related to "${userInput}". Would you like to create a new task, view existing ones, or mark tasks as complete?`;
-          }
-          break;
-      }
+    try {
+      const data = await apiFetch('/bot/chat', {
+        method: 'POST',
+        body: JSON.stringify({ message: trimmed, history }),
+      });
+      const botMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        content: data.reply || 'Sorry, I could not generate a response.',
+        role: 'assistant',
+      };
+      setMessages((prev) => [...prev, botMsg]);
+    } catch (err: any) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          content: err.message || 'Something went wrong. Please try again.',
+          role: 'assistant',
+        },
+      ]);
+    } finally {
+      setLoading(false);
+      setTimeout(() => inputRef.current?.focus(), 50);
     }
-
-    return {
-      id: Date.now().toString(),
-      content: response,
-      sender: 'bot',
-      timestamp: new Date(),
-    };
   };
 
-  const clearConversation = () => {
-    setMessages([
-      {
-        id: '1',
-        content: "Hello! I'm your assistant. How can I help you today?",
-        sender: 'bot',
-        timestamp: new Date(),
-      },
-    ]);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    send(input);
   };
 
-  const copyConversation = () => {
-    const text = messages
-      .map((msg) => `${msg.sender === 'user' ? 'You' : 'Bot'}: ${msg.content}`)
-      .join('\n');
-    navigator.clipboard.writeText(text);
-  };
+  const clear = () => setMessages([]);
 
-  const downloadConversation = () => {
-    const text = messages
-      .map(
-        (msg) =>
-          `[${msg.timestamp.toLocaleString()}] ${msg.sender === 'user' ? 'You' : 'Bot'}: ${msg.content}`
-      )
-      .join('\n');
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `conversation-${new Date().toISOString().slice(0, 10)}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+  const isEmpty = messages.length === 0;
 
   return (
-    <Card className="w-full max-w-3xl mx-auto h-[600px] flex flex-col">
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-center">
-          <CardTitle className="flex items-center gap-2">
-            <Bot className="h-5 w-5" />
-            Mini Bot
-          </CardTitle>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={clearConversation}
-              title="Clear conversation"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={copyConversation}
-              title="Copy conversation"
-            >
-              <Copy className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={downloadConversation}
-              title="Download conversation"
-            >
-              <Download className="h-4 w-4" />
-            </Button>
+    <div className="flex flex-col h-[calc(100vh-56px)] max-w-3xl mx-auto px-4 py-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4 flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Bot className="w-5 h-5 text-primary" />
           </div>
+          <div>
+            <h1 className="font-bold text-[15px] leading-tight">FlawLess Assistant</h1>
+            <p className="text-[11px] text-muted-foreground">Ask me anything about the platform</p>
+          </div>
+          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            Online
+          </span>
         </div>
-        <Tabs
-          defaultValue="general"
-          className="w-full"
-          onValueChange={(value) => setMode(value as BotMode)}
-        >
-          <TabsList className="grid grid-cols-3 w-full">
-            <TabsTrigger value="general">General</TabsTrigger>
-            <TabsTrigger value="analysis">Analysis</TabsTrigger>
-            <TabsTrigger value="tasks">Tasks</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </CardHeader>
-      <CardContent className="flex-grow overflow-hidden p-0">
-        <ScrollArea className="h-full p-4">
-          <div className="space-y-4">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`max-w-[80%] rounded-lg p-3 ${message.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                    }`}
-                >
-                  <p className="text-sm">{message.content}</p>
-                  <p className="text-xs opacity-70 mt-1">
-                    {message.timestamp.toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </p>
-                </div>
-              </div>
-            ))}
-            {isProcessing && (
-              <div className="flex justify-start">
-                <div className="max-w-[80%] rounded-lg p-3 bg-muted">
-                  <div className="flex space-x-2">
-                    <div
-                      className="w-2 h-2 rounded-full bg-primary animate-bounce"
-                      style={{ animationDelay: '0ms' }}
-                    ></div>
-                    <div
-                      className="w-2 h-2 rounded-full bg-primary animate-bounce"
-                      style={{ animationDelay: '150ms' }}
-                    ></div>
-                    <div
-                      className="w-2 h-2 rounded-full bg-primary animate-bounce"
-                      style={{ animationDelay: '300ms' }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-        </ScrollArea>
-      </CardContent>
-      <CardFooter className="pt-2">
-        <form onSubmit={handleSendMessage} className="w-full flex gap-2">
-          <Input
-            placeholder="Type your message..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            disabled={isProcessing}
-            className="flex-grow"
-          />
-          <Button type="submit" size="icon" disabled={!input.trim() || isProcessing}>
-            <Send className="h-4 w-4" />
-          </Button>
-        </form>
-      </CardFooter>
-    </Card>
-  );
-};
+        {!isEmpty && (
+          <button
+            onClick={clear}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            Clear
+          </button>
+        )}
+      </div>
 
-export default BotInterface;
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto min-h-0 space-y-4 pr-1">
+        <AnimatePresence initial={false}>
+          {isEmpty && (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center justify-center h-full text-center gap-6 py-12"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-primary/8 flex items-center justify-center">
+                <Sparkles className="w-8 h-8 text-primary" />
+              </div>
+              <div>
+                <h2 className="font-bold text-lg mb-1">Hi, I'm FlawLess Assistant</h2>
+                <p className="text-sm text-muted-foreground max-w-xs">
+                  Ask me about features, pricing, how to build agents, or anything else about the platform.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-sm">
+                {SUGGESTED.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => send(s)}
+                    className="text-left text-xs px-3.5 py-2.5 rounded-xl border border-border/60 bg-card hover:border-primary/30 hover:bg-primary/5 transition-all text-muted-foreground hover:text-foreground"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {messages.map((msg) => (
+            <motion.div
+              key={msg.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              {msg.role === 'assistant' && (
+                <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center mr-2.5 flex-shrink-0 mt-0.5">
+                  <Zap className="w-3.5 h-3.5 text-primary" />
+                </div>
+              )}
+              <div
+                className={`max-w-[78%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                  msg.role === 'user'
+                    ? 'bg-primary text-primary-foreground rounded-br-sm'
+                    : 'bg-muted text-foreground rounded-bl-sm'
+                }`}
+                style={{ whiteSpace: 'pre-wrap' }}
+              >
+                {msg.content}
+              </div>
+            </motion.div>
+          ))}
+
+          {loading && (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex justify-start"
+            >
+              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center mr-2.5 flex-shrink-0 mt-0.5">
+                <Zap className="w-3.5 h-3.5 text-primary" />
+              </div>
+              <div className="bg-muted rounded-2xl rounded-bl-sm px-4 py-3.5 flex items-center gap-1.5">
+                {[0, 150, 300].map((delay) => (
+                  <span
+                    key={delay}
+                    className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50 animate-bounce"
+                    style={{ animationDelay: `${delay}ms` }}
+                  />
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <div ref={bottomRef} />
+      </div>
+
+      {/* Input */}
+      <form
+        onSubmit={handleSubmit}
+        className="flex-shrink-0 mt-4 flex gap-2 items-center bg-card border border-border/60 rounded-2xl px-4 py-2.5 focus-within:border-primary/40 transition-colors shadow-sm"
+      >
+        <input
+          ref={inputRef}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Ask me anything about FlawLess…"
+          disabled={loading}
+          className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60 disabled:opacity-50"
+        />
+        <button
+          type="submit"
+          disabled={!input.trim() || loading}
+          className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center text-white disabled:opacity-30 hover:bg-primary/90 transition-all disabled:cursor-not-allowed flex-shrink-0"
+        >
+          <Send className="w-3.5 h-3.5" />
+        </button>
+      </form>
+    </div>
+  );
+}

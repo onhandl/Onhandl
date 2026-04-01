@@ -121,7 +121,7 @@ export default function CreateAgentModal({ isOpen, onClose, onComplete }: Create
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[550px] border-primary/20 bg-card/95 backdrop-blur-xl shadow-2xl overflow-hidden">
+            <DialogContent className="sm:max-w-[550px] max-h-[90vh] flex flex-col border-primary/20 bg-card/95 backdrop-blur-xl shadow-2xl">
                 <DialogHeader>
                     <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-4 border border-primary/20">
                         <Sparkles className="text-primary h-6 w-6" />
@@ -136,7 +136,7 @@ export default function CreateAgentModal({ isOpen, onClose, onComplete }: Create
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="py-4">
+                <div className="flex-1 overflow-y-auto min-h-0 py-4">
                     {step === 1 ? (
                         <div className="space-y-6">
                             <div className="space-y-2">

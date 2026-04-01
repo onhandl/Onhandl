@@ -49,6 +49,7 @@ export const marketplaceRoutes: FastifyPluginAsync = async (fastify) => {
         const [agents, total] = await Promise.all([
             AgentDefinition.find(filter)
                 .select('name description agentType marketplace blockchain ownerId createdAt updatedAt')
+                .populate('ownerId', 'username name avatarUrl')
                 .sort({ 'marketplace.stats.views': -1, updatedAt: -1 })
                 .skip(skip)
                 .limit(parseInt(limit))
@@ -56,7 +57,19 @@ export const marketplaceRoutes: FastifyPluginAsync = async (fastify) => {
             AgentDefinition.countDocuments(filter),
         ]);
 
-        return { agents, total, page: parseInt(page), limit: parseInt(limit) };
+        // Normalise creator field for frontend consumption
+        const result = agents.map((a: any) => ({
+            ...a,
+            creator: a.ownerId
+                ? {
+                    _id:      a.ownerId._id,
+                    name:     a.ownerId.name || a.ownerId.username || 'Anonymous',
+                    avatarUrl: a.ownerId.avatarUrl || null,
+                }
+                : null,
+        }));
+
+        return { agents: result, total, page: parseInt(page), limit: parseInt(limit) };
     });
 
     // ── Get single marketplace agent ──────────────────────────────────────────
@@ -66,10 +79,27 @@ export const marketplaceRoutes: FastifyPluginAsync = async (fastify) => {
             { _id: id, 'marketplace.published': true },
             { $inc: { 'marketplace.stats.views': 1 } },
             { new: true }
-        ).select('-blockchain.privateKey -blockchain.publicKey');
+        )
+            .select('-blockchain.privateKey -blockchain.publicKey')
+            .populate('ownerId', 'username name avatarUrl bio profileViews')
+            .lean();
 
         if (!agent) return reply.code(404).send({ error: 'Agent not found in marketplace' });
-        return agent;
+
+        const owner = (agent as any).ownerId as any;
+        return {
+            ...agent,
+            creator: owner
+                ? {
+                    _id:      owner._id,
+                    name:     owner.name || owner.username || 'Anonymous',
+                    username: owner.username,
+                    avatarUrl: owner.avatarUrl || null,
+                    bio:      owner.bio || null,
+                    profileViews: owner.profileViews || 0,
+                }
+                : null,
+        };
     });
 
     // ── Publish / update marketplace listing ──────────────────────────────────
@@ -159,6 +189,68 @@ export const marketplaceRoutes: FastifyPluginAsync = async (fastify) => {
         }
 
         return { message: published ? 'Agent published to marketplace' : 'Agent removed from marketplace', agent };
+    });
+
+    // ── Use a free marketplace agent → creates a proxy agent for the buyer ───
+    fastify.post<{ Params: { id: string } }>('/marketplace/:id/use', async (request, reply) => {
+        const token = request.cookies['auth_token'];
+        if (!token) return reply.code(401).send({ error: 'Unauthorized' });
+        let decoded: any;
+        try { decoded = fastify.jwt.verify(token); } catch { return reply.code(401).send({ error: 'Invalid token' }); }
+
+        const source = await AgentDefinition.findOne({
+            _id: request.params.id,
+            'marketplace.published': true,
+        });
+        if (!source) return reply.code(404).send({ error: 'Agent not found in marketplace' });
+
+        const mkt = source.marketplace as any;
+        if (mkt?.pricing?.type === 'paid') {
+            return reply.code(400).send({ error: 'This is a paid agent. Complete payment to obtain a copy.' });
+        }
+
+        // Prevent duplicate proxies
+        const existing = await Purchase.findOne({ agentId: source._id, buyerId: decoded.id, status: 'confirmed' });
+        if (existing) return reply.code(409).send({ error: 'You already have a copy of this agent', proxyAgentId: (existing as any).proxyAgentId });
+
+        const buyerWorkspace = await Workspace.findOne({ ownerId: decoded.id });
+        if (!buyerWorkspace) return reply.code(400).send({ error: 'Buyer workspace not found' });
+
+        const proxy = await AgentDefinition.create({
+            ownerId: decoded.id,
+            workspaceId: buyerWorkspace._id,
+            name: `${source.name} (Copy)`,
+            description: source.description,
+            agentType: source.agentType,
+            character: source.character,
+            modelProvider: source.modelProvider,
+            modelConfig: source.modelConfig,
+            graph: source.graph,
+            // Strip all private keys — buyer gets fresh empty blockchain slots
+            blockchain: (source.blockchain || []).map((b: any) => ({
+                network: b.network,
+                rpcUrl: b.rpcUrl,
+                walletType: b.walletType,
+            })),
+            isDraft: false,
+            isActive: true,
+        });
+
+        await Purchase.create({
+            agentId: source._id,
+            buyerId: decoded.id,
+            sellerId: source.ownerId,
+            paymentMethod: 'stripe',
+            amount: 0,
+            currency: 'USD',
+            status: 'confirmed',
+            proxyAgentId: proxy._id,
+        });
+
+        // Increment purchase counter on source
+        await AgentDefinition.updateOne({ _id: source._id }, { $inc: { 'marketplace.stats.purchases': 1 } });
+
+        return { message: 'Agent copy created successfully', proxyAgent: proxy };
     });
 
     // ── Purchase history for buyer ────────────────────────────────────────────
