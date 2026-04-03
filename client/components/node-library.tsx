@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Layers3, FileInput, Workflow, FileOutput, ArrowLeftRight, ChevronRight, Folder, Box } from 'lucide-react';
+import { X, Layers3, FileInput, Workflow, FileOutput, ArrowLeftRight, ChevronRight, Folder, Box, Bot } from 'lucide-react';
 import { Button, Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui';
 import { toolsApi } from '@/api/tools-api';
 
@@ -36,6 +36,7 @@ export default function NodeLibrary({ isOpen, setIsOpen, onTapAdd }: NodeLibrary
     { id: 'processing', label: 'Processing', icon: Workflow },
     { id: 'output', label: 'Output', icon: FileOutput },
     { id: 'blockchain', label: 'Blockchain', icon: Box },
+    { id: 'a2a', label: 'A2A', icon: Bot },
   ];
 
   // Group blockchain tools by Network -> Category -> SubCategory

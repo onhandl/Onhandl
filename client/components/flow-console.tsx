@@ -82,7 +82,7 @@ function LogRow({ log }: { log: LogEntry }) {
                 {(() => {
                   try {
                     // Extract and pretty-print the JSON portion
-                    const jsonMatch = log.expandedData.match(/(\{.*\}|\[.*\])/s);
+                    const jsonMatch = log.expandedData.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
                     if (jsonMatch) return JSON.stringify(JSON.parse(jsonMatch[0]), null, 2);
                   } catch { /* fall through */ }
                   return log.expandedData;

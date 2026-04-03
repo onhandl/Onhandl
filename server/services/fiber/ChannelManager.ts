@@ -1,10 +1,16 @@
 /**
  * ChannelManager — high-level Fiber channel lifecycle
- * Wraps the low-level fiberRpcCall with per-agent node resolution.
+ *
+ * Wraps the Fiber JSON-RPC with per-agent node resolution.
  * "managed" = platform ENV node; "custom" = agent-supplied URL.
+ *
+ * Fiber RPC flow:
+ *   1. connectPeer({ address: "/ip4/{IP}/tcp/{PORT}/p2p/{PEER_ID}" })
+ *   2. openChannel({ peer_id, funding_amount (hex shannons), public })
+ *   3. Poll listChannels until state_name === "CHANNEL_READY"
  */
 
-const PLATFORM_FIBER_URL  = process.env.FIBER_NODE_URL  || 'http://localhost:8227'
+const PLATFORM_FIBER_URL  = process.env.FIBER_NODE_URL   || 'http://localhost:8227'
 const PLATFORM_FIBER_AUTH = process.env.FIBER_AUTH_TOKEN || ''
 
 export async function fiberCall(method: string, params: any[], nodeUrl?: string, authToken?: string) {
@@ -29,18 +35,91 @@ export interface ChannelConfig {
     fiberAuthToken?: string
 }
 
-export async function openChannel(cfg: ChannelConfig, peerId: string, fundingAmountShannons: string, isPublic = true) {
-    return fiberCall('open_channel', [{ peer_id: peerId, funding_amount: fundingAmountShannons, public: isPublic }], cfg.fiberNodeUrl, cfg.fiberAuthToken)
+/**
+ * Convert CKB amount to hex shannons.
+ * "500"           → 500 CKB → 50_000_000_000 shannons → "0xba43b7400"
+ * "0xba43b7400"  → passed through unchanged
+ */
+function toCkbHexShannons(amount: string): string {
+    if (amount.trim().startsWith('0x')) return amount.trim()
+    const ckb = parseFloat(amount)
+    if (isNaN(ckb) || ckb <= 0) throw new Error(`Invalid funding amount: "${amount}"`)
+    const shannons = BigInt(Math.round(ckb * 100_000_000))
+    return '0x' + shannons.toString(16)
 }
 
-export async function closeChannel(cfg: ChannelConfig, channelId: string, force = false) {
-    return fiberCall('close_channel', [{ channel_id: channelId, force }], cfg.fiberNodeUrl, cfg.fiberAuthToken)
+/**
+ * Connect to a remote Fiber peer.
+ * MUST be called before open_channel.
+ * address: "/ip4/{IP}/tcp/{PORT}/p2p/{PEER_ID}"
+ * Returns null on success (RPC contract).
+ */
+export async function connectPeer(cfg: ChannelConfig, address: string, save = false) {
+    const params: any = { address }
+    if (save) params.save = true
+    return fiberCall('connect_peer', [params], cfg.fiberNodeUrl, cfg.fiberAuthToken)
 }
 
-export async function listChannels(cfg: ChannelConfig) {
-    return fiberCall('list_channels', [], cfg.fiberNodeUrl, cfg.fiberAuthToken)
+/**
+ * List connected peers — use after connectPeer to get the remote peer's pubkey.
+ */
+export async function listPeers(cfg: ChannelConfig) {
+    return fiberCall('list_peers', [], cfg.fiberNodeUrl, cfg.fiberAuthToken)
 }
 
+/**
+ * Open a payment channel.
+ * Provide either pubkey (preferred) or peer_id.
+ * fundingAmount: CKB decimal ("500") or hex shannons ("0xba43b7400").
+ */
+export async function openChannel(
+    cfg: ChannelConfig,
+    peerIdentifier: { peer_id: string },
+    fundingAmount: string,
+    isPublic = true
+) {
+    return fiberCall('open_channel', [{
+        peer_id: peerIdentifier.peer_id,
+        funding_amount: toCkbHexShannons(fundingAmount),
+        public: isPublic,
+    }], cfg.fiberNodeUrl, cfg.fiberAuthToken)
+}
+
+/**
+ * List channels, optionally filtered by peer.
+ */
+export async function listChannels(cfg: ChannelConfig, filter?: { peer_id?: string; pubkey?: string; include_closed?: boolean }) {
+    const params: Record<string, any> = {}
+    if (filter?.peer_id) params.peer_id = filter.peer_id
+    if (filter?.pubkey) params.pubkey = filter.pubkey
+    if (filter?.include_closed) params.include_closed = true
+    return fiberCall('list_channels', [params], cfg.fiberNodeUrl, cfg.fiberAuthToken)
+}
+
+/**
+ * Cooperatively close a channel via shutdown_channel.
+ * closeAddressArgs: 20-byte hex lock arg of your CKB address.
+ */
+export async function shutdownChannel(
+    cfg: ChannelConfig,
+    channelId: string,
+    closeAddressArgs: string,
+    feeRate = '0x3FC'
+) {
+    return fiberCall('shutdown_channel', [{
+        channel_id: channelId,
+        close_script: {
+            code_hash: '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
+            hash_type: 'type',
+            args: closeAddressArgs,
+        },
+        fee_rate: feeRate,
+    }], cfg.fiberNodeUrl, cfg.fiberAuthToken)
+}
+
+/**
+ * Get node info — includes pubkey, listen addresses.
+ */
 export async function getNodeInfo(cfg: ChannelConfig) {
     return fiberCall('node_info', [], cfg.fiberNodeUrl, cfg.fiberAuthToken)
 }

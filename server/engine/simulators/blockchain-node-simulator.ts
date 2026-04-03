@@ -38,27 +38,31 @@ export async function simulateBlockchainNode(
 
   consoleOutput.push(`${timestamp()} ⛓  Executing blockchain tool: ${toolName}`);
 
-  // Build payload — priority: params > UI inputs > upstream inputValues
-  const payload: Record<string, unknown> = { ...(d?.params ?? {}) };
-
-  d?.inputs?.forEach((inp: any) => {
-    if (inp.value !== undefined && inp.value !== '' && payload[inp.key] === undefined) {
-      payload[inp.key] = inp.value;
-    }
-  });
-
+  // Build payload — runtime inputValues take priority over stale UI input defaults.
+  // Priority: explicit params (node config) > runtime inputValues > fallback to inp.value
   const EXCLUDED_KEYS = new Set([
     'tool', 'tool_lookup', 'payload', 'walletData', 'walletInfo', 'outputData',
     'network', 'action_group',
   ]);
+
+  const payload: Record<string, unknown> = { ...(d?.params ?? {}) };
+
+  d?.inputs?.forEach((inp: any) => {
+    if (EXCLUDED_KEYS.has(inp.key) || payload[inp.key] !== undefined) return;
+    // Prefer runtime-resolved value over stale UI default
+    const v = inputValues[inp.key] ?? inp.value;
+    if (v !== undefined && v !== '') payload[inp.key] = v;
+  });
+
+  // Catch any inputValues keys not declared in d.inputs (e.g. upstream pipe outputs)
   for (const [k, v] of Object.entries(inputValues)) {
-    if (!EXCLUDED_KEYS.has(k) && payload[k] === undefined) {
+    if (!EXCLUDED_KEYS.has(k) && payload[k] === undefined && v !== undefined && v !== '') {
       payload[k] = v;
     }
   }
 
-  // Forward wallet address from upstream wallet node
-  const walletSource = (inputValues['walletData'] ?? inputValues['walletInfo'] ?? inputValues) as any;
+  // Forward wallet address from upstream wallet node (only when an actual wallet node is upstream)
+  const walletSource = (inputValues['walletData'] ?? inputValues['walletInfo'] ?? null) as any;
   if (walletSource?.address) {
     if (payload['from'] === undefined) payload['from'] = walletSource.address;
     if (payload['address'] === undefined) payload['address'] = walletSource.address;
@@ -79,7 +83,7 @@ export async function simulateBlockchainNode(
   consoleOutput.push(`${timestamp()} 📦 Payload: ${JSON.stringify(payload)}`);
 
   try {
-    const rawResult = await tool.execute(payload);
+    const rawResult = await executeTool(tool, payload);
 
     if (toolName.includes('get CKB balance')) {
       consoleOutput.push(`${timestamp()} ✅ Balance: ${rawResult.ckb} CKB (${rawResult.shannons} shannons)`);

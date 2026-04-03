@@ -21,7 +21,7 @@ interface ChatBodyProps {
     isTyping: boolean;
     isFullscreen: boolean;
     input: string;
-    scrollRef: React.RefObject<HTMLDivElement>;
+    scrollRef: React.RefObject<HTMLDivElement | null>;
     onInputChange: (val: string) => void;
     onSend: () => void;
     onToggleFullscreen: () => void;

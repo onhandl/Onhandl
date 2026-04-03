@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
 import { AgentCard } from '../../../models/AgentCard'
-import { resolveChannelConfig, openChannel, closeChannel, listChannels, getNodeInfo } from '../../../services/fiber/ChannelManager'
+import { resolveChannelConfig, connectPeer, openChannel, listChannels, shutdownChannel, getNodeInfo, listPeers } from '../../../services/fiber/ChannelManager'
 
 function getUser(req: FastifyRequest): string | null {
     const c = (req as any).cookies?.['auth_token']
@@ -8,13 +8,13 @@ function getUser(req: FastifyRequest): string | null {
     try { return (req.server.jwt.verify(c) as any).id } catch { return null }
 }
 
-// POST /api/fiber/channel/open
-export async function handleOpenChannel(request: FastifyRequest, reply: FastifyReply) {
+// POST /api/fiber/peer/connect
+export async function handleConnectPeer(request: FastifyRequest, reply: FastifyReply) {
     const userId = getUser(request)
     if (!userId) return reply.code(401).send({ error: 'Unauthorized' })
 
-    const { agentId, network = 'CKB', peerId, fundingAmount, isPublic = true } = request.body as any
-    if (!agentId || !peerId || !fundingAmount) return reply.code(400).send({ error: 'agentId, peerId, and fundingAmount are required' })
+    const { agentId, network = 'CKB', address, save = false } = request.body as any
+    if (!agentId || !address) return reply.code(400).send({ error: 'agentId and address are required' })
 
     const card = await AgentCard.findOne({ agentId, ownerId: userId })
     if (!card) return reply.code(404).send({ error: 'Agent card not found' })
@@ -23,40 +23,16 @@ export async function handleOpenChannel(request: FastifyRequest, reply: FastifyR
     if (!net) return reply.code(400).send({ error: `Agent has no ${network} network configured` })
 
     const cfg = resolveChannelConfig(net)
-
     try {
-        const result = await openChannel(cfg, peerId, fundingAmount, isPublic)
-        return { result, message: 'Channel open initiated' }
+        await connectPeer(cfg, address, save)
+        return { connected: true, address, message: 'Peer connected. Wait ~1s then call open_channel or list_peers for pubkey.' }
     } catch (err: any) {
         return reply.code(502).send({ error: 'Fiber node error', details: err.message })
     }
 }
 
-// POST /api/fiber/channel/close
-export async function handleCloseChannel(request: FastifyRequest, reply: FastifyReply) {
-    const userId = getUser(request)
-    if (!userId) return reply.code(401).send({ error: 'Unauthorized' })
-
-    const { agentId, network = 'CKB', channelId, force = false } = request.body as any
-    if (!agentId || !channelId) return reply.code(400).send({ error: 'agentId and channelId are required' })
-
-    const card = await AgentCard.findOne({ agentId, ownerId: userId })
-    if (!card) return reply.code(404).send({ error: 'Agent card not found' })
-
-    const net = card.networks.find(n => n.network === network)
-    if (!net) return reply.code(400).send({ error: `No ${network} network configured` })
-
-    const cfg = resolveChannelConfig(net)
-    try {
-        const result = await closeChannel(cfg, channelId, force)
-        return { result, message: 'Channel close initiated' }
-    } catch (err: any) {
-        return reply.code(502).send({ error: 'Fiber node error', details: err.message })
-    }
-}
-
-// GET /api/fiber/channels/:agentId
-export async function handleListChannels(request: FastifyRequest, reply: FastifyReply) {
+// GET /api/fiber/peers/:agentId
+export async function handleListPeers(request: FastifyRequest, reply: FastifyReply) {
     const userId = getUser(request)
     if (!userId) return reply.code(401).send({ error: 'Unauthorized' })
 
@@ -71,7 +47,77 @@ export async function handleListChannels(request: FastifyRequest, reply: Fastify
 
     const cfg = resolveChannelConfig(net)
     try {
-        const channels = await listChannels(cfg)
+        const peers = await listPeers(cfg)
+        return { peers }
+    } catch (err: any) {
+        return reply.code(502).send({ error: 'Fiber node error', details: err.message })
+    }
+}
+
+// POST /api/fiber/channel/open
+export async function handleOpenChannel(request: FastifyRequest, reply: FastifyReply) {
+    const userId = getUser(request)
+    if (!userId) return reply.code(401).send({ error: 'Unauthorized' })
+
+    const { agentId, network = 'CKB', peer_id, fundingAmount, isPublic = true } = request.body as any
+    if (!agentId || !fundingAmount) return reply.code(400).send({ error: 'agentId and fundingAmount are required' })
+    if (!peer_id) return reply.code(400).send({ error: 'peer_id is required (Qm... from list_peers)' })
+
+    const card = await AgentCard.findOne({ agentId, ownerId: userId })
+    if (!card) return reply.code(404).send({ error: 'Agent card not found' })
+
+    const net = card.networks.find(n => n.network === network)
+    if (!net) return reply.code(400).send({ error: `Agent has no ${network} network configured` })
+
+    const cfg = resolveChannelConfig(net)
+    try {
+        const result = await openChannel(cfg, { peer_id }, fundingAmount, isPublic)
+        return { result, message: 'Channel open initiated. Poll /api/fiber/channels/:agentId until state_name = CHANNEL_READY.' }
+    } catch (err: any) {
+        return reply.code(502).send({ error: 'Fiber node error', details: err.message })
+    }
+}
+
+// POST /api/fiber/channel/close
+export async function handleCloseChannel(request: FastifyRequest, reply: FastifyReply) {
+    const userId = getUser(request)
+    if (!userId) return reply.code(401).send({ error: 'Unauthorized' })
+
+    const { agentId, network = 'CKB', channelId, closeAddressArgs, feeRate } = request.body as any
+    if (!agentId || !channelId || !closeAddressArgs) return reply.code(400).send({ error: 'agentId, channelId, and closeAddressArgs are required' })
+
+    const card = await AgentCard.findOne({ agentId, ownerId: userId })
+    if (!card) return reply.code(404).send({ error: 'Agent card not found' })
+
+    const net = card.networks.find(n => n.network === network)
+    if (!net) return reply.code(400).send({ error: `No ${network} network configured` })
+
+    const cfg = resolveChannelConfig(net)
+    try {
+        const result = await shutdownChannel(cfg, channelId, closeAddressArgs, feeRate)
+        return { result, message: 'Channel shutdown initiated' }
+    } catch (err: any) {
+        return reply.code(502).send({ error: 'Fiber node error', details: err.message })
+    }
+}
+
+// GET /api/fiber/channels/:agentId
+export async function handleListChannels(request: FastifyRequest, reply: FastifyReply) {
+    const userId = getUser(request)
+    if (!userId) return reply.code(401).send({ error: 'Unauthorized' })
+
+    const { agentId } = request.params as any
+    const { network = 'CKB', peer_id, pubkey, include_closed } = request.query as any
+
+    const card = await AgentCard.findOne({ agentId, ownerId: userId })
+    if (!card) return reply.code(404).send({ error: 'Agent card not found' })
+
+    const net = card.networks.find(n => n.network === network)
+    if (!net) return reply.code(400).send({ error: `No ${network} network configured` })
+
+    const cfg = resolveChannelConfig(net)
+    try {
+        const channels = await listChannels(cfg, { peer_id, pubkey, include_closed: include_closed === 'true' })
         return { channels }
     } catch (err: any) {
         return reply.code(502).send({ error: 'Fiber node error', details: err.message })
