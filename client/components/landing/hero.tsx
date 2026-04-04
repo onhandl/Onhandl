@@ -4,6 +4,33 @@ import React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 
+import { ContainerTextFlip } from "@/components/ui/overlays/container-text-flip";
+import { cn } from "@/lib/utils";
+
+export function ContainerTextFlipDemo() {
+  const words = ["Anyone", "Everyone", "Anything"];
+  return (
+    <motion.span
+      initial={{
+        opacity: 0,
+      }}
+      whileInView={{
+        opacity: 1,
+      }}
+      className={cn(
+        "relative mb-6 max-w-2xl text-left text-4xl leading-normal font-bold tracking-tight text-zinc-700 md:text-7xl dark:text-zinc-100",
+      )}
+      layout
+    >
+      <span className="inline-block">
+        <ContainerTextFlip words={words} />
+        {/* <Blips /> */}
+      </span>
+    </motion.span>
+  );
+}
+
+
 interface HeroProps {
   handleAnchorClick: (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => void;
 }
@@ -55,7 +82,7 @@ export const Hero: React.FC<HeroProps> = ({ handleAnchorClick }) => {
           transition={{ duration: 0.6, delay: 0.06, ease }}
           className="text-[60px] md:text-[76px] lg:text-[92px] font-normal leading-none tracking-factory-h1 text-fl-ink max-w-[900px] mb-2"
         >
-          Build AI Agents
+          <ContainerTextFlipDemo /> Should
         </motion.h1>
         <motion.h1
           initial={{ opacity: 0, y: shouldReduce ? 0 : 20 }}
@@ -63,7 +90,7 @@ export const Hero: React.FC<HeroProps> = ({ handleAnchorClick }) => {
           transition={{ duration: 0.6, delay: 0.1, ease }}
           className="text-[60px] md:text-[76px] lg:text-[92px] font-normal leading-none tracking-factory-h1 text-fl-accent mb-10"
         >
-          Without Code
+          have an AGENT
         </motion.h1>
 
         {/* Sub-heading */}

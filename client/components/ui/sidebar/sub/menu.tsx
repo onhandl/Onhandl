@@ -168,9 +168,11 @@ export const SidebarMenuSkeleton = React.forwardRef<
         showIcon?: boolean;
     }
 >(({ className, showIcon = false, ...props }, ref) => {
-    // Random width between 50 to 90%.
-    const width = React.useMemo(() => {
-        return `${Math.floor(Math.random() * 40) + 50}%`;
+    // Width is set after mount only — Math.random() must not run during SSR
+    // or it produces a different value on the client, causing hydration mismatch.
+    const [width, setWidth] = React.useState('60%');
+    React.useEffect(() => {
+        setWidth(`${Math.floor(Math.random() * 40) + 50}%`);
     }, []);
 
     return (
@@ -184,11 +186,7 @@ export const SidebarMenuSkeleton = React.forwardRef<
             <Skeleton
                 className="h-4 flex-1 max-w-[--skeleton-width]"
                 data-sidebar="menu-skeleton-text"
-                style={
-                    {
-                        '--skeleton-width': width,
-                    } as React.CSSProperties
-                }
+                style={{ '--skeleton-width': width } as React.CSSProperties}
             />
         </div>
     );
