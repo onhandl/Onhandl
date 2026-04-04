@@ -12,11 +12,15 @@ import { fiberRpcCall } from "./node_admin";
  * Minimum accepted: 62 CKB (6_200_000_000 shannons) — Fiber's minimum channel size.
  */
 function toCkbHexShannons(amount: string): string {
-    if (amount.trim().startsWith("0x")) return amount.trim();
-    const ckb = parseFloat(amount);
-    if (isNaN(ckb) || ckb <= 0) throw new Error(`Invalid funding amount: "${amount}". Provide CKB amount (e.g. "500") or hex shannons (e.g. "0xba43b7400").`);
-    const shannons = BigInt(Math.round(ckb * 100_000_000));
-    return "0x" + shannons.toString(16);
+    const raw = String(amount).trim();
+    // Already hex shannons — pass through unchanged
+    if (/^0x[0-9a-fA-F]+$/.test(raw)) return raw;
+    // Integer CKB value → pure BigInt math (no float rounding errors)
+    if (/^\d+$/.test(raw)) {
+        const shannons = BigInt(raw) * 100_000_000n;
+        return "0x" + shannons.toString(16);
+    }
+    throw new Error(`Invalid funding amount: "${amount}". Provide integer CKB (e.g. "500") or hex shannons (e.g. "0xba43b7400"). Min ~62 CKB.`);
 }
 
 // ─── open_channel ──────────────────────────────────────────────────────────────
@@ -25,7 +29,7 @@ function toCkbHexShannons(amount: string): string {
 // funding_amount: hex shannons ("0xba43b7400" = 500 CKB). Min ~62 CKB.
 
 const OpenChannelSchema = z.object({
-    peer_id: z.string().min(1, "Peer ID is required (Qm... format from list_peers)"),
+    pubkey: z.string().min(1, "Peer pubkey is required (hex from list_peers → pubkey field)"),
     funding_amount: z.string().min(1, "Funding amount required. Enter CKB (e.g. '500') or hex shannons (e.g. '0xba43b7400'). Min ~62 CKB."),
     public: z.boolean().optional(),
 });
@@ -34,13 +38,13 @@ export type OpenChannelInput = z.infer<typeof OpenChannelSchema>;
 
 export const OpenChannelTool: BlockchainTool<OpenChannelInput, any> = {
     name: "blockchain.ckb_fiber.channel.open_channel",
-    description: "Open a Fiber payment channel. Run connect_peer first, then get peer_id from list_peers. funding_amount: CKB decimal ('500') or hex shannons ('0xba43b7400'). Min ~62 CKB.",
+    description: "Open a Fiber payment channel. Run connect_peer then list_peers first — use the 'pubkey' field from list_peers (hex). funding_amount: CKB decimal ('500') or hex shannons ('0xba43b7400'). Min ~62 CKB.",
     schema: OpenChannelSchema,
     uiSchema: {
-        peer_id: {
+        pubkey: {
             type: "string",
-            label: "Peer ID",
-            placeholder: "QmXen3eUHhywmutEzydCsW4hXBoeVmdET2FJvMX69XJ1Eo",
+            label: "Peer Pubkey (hex from list_peers)",
+            placeholder: "0313dcf9cf18711b1b473a78ea56222dc44dcbfdf559d24dd937a0657d3bcb108f",
         },
         funding_amount: {
             type: "string",
@@ -54,7 +58,7 @@ export const OpenChannelTool: BlockchainTool<OpenChannelInput, any> = {
     },
     async execute(input) {
         const result = await fiberRpcCall("open_channel", [{
-            peer_id: input.peer_id,
+            pubkey: input.pubkey.trim(),
             funding_amount: toCkbHexShannons(input.funding_amount),
             public: input.public ?? true,
         }]);

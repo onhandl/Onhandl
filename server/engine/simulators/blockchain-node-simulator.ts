@@ -80,7 +80,7 @@ export async function simulateBlockchainNode(
     return nodeError(msg);
   }
 
-  consoleOutput.push(`${timestamp()} 📦 Payload: ${JSON.stringify(payload)}`);
+  consoleOutput.push(`${timestamp()} 📦 Tool inputs: ${JSON.stringify(payload)}`);
 
   try {
     const rawResult = await executeTool(tool, payload);
@@ -108,10 +108,8 @@ export async function simulateBlockchainNode(
       { metadata: meta }
     );
   } catch (err: any) {
-    let display = err.message;
-    if (err.message.includes('validation failed')) {
-      display = 'Missing required parameters. Ensure a wallet is connected and parameters are extracted correctly.';
-    }
+    // Surface the real Zod validation error so users know which field is missing
+    const display = err.message ?? 'Blockchain tool execution failed';
     consoleOutput.push(`${timestamp()} ❌ ${display}`);
     return nodeError(display, {}, { executionMs: Date.now() - t0, toolName, network: (inputValues['network'] as string) ?? 'CKB' });
   }

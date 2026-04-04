@@ -116,6 +116,33 @@ const SidebarContent = ({
             </Link>
           );
         })}
+
+        {/* Logout — directly below Settings */}
+        <button
+          className={cn(
+            'flex items-center rounded-lg text-sm font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/8 transition-all duration-150 cursor-pointer',
+            collapsed ? 'h-9 w-9 justify-center mx-auto' : 'h-9 px-3 gap-3 w-full'
+          )}
+          title={collapsed ? 'Logout' : undefined}
+          onClick={async () => {
+            try { await apiFetch('/auth/logout', { method: 'POST', body: JSON.stringify({}) }); } finally { router.replace('/signin'); }
+          }}
+        >
+          <LogOut className="w-[17px] h-[17px] shrink-0" />
+          <AnimatePresence>
+            {!collapsed && (
+              <motion.span
+                initial={{ opacity: 0, width: 0 }}
+                animate={{ opacity: 1, width: 'auto' }}
+                exit={{ opacity: 0, width: 0 }}
+                transition={{ duration: 0.15 }}
+                className="whitespace-nowrap overflow-hidden"
+              >
+                Logout
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </button>
       </nav>
 
       {/* ── Bottom ── */}
@@ -161,31 +188,6 @@ const SidebarContent = ({
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
         )}
-        <button
-          className={cn(
-            'flex items-center rounded-lg text-sm font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/8 transition-all duration-150 cursor-pointer',
-            collapsed ? 'h-9 w-9 justify-center mx-auto' : 'h-9 px-3 gap-3 w-full'
-          )}
-          title={collapsed ? 'Logout' : undefined}
-          onClick={async () => {
-            try { await apiFetch('/auth/logout', { method: 'POST', body: JSON.stringify({}) }); } finally { router.replace('/signin'); }
-          }}
-        >
-          <LogOut className="w-[17px] h-[17px] shrink-0" />
-          <AnimatePresence>
-            {!collapsed && (
-              <motion.span
-                initial={{ opacity: 0, width: 0 }}
-                animate={{ opacity: 1, width: 'auto' }}
-                exit={{ opacity: 0, width: 0 }}
-                transition={{ duration: 0.15 }}
-                className="whitespace-nowrap overflow-hidden"
-              >
-                Logout
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </button>
       </div>
     </div>
   );
