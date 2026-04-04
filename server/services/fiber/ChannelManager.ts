@@ -6,7 +6,7 @@
  *
  * Fiber RPC flow:
  *   1. connectPeer({ address: "/ip4/{IP}/tcp/{PORT}/p2p/{PEER_ID}" })
- *   2. openChannel({ peer_id, funding_amount (hex shannons), public })
+ *   2. openChannel({ pubkey (hex from list_peers), funding_amount (hex shannons), public })
  *   3. Poll listChannels until state_name === "CHANNEL_READY"
  */
 
@@ -41,11 +41,10 @@ export interface ChannelConfig {
  * "0xba43b7400"  → passed through unchanged
  */
 function toCkbHexShannons(amount: string): string {
-    if (amount.trim().startsWith('0x')) return amount.trim()
-    const ckb = parseFloat(amount)
-    if (isNaN(ckb) || ckb <= 0) throw new Error(`Invalid funding amount: "${amount}"`)
-    const shannons = BigInt(Math.round(ckb * 100_000_000))
-    return '0x' + shannons.toString(16)
+    const raw = String(amount).trim()
+    if (/^0x[0-9a-fA-F]+$/.test(raw)) return raw
+    if (/^\d+$/.test(raw)) return '0x' + (BigInt(raw) * 100_000_000n).toString(16)
+    throw new Error(`Invalid funding amount: "${amount}". Provide integer CKB (e.g. "500") or hex shannons (e.g. "0xba43b7400").`)
 }
 
 /**
@@ -69,17 +68,17 @@ export async function listPeers(cfg: ChannelConfig) {
 
 /**
  * Open a payment channel.
- * Provide either pubkey (preferred) or peer_id.
+ * pubkey: the peer's secp256k1 pubkey (hex) from list_peers → pubkey field.
  * fundingAmount: CKB decimal ("500") or hex shannons ("0xba43b7400").
  */
 export async function openChannel(
     cfg: ChannelConfig,
-    peerIdentifier: { peer_id: string },
+    pubkey: string,
     fundingAmount: string,
     isPublic = true
 ) {
     return fiberCall('open_channel', [{
-        peer_id: peerIdentifier.peer_id,
+        pubkey: pubkey.trim(),
         funding_amount: toCkbHexShannons(fundingAmount),
         public: isPublic,
     }], cfg.fiberNodeUrl, cfg.fiberAuthToken)

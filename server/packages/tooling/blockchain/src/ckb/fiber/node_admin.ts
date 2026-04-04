@@ -12,13 +12,13 @@ export async function fiberRpcCall(method: string, params: any[]) {
         headers["Authorization"] = `Bearer ${FIBER_AUTH_TOKEN}`;
     }
 
-    const res = await fetch(FIBER_URL, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ id: 1, jsonrpc: "2.0", method, params }),
-    });
+    const body = JSON.stringify({ id: 1, jsonrpc: "2.0", method, params });
+    console.debug(`[Fiber RPC] → ${FIBER_URL} | ${method} | body: ${body}`);
+
+    const res = await fetch(FIBER_URL, { method: "POST", headers, body });
     const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
+    console.debug(`[Fiber RPC] ← ${method} | response: ${JSON.stringify(data)}`);
+    if (data.error) throw new Error(`Fiber RPC error (${method}): ${JSON.stringify(data.error)}`);
     return data.result;
 }
 

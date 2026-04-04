@@ -59,9 +59,9 @@ export async function handleOpenChannel(request: FastifyRequest, reply: FastifyR
     const userId = getUser(request)
     if (!userId) return reply.code(401).send({ error: 'Unauthorized' })
 
-    const { agentId, network = 'CKB', peer_id, fundingAmount, isPublic = true } = request.body as any
+    const { agentId, network = 'CKB', pubkey, fundingAmount, isPublic = true } = request.body as any
     if (!agentId || !fundingAmount) return reply.code(400).send({ error: 'agentId and fundingAmount are required' })
-    if (!peer_id) return reply.code(400).send({ error: 'peer_id is required (Qm... from list_peers)' })
+    if (!pubkey) return reply.code(400).send({ error: 'pubkey is required (hex pubkey from list_peers)' })
 
     const card = await AgentCard.findOne({ agentId, ownerId: userId })
     if (!card) return reply.code(404).send({ error: 'Agent card not found' })
@@ -71,7 +71,7 @@ export async function handleOpenChannel(request: FastifyRequest, reply: FastifyR
 
     const cfg = resolveChannelConfig(net)
     try {
-        const result = await openChannel(cfg, { peer_id }, fundingAmount, isPublic)
+        const result = await openChannel(cfg, pubkey, fundingAmount, isPublic)
         return { result, message: 'Channel open initiated. Poll /api/fiber/channels/:agentId until state_name = CHANNEL_READY.' }
     } catch (err: any) {
         return reply.code(502).send({ error: 'Fiber node error', details: err.message })

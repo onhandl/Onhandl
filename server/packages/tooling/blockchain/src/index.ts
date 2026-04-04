@@ -18,10 +18,11 @@ export interface BlockchainTool<TInput, TOutput> {
     description: string;
     schema: z.ZodSchema<TInput>;
     uiSchema?: Record<string, {
-        type: 'string' | 'number' | 'boolean' | 'select',
+        type: 'string' | 'number' | 'boolean' | 'select' | 'radio',
         label: string,
         placeholder?: string,
-        options?: string[]
+        /** Plain string options OR label/value pairs for select/radio fields */
+        options?: string[] | Array<{ label: string; value: string }>
     }>;
     execute(input: TInput): Promise<TOutput>;
 }
@@ -38,7 +39,10 @@ export async function executeTool<TInput, TOutput>(
         return await tool.execute(validatedInput);
     } catch (error) {
         if (error instanceof z.ZodError) {
-            throw new BlockchainToolError(tool.name, "Input validation failed", error.errors);
+            const detail = error.errors
+                .map(e => `${e.path.join('.') || 'input'}: ${e.message}`)
+                .join('; ');
+            throw new BlockchainToolError(tool.name, `Input validation failed: ${detail}`, error.errors);
         }
         throw error;
     }

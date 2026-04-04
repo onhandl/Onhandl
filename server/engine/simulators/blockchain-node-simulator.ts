@@ -80,7 +80,7 @@ export async function simulateBlockchainNode(
     return nodeError(msg);
   }
 
-  consoleOutput.push(`${timestamp()} 📦 Payload: ${JSON.stringify(payload)}`);
+  consoleOutput.push(`${timestamp()} 📦 Tool inputs: ${JSON.stringify(payload)}`);
 
   try {
     const rawResult = await executeTool(tool, payload);
