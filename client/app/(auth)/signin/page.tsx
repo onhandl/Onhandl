@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api-client';
 import { AuthUI, ForgotPasswordForm, OtpVerifyForm, ResetPasswordForm } from '@/components/ui/auth-fuse';
 
-type Step = 'form' | 'forgot' | 'reset-otp' | 'reset-pw';
+type Step = 'form' | 'signup-otp' | 'forgot' | 'reset-otp' | 'reset-pw';
 
 export default function SigninPage() {
     const [step, setStep] = useState<Step>('form');
@@ -37,11 +37,16 @@ export default function SigninPage() {
         clearError();
         setLoading(true);
         try {
-            await apiFetch('/auth/register', {
+            const res = await apiFetch('/auth/register', {
                 method: 'POST',
                 body: JSON.stringify({ username, email, password }),
             });
-            router.push('/dashboard');
+            if (res.requiresVerification) {
+                setPendingEmail(email);
+                setStep('signup-otp');
+            } else {
+                router.push('/dashboard');
+            }
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -96,6 +101,33 @@ export default function SigninPage() {
             <div className="w-full max-w-[400px] rounded-2xl border border-border/60 bg-card shadow-xl shadow-black/5 p-5 sm:p-8">{children}</div>
         </div>
     );
+
+    if (step === 'signup-otp') {
+        return wrapper(
+            <OtpVerifyForm
+                email={pendingEmail}
+                purpose="signup"
+                onSubmit={async (code) => {
+                    clearError();
+                    setLoading(true);
+                    try {
+                        await apiFetch('/auth/verify-email', {
+                            method: 'POST',
+                            body: JSON.stringify({ email: pendingEmail, code }),
+                        });
+                        router.push('/dashboard');
+                    } catch (err: any) {
+                        setError(err.message);
+                    } finally {
+                        setLoading(false);
+                    }
+                }}
+                onBack={() => { setStep('form'); clearError(); }}
+                error={error}
+                loading={loading}
+            />
+        );
+    }
 
     if (step === 'forgot') {
         return wrapper(
