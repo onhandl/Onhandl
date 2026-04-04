@@ -8,7 +8,10 @@ import { apiFetch } from '@/api/api-client';
 import { Button } from '@/components/ui/buttons/button';
 import { Input } from '@/components/ui/forms/input';
 import { toast } from '@/components/ui';
-import { ShoppingCart, Loader2, Copy, Check, ExternalLink, Zap } from 'lucide-react';
+import {
+    IconShoppingCart, IconLoader2, IconCopy, IconCheck,
+    IconExternalLink, IconBolt,
+} from '@tabler/icons-react';
 
 interface PurchaseSidebarProps { agentId: string; agent: any }
 
@@ -17,13 +20,13 @@ function NetworkPricingSelector({ networkPricing, selected, onSelect }: {
 }) {
     return (
         <div className="space-y-2">
-            <p className="text-xs text-zinc-400 font-medium">Pay with network</p>
+            <p className="text-xs text-muted-foreground font-medium">Pay with network</p>
             <div className="grid grid-cols-2 gap-2">
                 {networkPricing.map((p: any) => (
                     <button key={p.network} onClick={() => onSelect(p)}
-                        className={`rounded-xl border p-2.5 text-left transition-colors ${selected?.network === p.network ? 'border-[#9AB17A] bg-[#9AB17A]/10' : 'border-zinc-700 hover:border-zinc-600'}`}>
-                        <div className="text-xs font-semibold text-zinc-200">{p.network}</div>
-                        <div className="text-[10px] text-zinc-400 mt-0.5">{p.price} {p.asset}</div>
+                        className={`rounded-xl border p-2.5 text-left transition-colors ${selected?.network === p.network ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/40'}`}>
+                        <div className="text-xs font-semibold text-foreground">{p.network}</div>
+                        <div className="text-[10px] text-muted-foreground mt-0.5">{p.price} {p.asset}</div>
                     </button>
                 ))}
             </div>
@@ -103,44 +106,44 @@ export function PurchaseSidebar({ agentId, agent }: PurchaseSidebarProps) {
     };
 
     return (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-4 sticky top-6">
+        <div className="rounded-2xl border border-border bg-card p-5 space-y-4 sticky top-6">
             <div>
-                <p className="text-xs text-zinc-500 mb-1">Price</p>
-                <p className={`text-3xl font-bold ${isFree ? 'text-[#9AB17A]' : 'text-[#FBE8CE]'}`}>
+                <p className="text-xs text-muted-foreground mb-1">Price</p>
+                <p className={`text-3xl font-bold ${isFree ? 'text-emerald-600' : 'text-foreground'}`}>
                     {isFree ? 'Free' : `${mkt.pricing?.currency} ${mkt.pricing?.price}`}
                 </p>
                 {networkPricing.length > 0 && !isFree && (
-                    <p className="text-[10px] text-zinc-500 mt-1">Also available in {networkPricing.length} network{networkPricing.length > 1 ? 's' : ''}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">Also available in {networkPricing.length} network{networkPricing.length > 1 ? 's' : ''}</p>
                 )}
             </div>
 
             {buyStep === 'idle' && (
-                <Button className="w-full bg-[#9AB17A] hover:bg-[#8aa06a] text-zinc-900 font-semibold"
+                <Button className="w-full font-semibold"
                     onClick={() => isFree ? handleUseAgent() : setBuyStep('choosing')} disabled={isProcessing}>
-                    {isProcessing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <ShoppingCart className="h-4 w-4 mr-2" />}
+                    {isProcessing ? <IconLoader2 className="h-4 w-4 mr-2 animate-spin" /> : <IconShoppingCart className="h-4 w-4 mr-2" />}
                     {isFree ? 'Use Agent' : 'Buy Agent'}
                 </Button>
             )}
 
             {buyStep === 'choosing' && (
                 <div className="space-y-2">
-                    <p className="text-xs text-zinc-400 font-medium">Choose payment method</p>
+                    <p className="text-xs text-muted-foreground font-medium">Choose payment method</p>
                     {stripeEnabled && (
-                        <Button className="w-full bg-zinc-800 hover:bg-zinc-700 text-sm" onClick={handleStripeCheckout} disabled={isProcessing}>
-                            {isProcessing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />} Pay with Card (Stripe)
+                        <Button variant="outline" className="w-full text-sm" onClick={handleStripeCheckout} disabled={isProcessing}>
+                            {isProcessing && <IconLoader2 className="h-4 w-4 mr-2 animate-spin" />} Pay with Card (Stripe)
                         </Button>
                     )}
                     {cryptoEnabled && (
-                        <Button className="w-full bg-zinc-800 hover:bg-zinc-700 text-sm" onClick={() => setBuyStep('crypto')}>
+                        <Button variant="outline" className="w-full text-sm" onClick={() => setBuyStep('crypto')}>
                             Pay with Crypto (tx hash)
                         </Button>
                     )}
                     {networkPricing.length > 0 && (
-                        <Button className="w-full bg-zinc-800 hover:bg-zinc-700 text-sm gap-2" onClick={() => setBuyStep('network')}>
-                            <Zap className="h-3.5 w-3.5 text-yellow-400" /> Pay via Network
+                        <Button variant="outline" className="w-full text-sm gap-2" onClick={() => setBuyStep('network')}>
+                            <IconBolt className="h-3.5 w-3.5 text-amber-500" /> Pay via Network
                         </Button>
                     )}
-                    <Button variant="ghost" className="w-full text-xs text-zinc-500" onClick={() => setBuyStep('idle')}>Cancel</Button>
+                    <Button variant="ghost" className="w-full text-xs text-muted-foreground" onClick={() => setBuyStep('idle')}>Cancel</Button>
                 </div>
             )}
 
@@ -149,60 +152,60 @@ export function PurchaseSidebar({ agentId, agent }: PurchaseSidebarProps) {
                     <NetworkPricingSelector networkPricing={networkPricing} selected={selectedNetPrice} onSelect={setSelectedNetPrice} />
                     {selectedNetPrice?.network === 'CKB' && (
                         <div className="space-y-2">
-                            <p className="text-xs text-zinc-400">Pay with your agent (Fiber)</p>
+                            <p className="text-xs text-muted-foreground">Pay with your agent (Fiber)</p>
                             <Input placeholder="Your Agent ID (optional)" value={fromAgentId}
                                 onChange={e => setFromAgentId(e.target.value)}
-                                className="bg-zinc-800 border-zinc-700 text-xs font-mono" />
+                                className="text-xs font-mono" />
                         </div>
                     )}
                     {selectedNetPrice && selectedNetPrice.network !== 'CKB' && (
                         <div className="space-y-2">
-                            <p className="text-xs text-zinc-400">Paste your transaction hash after sending</p>
+                            <p className="text-xs text-muted-foreground">Paste your transaction hash after sending</p>
                             <Input placeholder="0x..." value={txHash} onChange={e => setTxHash(e.target.value)}
-                                className="bg-zinc-800 border-zinc-700 text-xs font-mono" />
+                                className="text-xs font-mono" />
                         </div>
                     )}
-                    <Button className="w-full bg-[#9AB17A] hover:bg-[#8aa06a] text-zinc-900 font-semibold text-sm"
+                    <Button className="w-full font-semibold text-sm"
                         onClick={handleNetworkPurchase} disabled={!selectedNetPrice || isProcessing}>
-                        {isProcessing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />} Confirm Purchase
+                        {isProcessing && <IconLoader2 className="h-4 w-4 mr-2 animate-spin" />} Confirm Purchase
                     </Button>
-                    <Button variant="ghost" className="w-full text-xs text-zinc-500" onClick={() => setBuyStep('choosing')}>Back</Button>
+                    <Button variant="ghost" className="w-full text-xs text-muted-foreground" onClick={() => setBuyStep('choosing')}>Back</Button>
                 </div>
             )}
 
             {buyStep === 'crypto' && (
                 <div className="space-y-3">
-                    <div className="bg-zinc-800 rounded-lg p-3 space-y-1.5 text-xs">
-                        <div className="flex justify-between"><span className="text-zinc-500">Network</span><span>{crypto.network}</span></div>
-                        <div className="flex justify-between"><span className="text-zinc-500">Amount</span><span className="font-bold text-[#FBE8CE]">{crypto.amount} {crypto.asset}</span></div>
+                    <div className="bg-muted/30 rounded-lg p-3 space-y-1.5 text-xs">
+                        <div className="flex justify-between"><span className="text-muted-foreground">Network</span><span>{crypto.network}</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">Amount</span><span className="font-bold">{crypto.amount} {crypto.asset}</span></div>
                         <div className="mt-1">
-                            <p className="text-zinc-500 mb-1">Wallet</p>
+                            <p className="text-muted-foreground mb-1">Wallet</p>
                             <div className="relative">
-                                <code className="text-xs break-all bg-zinc-900 rounded px-2 py-1.5 block pr-8">{crypto.walletAddress}</code>
-                                <button onClick={copyWallet} className="absolute top-1 right-1 p-1 rounded bg-zinc-700 hover:bg-zinc-600">
-                                    {copiedWallet ? <Check className="h-3 w-3 text-[#9AB17A]" /> : <Copy className="h-3 w-3" />}
+                                <code className="text-xs break-all bg-muted rounded px-2 py-1.5 block pr-8">{crypto.walletAddress}</code>
+                                <button onClick={copyWallet} className="absolute top-1 right-1 p-1 rounded bg-muted/80 hover:bg-muted transition-colors">
+                                    {copiedWallet ? <IconCheck className="h-3 w-3 text-emerald-500" /> : <IconCopy className="h-3 w-3" />}
                                 </button>
                             </div>
                         </div>
                     </div>
                     <Input placeholder="Transaction hash 0x..." value={txHash} onChange={e => setTxHash(e.target.value)}
-                        className="bg-zinc-800 border-zinc-700 text-xs font-mono" />
-                    <Button className="w-full bg-[#9AB17A] hover:bg-[#8aa06a] text-zinc-900 font-semibold"
+                        className="text-xs font-mono" />
+                    <Button className="w-full font-semibold"
                         onClick={handleCryptoSubmit} disabled={!txHash.trim() || isProcessing}>
-                        {isProcessing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />} Submit Transaction
+                        {isProcessing && <IconLoader2 className="h-4 w-4 mr-2 animate-spin" />} Submit Transaction
                     </Button>
-                    <Button variant="ghost" className="w-full text-xs text-zinc-500" onClick={() => setBuyStep('choosing')}>Back</Button>
+                    <Button variant="ghost" className="w-full text-xs text-muted-foreground" onClick={() => setBuyStep('choosing')}>Back</Button>
                 </div>
             )}
 
             {buyStep === 'done' && (
                 <div className="text-center py-4 space-y-3">
-                    <div className="w-12 h-12 rounded-full bg-[#9AB17A]/20 flex items-center justify-center mx-auto">
-                        <Check className="h-6 w-6 text-[#9AB17A]" />
+                    <div className="w-12 h-12 rounded-full bg-emerald-500/15 flex items-center justify-center mx-auto">
+                        <IconCheck className="h-6 w-6 text-emerald-600" />
                     </div>
-                    <p className="font-semibold text-[#9AB17A]">{isFree ? 'Ready to use!' : 'Purchase submitted!'}</p>
+                    <p className="font-semibold text-emerald-600">{isFree ? 'Ready to use!' : 'Purchase submitted!'}</p>
                     {isFree && proxyAgentId && (
-                        <Button className="w-full bg-[#9AB17A]/20 hover:bg-[#9AB17A]/30 text-[#9AB17A] border border-[#9AB17A]/30"
+                        <Button variant="outline" className="w-full"
                             onClick={() => router.push(`/sandbox?agentId=${proxyAgentId}`)}>
                             Open in Sandbox
                         </Button>
@@ -211,8 +214,8 @@ export function PurchaseSidebar({ agentId, agent }: PurchaseSidebarProps) {
             )}
 
             <Link href={`/sandbox?agentId=${agent._id}`}
-                className="flex items-center justify-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
-                <ExternalLink className="h-3 w-3" /> Open in Sandbox
+                className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                <IconExternalLink className="h-3 w-3" /> Open in Sandbox
             </Link>
         </div>
     );

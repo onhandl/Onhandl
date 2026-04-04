@@ -175,7 +175,13 @@ function FlowBuilderContent() {
         <CreateAgentModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} onComplete={(id) => handleSelectAgent(id)} />
         <LoadAgentModal isOpen={isLoadModalOpen} onClose={() => setIsLoadModalOpen(false)} onSelect={(id) => handleSelectAgent(id)} />
         <TemplateModal isOpen={isTemplateModalOpen} onClose={() => setIsTemplateModalOpen(false)} onSelect={handleSelectTemplate} />
-        <ChatSidebar isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} agentId={currentAgentId} />
+        <ChatSidebar
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+          agentId={currentAgentId}
+          isSimulating={isSimulating}
+          onStartSimulation={handleToggleSimulation}
+        />
         {currentAgentId && (
           <ExportAgentModal
             isOpen={isExportModalOpen}

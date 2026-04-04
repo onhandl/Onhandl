@@ -35,27 +35,47 @@ const ActionNode: React.FC<ActionNodeProps> = ({ data, isConnectable, selected, 
       <div className="node-title">{data.name}</div>
       <div className="node-description">{data.description}</div>
 
-      {data.inputs?.map((input: any, index: number) => (
+      {data.inputs?.length > 0 ? (
+        data.inputs.map((input: any, index: number) => (
+          <Handle
+            key={input.key}
+            type="target"
+            position={Position.Left}
+            id={input.key}
+            style={{ top: 40 + index * 10, background: '#555' }}
+            isConnectable={isConnectable}
+          />
+        ))
+      ) : (
         <Handle
-          key={input.key}
           type="target"
           position={Position.Left}
-          id={input.key}
-          style={{ top: 40 + index * 10, background: '#555' }}
+          id="input"
+          style={{ background: '#555' }}
           isConnectable={isConnectable}
         />
-      ))}
+      )}
 
-      {data.outputs?.map((output: any, index: number) => (
+      {data.outputs?.length > 0 ? (
+        data.outputs.map((output: any, index: number) => (
+          <Handle
+            key={output.key}
+            type="source"
+            position={Position.Right}
+            id={output.key}
+            style={{ top: 40 + index * 10, background: '#555' }}
+            isConnectable={isConnectable}
+          />
+        ))
+      ) : (
         <Handle
-          key={output.key}
           type="source"
           position={Position.Right}
-          id={output.key}
-          style={{ top: 40 + index * 10, background: '#555' }}
+          id="result"
+          style={{ background: '#555' }}
           isConnectable={isConnectable}
         />
-      ))}
+      )}
 
       {data.isPlaying && data.outputData && (
         <NodeOutputDisplay nodeType="action" nodeName={data.name} outputData={data.outputData} />

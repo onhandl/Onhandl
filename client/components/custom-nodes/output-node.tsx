@@ -35,17 +35,28 @@ const OutputNode: React.FC<OutputNodeProps> = ({ data, isConnectable, selected, 
       <div className="node-title">{data.name}</div>
       <div className="node-description">{data.description}</div>
 
-      {data.inputs?.map((input: any, index: number) => (
+      {data.inputs?.length > 0 ? (
+        data.inputs.map((input: any, index: number) => (
+          <Handle
+            key={input.key}
+            type="target"
+            position={Position.Left}
+            id={input.key}
+            style={{ top: 40 + index * 10, background: '#555' }}
+            isConnectable={isConnectable}
+            className={data.isPlaying ? 'animate-ping' : ''}
+          />
+        ))
+      ) : (
         <Handle
-          key={input.key}
           type="target"
           position={Position.Left}
-          id={input.key}
-          style={{ top: 40 + index * 10, background: '#555' }}
+          id="text"
+          style={{ background: '#555' }}
           isConnectable={isConnectable}
           className={data.isPlaying ? 'animate-ping' : ''}
         />
-      ))}
+      )}
 
       {/* Input Data Inspector (for debugging) */}
       {data.inputValues && Object.keys(data.inputValues).length > 0 && (

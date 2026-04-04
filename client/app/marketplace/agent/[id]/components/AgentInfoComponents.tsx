@@ -1,7 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Code2, ChevronDown, ChevronUp, Copy, Check, ShieldCheck, ShieldX } from 'lucide-react';
+import {
+    IconCode, IconChevronDown, IconChevronUp, IconCopy, IconCheck,
+    IconShieldCheck, IconShieldX,
+} from '@tabler/icons-react';
 
 export function JsonViewer({ data, label }: { data: any; label: string }) {
     const [open, setOpen] = useState(false);
@@ -15,25 +18,29 @@ export function JsonViewer({ data, label }: { data: any; label: string }) {
     };
 
     return (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 overflow-hidden">
+        <div className="rounded-2xl border border-border bg-card overflow-hidden">
             <button onClick={() => setOpen(!open)}
-                className="w-full flex items-center justify-between px-5 py-3.5 text-left hover:bg-zinc-800/40 transition-colors">
+                className="w-full flex items-center justify-between px-5 py-3.5 text-left hover:bg-muted/40 transition-colors">
                 <div className="flex items-center gap-2.5">
-                    <Code2 className="h-4 w-4 text-[#9AB17A]" />
+                    <IconCode className="h-4 w-4 text-primary" />
                     <span className="text-sm font-semibold">{label}</span>
                 </div>
-                {open ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
+                {open
+                    ? <IconChevronUp className="h-4 w-4 text-muted-foreground" />
+                    : <IconChevronDown className="h-4 w-4 text-muted-foreground" />}
             </button>
             {open && (
-                <div className="border-t border-zinc-800">
+                <div className="border-t border-border">
                     <div className="relative">
-                        <pre className="text-[11px] leading-relaxed font-mono text-[#C3CC9B] bg-zinc-950 p-4 overflow-x-auto max-h-[400px] overflow-y-auto">
+                        <pre className="text-[11px] leading-relaxed font-mono text-primary bg-muted/30 p-4 overflow-x-auto max-h-[400px] overflow-y-auto">
                             {json}
                         </pre>
                         <button onClick={handleCopy}
-                            className="absolute top-3 right-3 p-1.5 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 transition-colors"
+                            className="absolute top-3 right-3 p-1.5 rounded-md bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"
                             title="Copy JSON">
-                            {copied ? <Check className="h-3.5 w-3.5 text-[#9AB17A]" /> : <Copy className="h-3.5 w-3.5" />}
+                            {copied
+                                ? <IconCheck className="h-3.5 w-3.5 text-emerald-500" />
+                                : <IconCopy className="h-3.5 w-3.5" />}
                         </button>
                     </div>
                 </div>
@@ -49,9 +56,9 @@ export function ConstraintList({ items, allowed }: { items: string[]; allowed: b
             {items.map((item, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm">
                     {allowed
-                        ? <ShieldCheck className="h-3.5 w-3.5 text-[#9AB17A] mt-0.5 shrink-0" />
-                        : <ShieldX className="h-3.5 w-3.5 text-red-400 mt-0.5 shrink-0" />}
-                    <span className="text-zinc-300 leading-snug">{item}</span>
+                        ? <IconShieldCheck className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
+                        : <IconShieldX className="h-3.5 w-3.5 text-destructive mt-0.5 shrink-0" />}
+                    <span className="text-foreground leading-snug">{item}</span>
                 </li>
             ))}
         </ul>

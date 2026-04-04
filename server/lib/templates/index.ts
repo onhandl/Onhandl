@@ -81,10 +81,11 @@ export const agentTemplates = [
                 position: { x: 800, y: 150 },
                 data: {
                     name: 'Action Logic',
-                    conditions: [
-                        { label: 'Swap Assets', value: 'swap' },
-                        { label: 'Send Funds', value: 'send' }
-                    ]
+                    branches: [
+                        { outputKey: 'swap', label: 'Swap Assets', field: 'intent', condition: 'intent_match', value: 'swap' },
+                        { outputKey: 'send', label: 'Send Funds', field: 'intent', condition: 'intent_match', value: 'send' }
+                    ],
+                    showElse: false
                 }
             },
             {
@@ -359,13 +360,25 @@ export const agentTemplates = [
                 id: 'cond-balance',
                 type: 'condition',
                 position: { x: 900, y: 150 },
-                data: { name: 'Check for Balance', inputs: [{ key: 'condition', value: 'intent_match' }, { key: 'value', value: 'balance' }, { key: 'field', value: 'intent' }] }
+                data: {
+                    name: 'Check for Balance',
+                    branches: [
+                        { outputKey: 'true', label: 'Balance', field: 'intent', condition: 'intent_match', value: 'balance' }
+                    ],
+                    showElse: true
+                }
             },
             {
                 id: 'cond-transfer',
                 type: 'condition',
                 position: { x: 1100, y: 350 },
-                data: { name: 'Check for Transfer', inputs: [{ key: 'condition', value: 'intent_match' }, { key: 'value', value: 'transfer' }, { key: 'field', value: 'intent' }] }
+                data: {
+                    name: 'Check for Transfer',
+                    branches: [
+                        { outputKey: 'true', label: 'Transfer', field: 'intent', condition: 'intent_match', value: 'transfer' }
+                    ],
+                    showElse: true
+                }
             },
             {
                 id: 'tool-balance',
@@ -392,10 +405,10 @@ export const agentTemplates = [
             { id: 'e3-4', source: 'wallet-1', target: 'cond-balance' },
             { id: 'e4-5', source: 'cond-balance', target: 'tool-balance', sourceHandle: 'true' },
             { id: 'e5-6', source: 'tool-balance', target: 'output-1' },
-            { id: 'e4-7', source: 'cond-balance', target: 'cond-transfer', sourceHandle: 'false' },
+            { id: 'e4-7', source: 'cond-balance', target: 'cond-transfer', sourceHandle: 'default' },
             { id: 'e7-8', source: 'cond-transfer', target: 'tool-transfer', sourceHandle: 'true' },
             { id: 'e8-9', source: 'tool-transfer', target: 'output-1' },
-            { id: 'e7-10', source: 'cond-transfer', target: 'output-1', sourceHandle: 'false' }
+            { id: 'e7-10', source: 'cond-transfer', target: 'output-1', sourceHandle: 'default' }
         ]
     }
 ];

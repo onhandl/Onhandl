@@ -25,14 +25,14 @@ export const blockchainNodes = [
                 label: 'Tool Name',
                 type: 'string',
                 placeholder: 'e.g. get_tip_header',
-                value: 'get_tip_header',
+                value: '',
             },
             {
                 key: 'payload',
                 label: 'Payload (JSON)',
                 type: 'string',
                 placeholder: '{"tx_hash": "0x..."}',
-                value: '{}',
+                value: '',
             },
         ],
         outputs: [

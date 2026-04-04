@@ -12,9 +12,9 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/selection/select';
 import {
-  Search, Star, Eye, ShoppingCart, Loader2, Bot,
-  TrendingUp, Package, Filter, User, Zap,
-} from 'lucide-react';
+    IconSearch, IconStar, IconEye, IconShoppingCart, IconLoader2, IconRobot,
+    IconTrendingUp, IconPackage, IconFilter, IconUser, IconBolt,
+} from '@tabler/icons-react';
 import { Navigation } from '@/components/landing/navigation';
 
 const CATEGORIES     = ['All', 'Trading Bot', 'Analytics', 'DeFi Assistant', 'Portfolio Manager', 'Data Feed', 'Custom'];
@@ -52,7 +52,7 @@ function AgentCard({ agent, index }: { agent: any; index: number }) {
         <div className="p-5 flex flex-col flex-1">
           <div className="flex items-start justify-between mb-4">
             <div className="w-10 h-10 rounded-lg border border-fl-line bg-fl-base flex items-center justify-center group-hover:border-fl-accent/40 transition-colors">
-              <Bot className="h-5 w-5 text-fl-ink-2 group-hover:text-fl-accent transition-colors" />
+              <IconRobot className="h-5 w-5 text-fl-ink-2 group-hover:text-fl-accent transition-colors" />
             </div>
             <Badge className="text-[10px] border border-fl-line bg-fl-base text-fl-ink-3 font-normal rounded-[4px]">
               {category}
@@ -75,7 +75,7 @@ function AgentCard({ agent, index }: { agent: any; index: number }) {
               <div className="w-5 h-5 rounded-full border border-fl-line bg-fl-base flex items-center justify-center overflow-hidden shrink-0">
                 {agent.creator.avatarUrl
                   ? <img src={agent.creator.avatarUrl} alt="" className="w-full h-full object-cover" />
-                  : <User className="w-3 h-3 text-fl-ink-3" />}
+                  : <IconUser className="w-3 h-3 text-fl-ink-3" />}
               </div>
               <span className="text-[11px] text-fl-ink-3 group-hover/creator:text-fl-accent transition-colors truncate">
                 {agent.creator.name}
@@ -86,10 +86,10 @@ function AgentCard({ agent, index }: { agent: any; index: number }) {
           <div className="mt-4 flex items-center justify-between">
             <div className="flex items-center gap-3 text-[12px] text-fl-ink-3">
               <span className="flex items-center gap-1">
-                <Eye className="h-3 w-3" /> {mkt.stats?.views || 0}
+                <IconEye className="h-3 w-3" /> {mkt.stats?.views || 0}
               </span>
               <span className="flex items-center gap-1">
-                <Star className="h-3 w-3 fill-fl-accent text-fl-accent" />
+                <IconStar className="h-3 w-3 fill-fl-accent text-fl-accent" />
                 {(mkt.stats?.rating || 0).toFixed(1)}
               </span>
             </div>
@@ -102,7 +102,7 @@ function AgentCard({ agent, index }: { agent: any; index: number }) {
             onClick={(e) => { e.stopPropagation(); router.push(`/marketplace/agent/${agent._id}`); }}
             className="btn-fl-primary mt-4 w-full text-[12px] h-9"
           >
-            <ShoppingCart className="h-3.5 w-3.5" />
+            <IconShoppingCart className="h-3.5 w-3.5" />
             {isFree ? 'Use Agent' : 'Buy Agent'}
           </button>
         </div>
@@ -162,7 +162,7 @@ export default function MarketplacePage() {
           >
             <div>
               <p className="label-factory mb-3 flex items-center gap-2">
-                <Package className="w-3 h-3" /> Agent Marketplace
+                <IconPackage className="w-3 h-3" /> Agent Marketplace
               </p>
               <h1 className="text-[40px] md:text-[52px] font-normal tracking-factory-h2 leading-none text-fl-ink mb-2">
                 Discover AI Agents
@@ -175,15 +175,15 @@ export default function MarketplacePage() {
             <div className="flex items-center gap-4">
               <div className="hidden sm:flex items-center gap-4 text-[12px] text-fl-ink-3 pr-4 border-r border-fl-line">
                 <span className="flex items-center gap-1.5">
-                  <TrendingUp className="w-3.5 h-3.5 text-fl-accent" /> {total} Agents
+                  <IconTrendingUp className="w-3.5 h-3.5 text-fl-accent" /> {total} Agents
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <Star className="w-3.5 h-3.5 fill-fl-accent text-fl-accent" /> Top Rated
+                  <IconStar className="w-3.5 h-3.5 fill-fl-accent text-fl-accent" /> Top Rated
                 </span>
               </div>
               <Link href="/sandbox">
                 <button className="btn-fl-accent text-[13px]">
-                  <Zap className="h-3.5 w-3.5" /> Build Your Own
+                  <IconBolt className="h-3.5 w-3.5" /> Build Your Own
                 </button>
               </Link>
             </div>
@@ -201,7 +201,7 @@ export default function MarketplacePage() {
           className="flex flex-wrap gap-3 mb-8"
         >
           <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-fl-ink-3" />
+            <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-fl-ink-3" />
             <Input
               placeholder="Search agents…"
               value={search}
@@ -212,7 +212,7 @@ export default function MarketplacePage() {
 
           <Select value={category} onValueChange={(v) => { setCategory(v); setPage(1); }}>
             <SelectTrigger className="w-44 bg-fl-surface border-fl-line text-[13px] text-fl-ink-2 rounded-[4px]">
-              <Filter className="w-3.5 h-3.5 mr-1.5 text-fl-ink-3" />
+              <IconFilter className="w-3.5 h-3.5 mr-1.5 text-fl-ink-3" />
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent className="bg-fl-surface border-fl-line rounded-[4px]">
@@ -256,14 +256,14 @@ export default function MarketplacePage() {
           {isLoading ? (
             <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="flex flex-col items-center justify-center py-24 gap-3">
-              <Loader2 className="h-6 w-6 animate-spin text-fl-accent" />
+              <IconLoader2 className="h-6 w-6 animate-spin text-fl-accent" />
               <p className="text-[13px] text-fl-ink-3">Fetching agents…</p>
             </motion.div>
           ) : agents.length === 0 ? (
             <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="text-center py-24 border border-dashed border-fl-line rounded-lg">
               <div className="w-12 h-12 rounded-lg border border-fl-line bg-fl-surface flex items-center justify-center mx-auto mb-4">
-                <Bot className="h-6 w-6 text-fl-ink-3" />
+                <IconRobot className="h-6 w-6 text-fl-ink-3" />
               </div>
               <p className="text-fl-ink font-normal mb-1 text-[15px]">No agents found</p>
               <p className="text-[13px] text-fl-ink-3">Try adjusting your filters or search term.</p>

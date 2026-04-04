@@ -31,18 +31,24 @@ export function SimulateNodeSection({ nodeId, nodeType, nodeData, agentId }: Sim
   const [showLogs, setShowLogs] = useState(false);
   const [showResult, setShowResult] = useState(false);
 
-  const inputs: InputField[] = (nodeData.inputs as InputField[] | undefined) ?? [];
+  // Internal selectors — not real tool parameters, excluded from simulation payload
+  const META_KEYS = new Set(['network', 'action_group', 'tool_lookup', 'payload', 'walletData', 'walletInfo', 'outputData']);
 
-  const handleChange = (key: string, val: string) => {
-    setInputValues(prev => ({ ...prev, [key]: val }));
+  const allInputs: InputField[] = (nodeData.inputs as InputField[] | undefined) ?? [];
+  const inputs = allInputs.filter(inp => !META_KEYS.has(inp.key));
+
+  const handleChange = (key: string, val: unknown) => {
+    setInputValues(prev => ({ ...prev, [key]: val as string }));
   };
 
   const resolvedInputValues = (): Record<string, unknown> => {
     const merged: Record<string, unknown> = {};
     inputs.forEach(inp => {
-      merged[inp.key] = inputValues[inp.key] ?? inp.value ?? '';
+      const v = inputValues[inp.key] !== undefined ? inputValues[inp.key] : inp.value;
+      if (v === '' || v === undefined || v === null) return; // skip empty — let tool defaults apply
+      merged[inp.key] = v;
     });
-    // Allow JSON parsing for object-type fields
+    // Parse JSON strings for object-type fields
     Object.entries(merged).forEach(([k, v]) => {
       if (typeof v === 'string' && v.trim().startsWith('{')) {
         try { merged[k] = JSON.parse(v); } catch { /* keep as string */ }
@@ -101,9 +107,19 @@ export function SimulateNodeSection({ nodeId, nodeType, nodeData, agentId }: Sim
               {inputs.map(inp => (
                 <div key={inp.key} className="space-y-1">
                   <label className="text-[10px] text-muted-foreground">{inp.label}</label>
-                  {inp.type === 'select' && inp.options ? (
+                  {inp.type === 'boolean' ? (
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={inputValues[inp.key] !== undefined ? Boolean(inputValues[inp.key]) : Boolean(inp.value)}
+                        onChange={e => handleChange(inp.key, e.target.checked)}
+                        className="rounded border-border"
+                      />
+                      <span className="text-[10px] text-muted-foreground">{inp.label}</span>
+                    </label>
+                  ) : inp.type === 'select' && inp.options ? (
                     <select
-                      value={inputValues[inp.key] ?? String(inp.value ?? '')}
+                      value={String(inputValues[inp.key] ?? inp.value ?? '')}
                       onChange={e => handleChange(inp.key, e.target.value)}
                       className="w-full text-xs border border-border/60 rounded-lg px-2 py-1.5 bg-card focus:outline-none focus:ring-1 focus:ring-primary/30"
                     >
@@ -112,7 +128,7 @@ export function SimulateNodeSection({ nodeId, nodeType, nodeData, agentId }: Sim
                   ) : (
                     <input
                       type="text"
-                      value={inputValues[inp.key] ?? String(inp.value ?? '')}
+                      value={String(inputValues[inp.key] ?? inp.value ?? '')}
                       placeholder={inp.placeholder ?? `Enter ${inp.label}...`}
                       onChange={e => handleChange(inp.key, e.target.value)}
                       className="w-full text-xs border border-border/60 rounded-lg px-2 py-1.5 bg-card focus:outline-none focus:ring-1 focus:ring-primary/30"

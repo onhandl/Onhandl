@@ -267,29 +267,50 @@ const CryptoWalletNode: React.FC<CryptoWalletNodeProps> = ({ data, isConnectable
       )}
 
       {/* Input Handles */}
-      {data.inputs?.map((input: any, index: number) => (
+      {data.inputs?.length > 0 ? (
+        data.inputs.map((input: any, index: number) => (
+          <Handle
+            key={input.key}
+            type="target"
+            position={Position.Left}
+            id={input.key}
+            style={{ top: 40 + index * 10, background: '#555' }}
+            isConnectable={isConnectable}
+          />
+        ))
+      ) : (
         <Handle
-          key={input.key}
           type="target"
           position={Position.Left}
-          id={input.key}
-          style={{ top: 40 + index * 10, background: '#555' }}
+          id="input"
+          style={{ background: '#555' }}
           isConnectable={isConnectable}
         />
-      ))}
+      )}
 
       {/* Output Handles */}
-      {data.outputs?.map((output: any, index: number) => (
+      {data.outputs?.length > 0 ? (
+        data.outputs.map((output: any, index: number) => (
+          <Handle
+            key={output.key}
+            type="source"
+            position={Position.Right}
+            id={output.key}
+            style={{ top: 40 + index * 10, background: '#555' }}
+            isConnectable={isConnectable}
+            className={data.isPlaying && isConnected ? 'animate-ping' : ''}
+          />
+        ))
+      ) : (
         <Handle
-          key={output.key}
           type="source"
           position={Position.Right}
-          id={output.key}
-          style={{ top: 40 + index * 10, background: '#555' }}
+          id="result"
+          style={{ background: '#555' }}
           isConnectable={isConnectable}
           className={data.isPlaying && isConnected ? 'animate-ping' : ''}
         />
-      ))}
+      )}
 
       {/* Status dot */}
       {data.executionStatus && (

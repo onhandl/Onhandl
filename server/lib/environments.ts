@@ -18,6 +18,7 @@ export const ENV = {
     OPENAI_API_KEY: process.env.OPENAI_API_KEY as string,
     OLLAMA_BASE_URL: process.env.OLLAMA_BASE_URL as string,
     OLLAMA_MODEL: process.env.OLLAMA_MODEL as string,
+    DEFAULT_AI_PROVIDER: (process.env.DEFAULT_AI_PROVIDER || 'ollama') as 'ollama' | 'gemini' | 'openai',
     APP_URL: process.env.APP_URL || 'http://localhost:3000',
     API_URL: process.env.API_URL || 'http://localhost:3001/api',
     // Stripe (optional — only required for paid marketplace features)
@@ -31,7 +32,7 @@ export const ENV = {
     FIBER_AUTH_TOKEN: process.env.FIBER_AUTH_TOKEN || '',
 };
 
-const REQUIRED_ENV = ['MONGO_URI', 'JWT_SECRET', 'GEMINI_API_KEY', 'OPENAI_API_KEY'];
+const REQUIRED_ENV = ['MONGO_URI', 'JWT_SECRET'];
 
 for (const key of REQUIRED_ENV) {
     if (!ENV[key as keyof typeof ENV]) {

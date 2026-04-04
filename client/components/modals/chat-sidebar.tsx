@@ -18,14 +18,18 @@ interface ChatSidebarProps {
     isOpen: boolean;
     onClose: () => void;
     agentId: string | null;
+    isSimulating: boolean;
+    onStartSimulation: () => void;
 }
 
-export default function ChatSidebar({ isOpen, onClose, agentId }: ChatSidebarProps) {
-    const [messages, setMessages] = useState<Message[]>([]);
-    const [input, setInput] = useState('');
-    const [isTyping, setIsTyping] = useState(false);
-    const [agent, setAgent] = useState<any>(null);
-    const [sessionId, setSessionId] = useState<string>('');
+export default function ChatSidebar({
+    isOpen, onClose, agentId, isSimulating, onStartSimulation,
+}: ChatSidebarProps) {
+    const [messages, setMessages]       = useState<Message[]>([]);
+    const [input, setInput]             = useState('');
+    const [isTyping, setIsTyping]       = useState(false);
+    const [agent, setAgent]             = useState<any>(null);
+    const [sessionId, setSessionId]     = useState<string>('');
     const [isFullscreen, setIsFullscreen] = useState(false);
     const { loadAgentById, chatWithAgentStream } = useAgentManager();
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -43,12 +47,12 @@ export default function ChatSidebar({ isOpen, onClose, agentId }: ChatSidebarPro
                 }
             });
         }
-    }, [isOpen, agentId, loadAgentById, messages.length]);
+    }, [isOpen, agentId, loadAgentById, messages.length, sessionId]);
 
     useEffect(() => {
         if (scrollRef.current) {
-            const viewport = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
-            if (viewport) viewport.scrollTop = viewport.scrollHeight;
+            const vp = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
+            if (vp) vp.scrollTop = vp.scrollHeight;
             else scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
     }, [messages, isTyping, isFullscreen]);
@@ -56,22 +60,29 @@ export default function ChatSidebar({ isOpen, onClose, agentId }: ChatSidebarPro
     useEffect(() => { if (!isOpen) setIsFullscreen(false); }, [isOpen]);
 
     useEffect(() => {
-        if (isFullscreen && isOpen) document.body.style.overflow = 'hidden';
-        else document.body.style.overflow = '';
+        document.body.style.overflow = (isFullscreen && isOpen) ? 'hidden' : '';
         return () => { document.body.style.overflow = ''; };
     }, [isFullscreen, isOpen]);
 
     const handleSendMessage = async () => {
         if (!input.trim() || isTyping || !agent) return;
+
         const userMsg: Message = { role: 'user', content: input, timestamp: new Date() };
         setMessages(prev => [...prev, userMsg]);
         setInput('');
         setIsTyping(true);
 
         try {
-            const instructions = agent.character?.instructions?.join('\n') || '';
-            const personality = agent.character?.traits?.personality?.join(', ') || '';
-            const systemPrompt = `You are ${agent.name}.\nDescription: ${agent.description || ''}\nBio: ${agent.character?.bio || ''}\nPersonality: ${personality}\nInstructions: ${instructions}\nAlways stay in character.`.trim();
+            const instructions  = agent.character?.instructions?.join('\n') || '';
+            const personality   = agent.character?.traits?.personality?.join(', ') || '';
+            const systemPrompt  = [
+                `You are ${agent.name}.`,
+                `Description: ${agent.description || ''}`,
+                `Bio: ${agent.character?.bio || ''}`,
+                `Personality: ${personality}`,
+                `Instructions: ${instructions}`,
+                'Always stay in character.',
+            ].join('\n').trim();
 
             const reader = await chatWithAgentStream(
                 agent.modelProvider || 'ollama',
@@ -79,15 +90,15 @@ export default function ChatSidebar({ isOpen, onClose, agentId }: ChatSidebarPro
                 [
                     { role: 'system', content: systemPrompt },
                     ...messages.map(m => ({ role: m.role, content: m.content })),
-                    { role: 'user', content: input }
+                    { role: 'user', content: input },
                 ],
-                undefined, agentId || undefined, sessionId
+                undefined, agentId || undefined, sessionId,
             );
             if (!reader) throw new Error('Failed to open stream reader');
 
             setMessages(prev => [...prev, { role: 'assistant', content: '', timestamp: new Date() }]);
             const decoder = new TextDecoder();
-            let accumulatedContent = '';
+            let accumulated = '';
             let buffer = '';
 
             try {
@@ -97,43 +108,45 @@ export default function ChatSidebar({ isOpen, onClose, agentId }: ChatSidebarPro
                     buffer += decoder.decode(value, { stream: true });
                     const events = buffer.split('\n\n');
                     buffer = events.pop() || '';
-                    for (const event of events) {
-                        if (!event.startsWith('data: ')) continue;
+                    for (const ev of events) {
+                        if (!ev.startsWith('data: ')) continue;
                         try {
-                            const json = JSON.parse(event.substring(6));
+                            const json = JSON.parse(ev.substring(6));
                             if (json.content) {
-                                accumulatedContent += json.content;
-                                let displayMessage = accumulatedContent;
+                                accumulated += json.content;
+                                let display = accumulated;
                                 try {
-                                    const match = accumulatedContent.match(/\{[\s\S]*\}/);
+                                    const match = accumulated.match(/\{[\s\S]*\}/);
                                     if (match) {
                                         const parsed = JSON.parse(match[0]);
-                                        if (parsed.message) displayMessage = parsed.message;
+                                        if (parsed.message) display = parsed.message;
                                     }
                                 } catch { /* partial JSON */ }
                                 setMessages(prev => {
                                     const next = [...prev];
                                     const last = next[next.length - 1];
-                                    if (last?.role === 'assistant') last.content = displayMessage;
+                                    if (last?.role === 'assistant') last.content = display;
                                     return next;
                                 });
                             }
                         } catch { /* ignore */ }
                     }
                 }
-            } finally {
-                reader.releaseLock();
-            }
-        } catch (error) {
-            console.error('Chat failed:', error);
-            setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.', timestamp: new Date() }]);
+            } finally { reader.releaseLock(); }
+        } catch {
+            setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: 'Sorry, I encountered an error. Please try again.',
+                timestamp: new Date(),
+            }]);
         } finally {
             setIsTyping(false);
         }
     };
 
-    const chatBodyProps = {
+    const bodyProps = {
         agent, messages, isTyping, isFullscreen, input, scrollRef,
+        isSimulating, onStartSimulation,
         onInputChange: setInput,
         onSend: handleSendMessage,
         onToggleFullscreen: () => setIsFullscreen(f => !f),
@@ -144,23 +157,28 @@ export default function ChatSidebar({ isOpen, onClose, agentId }: ChatSidebarPro
 
     if (isFullscreen) {
         return createPortal(
-            <div className="fixed inset-0 z-[9999] bg-zinc-950 text-zinc-100 flex flex-col items-stretch animate-in fade-in zoom-in duration-200"
-                onClick={(e) => e.stopPropagation()}>
-                <ChatBody {...chatBodyProps} />
+            <div
+                className="fixed inset-0 z-[9999] bg-background flex flex-col items-stretch animate-in fade-in zoom-in duration-200"
+                onClick={e => e.stopPropagation()}
+            >
+                <ChatBody {...bodyProps} />
             </div>,
-            document.body
+            document.body,
         );
     }
 
     return (
-        <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <SheetContent side="right"
-                className="p-0 flex flex-col bg-zinc-950/95 backdrop-blur-xl border-zinc-800 text-zinc-100 w-[440px] sm:w-[560px] overflow-hidden">
+        <Sheet open={isOpen} onOpenChange={open => !open && onClose()}>
+            <SheetContent
+                side="right"
+                hideClose
+                className="p-0 flex flex-col bg-background border-border w-[440px] sm:w-[560px] overflow-hidden"
+            >
                 <SheetHeader className="sr-only">
                     <SheetTitle>Chat with {agent?.name || 'Agent'}</SheetTitle>
                     <SheetDescription>Interact with your AI agent</SheetDescription>
                 </SheetHeader>
-                <ChatBody {...chatBodyProps} />
+                <ChatBody {...bodyProps} />
             </SheetContent>
         </Sheet>
     );
