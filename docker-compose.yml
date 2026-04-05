@@ -30,7 +30,7 @@ services:
       context: .
       dockerfile: client/Dockerfile
       args:
-        # The client calls the server — in production point this at your server's public URL
+        # The client calls the server — in production point this at server's public URL
         NEXT_PUBLIC_API_URL: http://localhost:3001/api
     restart: unless-stopped
     ports:

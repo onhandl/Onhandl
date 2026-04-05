@@ -279,5 +279,106 @@ pnpm dev
 - **Backend API**: [http://localhost:3001](http://localhost:3001)
 
 ### Workspace Verification
-Once running, sign up/log in to access the Dashboard. You can immediately begin creating AI-enhanced agents and building CKB workflow graphs in the Sandbox!
+Once running, sign up/log in to access the Dashboard. You can immediately begin creating AI-enhanced agents and building workflow graphs in the Sandbox!
+
+---
+
+## 10. Running with Docker (Recommended for Local Dev & Deployment)
+
+Docker bundles the client, server, and a local MongoDB instance so you don't need to install Node.js or pnpm locally.
+
+### Prerequisites
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker Engine + Compose v2 on Linux)
+
+### 1. Configure environment variables
+
+```bash
+cp server/.env.example server/.env
+```
+
+Open `server/.env` and fill in your values:
+
+```env
+# Leave MONGO_URI blank — Docker Compose injects it automatically when using the local MongoDB container
+MONGO_URI=
+
+JWT_SECRET=your_secure_random_string
+
+# AI providers (pick at least one)
+DEFAULT_AI_PROVIDER=ollama        # or gemini / openai
+GEMINI_API_KEY=
+OPENAI_API_KEY=
+OPENAI_BASE_URL=
+OPENAI_MODEL=
+
+# Email / SMTP (for OTP verification emails)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASS=
+```
+
+> **MongoDB Atlas instead of local Mongo?** Set your Atlas URI in `MONGO_URI` and comment out the `MONGO_URI` override line in `docker-compose.yml` under the `server` service.
+
+### 2. Build and start all services
+
+Run this from the **project root**:
+
+```bash
+docker compose up --build
+```
+
+First build takes a few minutes (downloads base images, installs deps, compiles TypeScript and Next.js). Subsequent starts are fast because Docker caches the layers.
+
+| Service  | URL                          |
+|----------|------------------------------|
+| Frontend | http://localhost:3000        |
+| Backend  | http://localhost:3001        |
+| MongoDB  | mongodb://localhost:27017    |
+
+### 3. Run in the background (detached mode)
+
+```bash
+docker compose up --build -d
+```
+
+### 4. View logs
+
+```bash
+docker compose logs -f           # all services
+docker compose logs -f server    # server only
+docker compose logs -f client    # client only
+```
+
+### 5. Stop everything
+
+```bash
+docker compose down              # stop and remove containers
+docker compose down -v           # also delete the MongoDB data volume
+```
+
+### 6. Rebuild a single service after code changes
+
+```bash
+docker compose build server      # rebuild server image
+docker compose up -d server      # restart with new image
+```
+
+### Deploying to production
+
+For production deployments (Railway, Render, Fly.io, VPS), set the `NEXT_PUBLIC_API_URL` build arg to your server's public URL so the client calls the right API:
+
+```bash
+# Build client pointing at your production API
+docker build \
+  --build-arg NEXT_PUBLIC_API_URL=https://api.yourdomain.com/api \
+  -f client/Dockerfile \
+  -t omniflow-client \
+  .
+
+# Build server
+docker build -f server/Dockerfile -t omniflow-server .
+```
+
+Then push both images to your container registry and deploy.
 
