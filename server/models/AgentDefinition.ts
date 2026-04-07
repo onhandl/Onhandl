@@ -34,6 +34,7 @@ export interface IAgentDefinition extends Document {
         theme: string;
         pwaDownloadCount: number;
         lastExportedAt: Date;
+        mcpEnabled: boolean;
     };
     // Marketplace — Mixed so subdoc casting never fails
     marketplace?: any;
@@ -86,6 +87,7 @@ const AgentDefinitionSchema: Schema = new Schema(
             theme:             { type: String, default: 'dark' },
             pwaDownloadCount:  { type: Number, default: 0 },
             lastExportedAt:    { type: Date },
+            mcpEnabled:        { type: Boolean, default: false },
         },
     },
     { timestamps: true }

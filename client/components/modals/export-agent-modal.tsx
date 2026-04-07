@@ -6,9 +6,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/naviga
 import { Button } from '@/components/ui/buttons/button';
 import { agentApi } from '@/api/agent-api';
 import { toast } from '@/components/ui';
-import { Download, ExternalLink, Loader2, Smartphone, Code2 } from 'lucide-react';
+import { Download, ExternalLink, Loader2, Smartphone, Code2, Server } from 'lucide-react';
 import { buildPwaZip } from './export-agent/pwa-builders';
 import { EmbedTab } from './export-agent/EmbedTab';
+import { McpTab } from './export-agent/McpTab';
 
 interface ExportAgentModalProps {
     isOpen: boolean;
@@ -48,22 +49,29 @@ export default function ExportAgentModal({ isOpen, onClose, agentId, agentName }
                         <ExternalLink className="h-4 w-4 text-primary" /> Export Agent
                     </DialogTitle>
                     <DialogDescription>
-                        Share <strong>{agentName}</strong> as a widget or standalone PWA app.
+                        Share <strong>{agentName}</strong> as a widget, standalone PWA app, or MCP server.
                     </DialogDescription>
                 </DialogHeader>
 
                 <Tabs defaultValue="embed" className="mt-2">
-                    <TabsList className="grid w-full grid-cols-2 bg-muted/40">
+                    <TabsList className="grid w-full grid-cols-3 bg-muted/40">
                         <TabsTrigger value="embed" className="flex items-center gap-1.5 data-[state=active]:bg-background">
                             <Code2 className="h-3.5 w-3.5" /> Embed
                         </TabsTrigger>
                         <TabsTrigger value="pwa" className="flex items-center gap-1.5 data-[state=active]:bg-background">
-                            <Smartphone className="h-3.5 w-3.5" /> Download PWA
+                            <Smartphone className="h-3.5 w-3.5" /> PWA
+                        </TabsTrigger>
+                        <TabsTrigger value="mcp" className="flex items-center gap-1.5 data-[state=active]:bg-background">
+                            <Server className="h-3.5 w-3.5" /> MCP Server
                         </TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="embed" className="mt-4">
                         <EmbedTab agentId={agentId} />
+                    </TabsContent>
+
+                    <TabsContent value="mcp" className="mt-4">
+                        <McpTab agentId={agentId} agentName={agentName} />
                     </TabsContent>
 
                     <TabsContent value="pwa" className="space-y-4 mt-4">

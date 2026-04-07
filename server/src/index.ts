@@ -28,6 +28,7 @@ import { a2aRoutes } from '../modules/a2a/routes'
 import { fiberRoutes } from '../modules/fiber/routes'
 import { agentControlRoutes } from '../modules/agentControl/routes'
 import { nodeSimulatorRoutes } from '../modules/nodeSimulator/routes'
+import { mcpRoutes } from '../modules/mcp/routes'
 import { syncBlockchainToolsToDb } from '../services/ToolSyncer'
 import { ENV } from '../lib/environments'
 import { startWorkers } from '../workers/agenda'
@@ -82,6 +83,7 @@ fastify.register(a2aRoutes, { prefix: '/api/a2a' })
 fastify.register(fiberRoutes, { prefix: '/api/fiber' })
 fastify.register(agentControlRoutes, { prefix: '/api/agents' })
 fastify.register(nodeSimulatorRoutes, { prefix: '/api/simulate' })
+fastify.register(mcpRoutes, { prefix: '/mcp' })
 
 fastify.get('/api/health', async () => ({ status: 'ok' }))
 
