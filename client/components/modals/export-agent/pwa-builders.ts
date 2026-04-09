@@ -1,30 +1,30 @@
 import JSZip from 'jszip';
 
 export async function buildPwaZip(agentConfig: any, agentName: string): Promise<JSZip> {
-    const zip = new JSZip();
-    zip.file('agent-config.json', JSON.stringify(agentConfig, null, 2));
-    zip.file('manifest.json', JSON.stringify(buildManifest(agentName), null, 2));
-    zip.file('sw.js', buildServiceWorker(agentName));
-    zip.file('index.html', buildIndexHtml(agentConfig, agentName));
-    return zip;
+  const zip = new JSZip();
+  zip.file('agent-config.json', JSON.stringify(agentConfig, null, 2));
+  zip.file('manifest.json', JSON.stringify(buildManifest(agentName), null, 2));
+  zip.file('sw.js', buildServiceWorker(agentName));
+  zip.file('index.html', buildIndexHtml(agentConfig, agentName));
+  return zip;
 }
 
 function buildManifest(agentName: string) {
-    return {
-        name: agentName, short_name: agentName.substring(0, 12),
-        description: `${agentName} — powered by FlawLess`,
-        start_url: '/', display: 'standalone',
-        background_color: '#09090b', theme_color: '#7c3aed',
-        icons: [
-            { src: 'https://placehold.co/192x192/7c3aed/ffffff?text=AI', sizes: '192x192', type: 'image/png' },
-            { src: 'https://placehold.co/512x512/7c3aed/ffffff?text=AI', sizes: '512x512', type: 'image/png' },
-        ],
-    };
+  return {
+    name: agentName, short_name: agentName.substring(0, 12),
+    description: `${agentName} — powered by Onhandl`,
+    start_url: '/', display: 'standalone',
+    background_color: '#09090b', theme_color: '#7c3aed',
+    icons: [
+      { src: 'https://placehold.co/192x192/7c3aed/ffffff?text=AI', sizes: '192x192', type: 'image/png' },
+      { src: 'https://placehold.co/512x512/7c3aed/ffffff?text=AI', sizes: '512x512', type: 'image/png' },
+    ],
+  };
 }
 
 function buildServiceWorker(agentName: string) {
-    const cacheName = agentName.toLowerCase().replace(/\s+/g, '-') + '-v1';
-    return `// ${agentName} PWA — Service Worker
+  const cacheName = agentName.toLowerCase().replace(/\s+/g, '-') + '-v1';
+  return `// ${agentName} PWA — Service Worker
 const CACHE_NAME = '${cacheName}';
 const SHELL = ['/index.html'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE_NAME).then((c) => c.addAll(SHELL))); self.skipWaiting(); });
@@ -37,11 +37,11 @@ self.addEventListener('fetch', (e) => {
 }
 
 function buildIndexHtml(agentConfig: any, agentName: string) {
-    const apiUrl = (agentConfig.apiUrl || 'http://localhost:3001/api').replace(/\/$/, '');
-    const agentId = agentConfig.id;
-    const bio = agentConfig.character?.bio || agentConfig.description || '';
-    const chatEndpoint = `${apiUrl}/embed/agent/${agentId}/chat`;
-    return `<!DOCTYPE html>
+  const apiUrl = (agentConfig.apiUrl || 'http://localhost:3001/api').replace(/\/$/, '');
+  const agentId = agentConfig.id;
+  const bio = agentConfig.character?.bio || agentConfig.description || '';
+  const chatEndpoint = `${apiUrl}/embed/agent/${agentId}/chat`;
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />

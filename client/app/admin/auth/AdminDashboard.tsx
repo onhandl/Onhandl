@@ -11,10 +11,10 @@ type MainTab = 'users' | 'agents' | 'support' | 'blog';
 type AgentSubTab = 'agents' | 'drafts' | 'marketplace' | 'executions';
 
 const tabs: { id: MainTab; label: string; icon: React.ElementType }[] = [
-  { id: 'users',   label: 'Users',   icon: Users },
-  { id: 'agents',  label: 'Agents',  icon: Bot },
+  { id: 'users', label: 'Users', icon: Users },
+  { id: 'agents', label: 'Agents', icon: Bot },
   { id: 'support', label: 'Support', icon: Headphones },
-  { id: 'blog',    label: 'Blog',    icon: FileText },
+  { id: 'blog', label: 'Blog', icon: FileText },
 ];
 
 export function AdminDashboard({ users, agents, drafts, marketplace, executions, tickets, allPosts, cmsSettings }: {
@@ -31,10 +31,10 @@ export function AdminDashboard({ users, agents, drafts, marketplace, executions,
   const [agentSubTab, setAgentSubTab] = useState<AgentSubTab>('agents');
 
   const stats = [
-    { label: 'Total Users',       value: users.length,      color: 'text-blue-400' },
-    { label: 'Published Agents',  value: agents.length,     color: 'text-emerald-400' },
-    { label: 'Open Tickets',      value: tickets.filter((t: any) => t.status === 'open').length, color: 'text-yellow-400' },
-    { label: 'Blog Posts',        value: allPosts.length,   color: 'text-purple-400' },
+    { label: 'Total Users', value: users.length, color: 'text-blue-400' },
+    { label: 'Published Agents', value: agents.length, color: 'text-emerald-400' },
+    { label: 'Open Tickets', value: tickets.filter((t: any) => t.status === 'open').length, color: 'text-yellow-400' },
+    { label: 'Blog Posts', value: allPosts.length, color: 'text-purple-400' },
   ];
 
   return (
@@ -46,7 +46,7 @@ export function AdminDashboard({ users, agents, drafts, marketplace, executions,
             <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center shadow-md shadow-primary/30">
               <Zap className="w-3.5 h-3.5 text-white fill-white" />
             </div>
-            <span className="font-bold text-sm">FlawLess</span>
+            <span className="font-bold text-sm">Onhandl</span>
             <span className="text-border/80 text-sm">/</span>
             <div className="flex items-center gap-1.5">
               <Shield className="w-4 h-4 text-primary" />
@@ -77,11 +77,10 @@ export function AdminDashboard({ users, agents, drafts, marketplace, executions,
               <button
                 key={t.id}
                 onClick={() => setActiveTab(t.id)}
-                className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
-                  activeTab === t.id
+                className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium border-b-2 transition-colors -mb-px ${activeTab === t.id
                     ? 'border-primary text-primary bg-primary/5'
                     : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-accent/30'
-                }`}
+                  }`}
               >
                 <t.icon className="w-4 h-4" />
                 {t.label}

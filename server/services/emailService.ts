@@ -1,25 +1,25 @@
 import nodemailer from 'nodemailer';
 
 function createTransport() {
-    return nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT) || 587,
-        secure: Number(process.env.SMTP_PORT) === 465,
-        auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
-        },
-    });
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT) || 587,
+    secure: Number(process.env.SMTP_PORT) === 465,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
 }
 
 function buildOtpHtml(otp: string, purpose: 'signup' | 'forgot_password'): string {
-    const isSignup = purpose === 'signup';
-    const title = isSignup ? 'Verify your email' : 'Reset your password';
-    const subtitle = isSignup
-        ? 'Welcome to FlawLess! Enter the code below to verify your email address and complete registration.'
-        : 'Enter the code below to reset your FlawLess account password.';
+  const isSignup = purpose === 'signup';
+  const title = isSignup ? 'Verify your email' : 'Reset your password';
+  const subtitle = isSignup
+    ? 'Welcome to Onhandl! Enter the code below to verify your email address and complete registration.'
+    : 'Enter the code below to reset your Onhandl account password.';
 
-    return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -40,7 +40,7 @@ function buildOtpHtml(otp: string, purpose: 'signup' | 'forgot_password'): strin
                     <span style="color:#fff;font-size:18px;font-weight:700;line-height:36px;">⚡</span>
                   </td>
                   <td style="padding-left:12px;">
-                    <span style="color:#fafafa;font-size:18px;font-weight:700;letter-spacing:-0.3px;">FlawLess</span>
+                    <span style="color:#fafafa;font-size:18px;font-weight:700;letter-spacing:-0.3px;">Onhandl</span>
                   </td>
                 </tr>
               </table>
@@ -67,7 +67,7 @@ function buildOtpHtml(otp: string, purpose: 'signup' | 'forgot_password'): strin
           <!-- Footer -->
           <tr>
             <td style="padding:20px 40px;border-top:1px solid #27272a;">
-              <p style="margin:0;color:#3f3f46;font-size:11px;">© ${new Date().getFullYear()} FlawLess. All rights reserved.</p>
+              <p style="margin:0;color:#3f3f46;font-size:11px;">© ${new Date().getFullYear()} Onhandl. All rights reserved.</p>
             </td>
           </tr>
         </table>
@@ -79,20 +79,20 @@ function buildOtpHtml(otp: string, purpose: 'signup' | 'forgot_password'): strin
 }
 
 export async function sendOtpEmail(
-    to: string,
-    otp: string,
-    purpose: 'signup' | 'forgot_password'
+  to: string,
+  otp: string,
+  purpose: 'signup' | 'forgot_password'
 ): Promise<void> {
-    const transport = createTransport();
-    const subject =
-        purpose === 'signup'
-            ? 'Your FlawLess verification code'
-            : 'Reset your FlawLess password';
+  const transport = createTransport();
+  const subject =
+    purpose === 'signup'
+      ? 'Your Onhandl verification code'
+      : 'Reset your Onhandl password';
 
-    await transport.sendMail({
-        from: `"FlawLess" <${process.env.SMTP_USER}>`,
-        to,
-        subject,
-        html: buildOtpHtml(otp, purpose),
-    });
+  await transport.sendMail({
+    from: `"Onhandl" <${process.env.SMTP_USER}>`,
+    to,
+    subject,
+    html: buildOtpHtml(otp, purpose),
+  });
 }

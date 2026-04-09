@@ -1,5 +1,5 @@
 /**
- * Token System — FlawLess Platform
+ * Token System — Onhandl Platform
  *
  * Tokens are the internal currency for AI operations.
  * Each node execution consumes 50 tokens. Each LLM call also deducts tokens.

@@ -45,7 +45,7 @@ export const Footer: React.FC = () => {
                     <div className="col-span-2 md:col-span-2">
                         <a href="/" className="inline-flex items-center gap-2 text-fl-ink-inv hover:opacity-70 transition-opacity mb-4">
                             <LogoMark />
-                            <span className="text-sm font-medium tracking-tight">FLAWLESS</span>
+                            <span className="text-sm font-medium tracking-tight">Onhandl</span>
                         </a>
                         <p className="text-[13px] text-fl-ink-3 leading-relaxed mb-6 max-w-[240px]">
                             Build powerful AI agents without code. Automate your workflows effortlessly.
@@ -90,7 +90,7 @@ export const Footer: React.FC = () => {
                 <div className="h-px bg-fl-line-dark mb-8" />
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
                     <p className="text-[11px] text-fl-ink-3">
-                        © {new Date().getFullYear()} FlawLess. All rights reserved.
+                        © {new Date().getFullYear()} Onhandl. All rights reserved.
                     </p>
                     <p className="text-[11px] text-fl-ink-3">
                         Built for AI builders everywhere.

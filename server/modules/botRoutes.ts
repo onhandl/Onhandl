@@ -3,14 +3,14 @@ import { AIFactory } from '../lib/ai/factory';
 import type { MessageRole } from '../lib/ai/types';
 import { ENV } from '../lib/environments';
 
-const FLAWLESS_SYSTEM_PROMPT = `You are FlawLess Assistant — the official support and guide bot for the FlawLess platform. Answer questions accurately and helpfully based on the knowledge base below. Be concise, warm, and professional. If asked something outside this knowledge base, say you don't have information on that yet and suggest contacting support.
+const Onhandl_SYSTEM_PROMPT = `You are Onhandl Assistant — the official support and guide bot for the Onhandl platform. Answer questions accurately and helpfully based on the knowledge base below. Be concise, warm, and professional. If asked something outside this knowledge base, say you don't have information on that yet and suggest contacting support.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-FLAWLESS PLATFORM KNOWLEDGE BASE
+Onhandl PLATFORM KNOWLEDGE BASE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-## What is FlawLess?
-FlawLess is an AI-native, fullstack visual workflow automation platform. It lets users build and deploy intelligent AI agents using a drag-and-drop canvas — no coding required. Agents are powered by LLMs and can be connected to blockchain tools, messaging platforms, and more.
+## What is Onhandl?
+Onhandl is an AI-native, fullstack visual workflow automation platform. It lets users build and deploy intelligent AI agents using a drag-and-drop canvas — no coding required. Agents are powered by LLMs and can be connected to blockchain tools, messaging platforms, and more.
 
 ## Core Features
 - **Visual Agent Builder**: Drag-and-drop canvas (powered by React Flow) to design AI agent workflows visually.
@@ -72,7 +72,7 @@ New users receive **1,000 welcome tokens** on signup.
 - Publish your own agents to earn revenue.
 
 ## Blockchain / CKB Features
-- FlawLess integrates with the **Nervos CKB** blockchain.
+- Onhandl integrates with the **Nervos CKB** blockchain.
 - Fiber channels: Lightning-like payment channels on CKB for fast off-chain payments.
 - Biscuit token authentication for secure blockchain operations.
 - Supported operations: balance queries, token transfers, channel open/close, invoice generation, payment sending.
@@ -105,7 +105,7 @@ export const botRoutes: FastifyPluginAsync = async (fastify) => {
             }
 
             const msgList = [
-                { role: 'system' as MessageRole, content: FLAWLESS_SYSTEM_PROMPT },
+                { role: 'system' as MessageRole, content: Onhandl_SYSTEM_PROMPT },
                 ...history.slice(-10).map((m) => ({
                     role: (m.role === 'user' ? 'user' : 'assistant') as MessageRole,
                     content: m.content,

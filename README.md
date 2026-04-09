@@ -1,10 +1,10 @@
-# FlawLess — Product Summary
+# Onhandl — Product Summary
 
 ---
 
 ## 1. Project Overview
 
-**FlawLess** is an AI-native visual workflow automation platform that enables developers and non-technical users to build, deploy, and manage intelligent agents using a drag-and-drop sandbox interface. Agents are enriched with AI-generated personas, equipped with first-class CKB blockchain and Fiber Network tooling, and can be orchestrated to execute complex multi-step workflows entirely off-chain or anchored on-chain.
+**Onhandl** is an AI-native visual workflow automation platform that enables developers and non-technical users to build, deploy, and manage intelligent agents using a drag-and-drop sandbox interface. Agents are enriched with AI-generated personas, equipped with first-class CKB blockchain and Fiber Network tooling, and can be orchestrated to execute complex multi-step workflows entirely off-chain or anchored on-chain.
 
 It sits at the intersection of AI orchestration and decentralised infrastructure, offering a unified interface to chain together LLM actions, blockchain operations, and conventional API calls — all within a single branded flow builder.
 
@@ -14,7 +14,7 @@ It sits at the intersection of AI orchestration and decentralised infrastructure
 
 **Building blockchain-aware AI agents is hard.** Developers need to understand CKB's Cell Model, Fiber's multi-hop payment lifecycle, and how to wire these to LLM inference pipelines — across multiple disconnected tools and protocols.
 
-FlawLess solves this by:
+Onhandl solves this by:
 
 - **Abstracting Blockchain Complexity**: CKB RPC, cell indexing, transaction construction, Fiber channel lifecycle, and Biscuit authentication are pre-built as drag-and-droppable agent nodes with Zod-validated interfaces.
 - **Democratising AI Agents**: Any user can define an agent with a simple persona summary and our AI auto-expands it into a rich character schema (bio, traits, system instructions).
@@ -105,7 +105,7 @@ SMTP_PASS=
 | `blockchain.ckb.indexer` | `get_live_cells_by_lock` | Query live cells by lock script |
 | `blockchain.ckb.indexer` | `get_capacity_by_lock` | Aggregate CKB balance for an address |
 | `blockchain.ckb.tx_builder` | `build_transfer_tx` | Deterministically build a CKB transfer transaction |
-| `blockchain.ckb.anchoring` | `anchor_data` | Write FlawLess run receipts / state into Cell data on-chain |
+| `blockchain.ckb.anchoring` | `anchor_data` | Write Onhandl run receipts / state into Cell data on-chain |
 
 ### Fiber Network Tooling
 
@@ -166,19 +166,19 @@ it will look like this http://localhost:3000/sandbox?agentId=69c4e884596fa8e3e3c
 - Native Fiber Payment Rails: Agents can autonomously open/close Fiber channels and route micro-payments as part of their workflow logic.
 - Security & Consent: Critical blockchain operations (like large transfers or channel settlements) require explicit user consent via the sandbox agent chat interaction, ensuring safety without sacrificing automation.
 - Biscuit-based authentication for secure Fiber RPC endpoints.
-- On-chain data anchoring for FlawLess state run receipts.
+- On-chain data anchoring for Onhandl state run receipts.
 
 ### Agent Marketplace & Creator Revenue
-- Publish agents publicly to the FlawLess Marketplace for other users to discover and purchase.
+- Publish agents publicly to the Onhandl Marketplace for other users to discover and purchase.
 - Agents can be listed with pricing; revenue flows to the creator via prefered  payment integration.
 - **Creator Revenue Sharing**: Creators earn a percentage of every sale made through their published agents — building passive income from automation workflows they design.
 - Revenue analytics dashboard showing earnings, sales history, and per-agent performance.
 
 ### Community & Blog
 - Public Community hub at `/community` — a collaborative knowledge-sharing space open to all registered users.
-- **FlawLess Official** posts: curated announcements, tutorials, and updates published by the FlawLess team.
+- **Onhandl Official** posts: curated announcements, tutorials, and updates published by the Onhandl team.
 - **Community** posts: any registered user can create and publish blog posts — share workflows, tips, agent use cases, and stories.
-- Filter tabs to browse All, FlawLess Official, and Community posts independently.
+- Filter tabs to browse All, Onhandl Official, and Community posts independently.
 - Full CMS at `/community/new`: title, rich body with character count, and tag management with add/remove controls.
 
 ### Support System
@@ -200,7 +200,7 @@ it will look like this http://localhost:3000/sandbox?agentId=69c4e884596fa8e3e3c
 ## 7. Future Functionality
 
 - **Multi-Agent Orchestration**: Connect multiple agents as sub-agents within a parent workflow graph, enabling complex delegation trees.
-- **FlawLess Runtime**: A lightweight headless execution runtime for deploying agent graphs to production without the sandbox UI.
+- **Onhandl Runtime**: A lightweight headless execution runtime for deploying agent graphs to production without the sandbox UI.
 - **Token-Gated Agents**: Integrate CKB cell ownership as agent access control — only wallets owning specific cells can invoke certain agents.
 - **Multi-Chain Expansion**: Extend the blockchain tooling namespace to support EVM chains (Base, Ethereum) and Solana with the same drag-and-drop abstraction.
 - **Telegram / Webhook Triggers**: Trigger agent executions directly from Telegram commands or inbound webhooks, enabling always-on bots.
@@ -211,10 +211,10 @@ it will look like this http://localhost:3000/sandbox?agentId=69c4e884596fa8e3e3c
 
 ## 8. Product Viability
 
-**Yes — FlawLess has a clear path to becoming a viable product and infrastructure component.**
+**Yes — Onhandl has a clear path to becoming a viable product and infrastructure component.**
 
 ### As a Product
-The core value proposition is a **low-code AI agent builder for blockchain developers**. This is currently an underserved segment: existing tools like n8n or Zapier have no native blockchain primitives, and CKB-specific developer tooling is largely code-only. FlawLess bridges this gap.
+The core value proposition is a **low-code AI agent builder for blockchain developers**. This is currently an underserved segment: existing tools like n8n or Zapier have no native blockchain primitives, and CKB-specific developer tooling is largely code-only. Onhandl bridges this gap.
 
 The AI-enhanced persona system makes agent creation accessible to non-expert users, while the typed CKB/Fiber tooling layer provides the rigour expert blockchain developers demand.
 
@@ -223,14 +223,14 @@ Monetisation paths include:
 - **Creator Marketplace Revenue Share** — platform takes a percentage of agent sales; creators earn the rest via Stripe direct payouts.
 - **Community-driven growth** — the blog/community hub drives organic discovery; Official posts keep users informed without external channels.
 - **Support infrastructure** — built-in ticketing removes friction and keeps users within the platform ecosystem.
-- **API Access** for organizations embedding the FlawLess Runtime in their own products.
+- **API Access** for organizations embedding the Onhandl Runtime in their own products.
 
 ### As Infrastructure
-The `packages/tooling/blockchain` module is designed to be **modular and composable**. It can be published as a standalone npm package (`@FlawLess/ckb-tools`), allowing any AI agent framework (LangChain, AutoGen, etc.) to consume structured, validated CKB and Fiber tools without reinventing the wheel.
+The `packages/tooling/blockchain` module is designed to be **modular and composable**. It can be published as a standalone npm package (`@Onhandl/ckb-tools`), allowing any AI agent framework (LangChain, AutoGen, etc.) to consume structured, validated CKB and Fiber tools without reinventing the wheel.
 
 The `BlockchainTool<TInput, TOutput>` interface is MCP-compatible (Model Context Protocol), meaning these tools could be exposed as an MCP server — making them instantly usable across any AI coding assistant or agent runtime that supports the standard.
 
-The combination of visual workflow authoring, first-class CKB/Fiber integration, and AI character expansion positions FlawLess as the **de-facto developer experience layer for the Nervos CKB ecosystem**.
+The combination of visual workflow authoring, first-class CKB/Fiber integration, and AI character expansion positions Onhandl as the **de-facto developer experience layer for the Nervos CKB ecosystem**.
 
 ---
 
@@ -247,8 +247,8 @@ The combination of visual workflow authoring, first-class CKB/Fiber integration,
 Clone the repository and install dependencies:
 
 ```bash
-git clone https://github.com/FadhilMulinya/FlawLess.git
-cd FlawLess
+git clone https://github.com/FadhilMulinya/Onhandl.git
+cd Onhandl
 pnpm install
 ```
 

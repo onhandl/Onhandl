@@ -44,8 +44,8 @@ export function CommunityFeed({ initialPosts, cmsFrozen, cmsReason }: Props) {
   const displayed = filter === 'all' ? posts : posts.filter(p => resolvedType(p) === filter);
 
   const tabs: { id: Filter; label: string }[] = [
-    { id: 'all',       label: 'All' },
-    { id: 'official',  label: 'FlawLess Official' },
+    { id: 'all', label: 'All' },
+    { id: 'official', label: 'Onhandl Official' },
     { id: 'community', label: 'Community' },
   ];
 
@@ -71,11 +71,10 @@ export function CommunityFeed({ initialPosts, cmsFrozen, cmsReason }: Props) {
             <button
               key={t.id}
               onClick={() => setFilter(t.id)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                filter === t.id
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${filter === t.id
                   ? 'bg-background text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
-              }`}
+                }`}
             >
               {t.id === 'official' && <Zap className="w-3 h-3 text-primary fill-primary" />}
               {t.id === 'community' && <Users className="w-3 h-3" />}

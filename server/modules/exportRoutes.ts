@@ -91,6 +91,30 @@ export const exportRoutes: FastifyPluginAsync = async (fastify) => {
         return { agentConfig, agentName: agent.name };
     });
 
+    // ── Enable MCP server ─────────────────────────────────────────────────────
+    fastify.post<{ Params: { id: string } }>('/agents/:id/export/mcp', async (request, reply) => {
+        const token = request.cookies['auth_token'];
+        if (!token) return reply.code(401).send({ error: 'Unauthorized' });
+        try { fastify.jwt.verify(token); } catch { return reply.code(401).send({ error: 'Invalid token' }); }
+
+        const { id } = request.params;
+        const agent = await AgentDefinition.findById(id);
+        if (!agent) return reply.code(404).send({ error: 'Agent not found' });
+
+        const existing = agent.exportSettings || ({} as any);
+        agent.exportSettings = {
+            ...existing,
+            mcpEnabled: true,
+            lastExportedAt: new Date(),
+        };
+        await agent.save();
+
+        const serverBase = ENV.API_URL.replace(/\/api$/, '');
+        const mcpEndpoint = `${serverBase}/mcp/agent/${id}`;
+
+        return { mcpEndpoint, agentId: id, agentName: agent.name };
+    });
+
     // ── Public embed metadata ─────────────────────────────────────────────────
     fastify.get<{ Params: { id: string } }>('/embed/agent/:id', async (request, reply) => {
         const { id } = request.params;

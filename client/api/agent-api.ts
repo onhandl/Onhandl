@@ -59,6 +59,9 @@ export const agentApi = {
     exportPwa: async (id: string) =>
         apiFetch(`/agents/${id}/export/pwa`, { method: 'POST', body: JSON.stringify({}) }),
 
+    exportMcp: async (id: string) =>
+        apiFetch(`/agents/${id}/export/mcp`, { method: 'POST', body: JSON.stringify({}) }),
+
     getEmbedAgent: async (id: string) => {
         const res = await fetch(`${BASE}/embed/agent/${id}`);
         if (!res.ok) throw new Error('Agent embed not available');

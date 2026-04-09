@@ -155,7 +155,10 @@ export default function NodeSidebar({ node, onClose, updateNodeData, agentId }: 
                                 }
                             }
                         }
-                        return inputsToRender.filter((i: any) => !['model', 'prompt'].includes(i.key));
+                        // Deduplicate by key — last entry wins (schemaDef fields override base inputs)
+                        const seen = new Map<string, any>();
+                        for (const input of inputsToRender) seen.set(input.key, input);
+                        return Array.from(seen.values()).filter((i: any) => !['model', 'prompt'].includes(i.key));
                     })().map((input: any) => (
                         <div key={input.key} className="space-y-2">
                             <Label htmlFor={input.key}>{input.label}</Label>

@@ -16,10 +16,10 @@ const SUGGESTED = [
 
 export function AssistantChat() {
     const [messages, setMessages] = useState<Message[]>([]);
-    const [input, setInput]       = useState('');
-    const [loading, setLoading]   = useState(false);
+    const [input, setInput] = useState('');
+    const [loading, setLoading] = useState(false);
     const bottomRef = useRef<HTMLDivElement>(null);
-    const inputRef  = useRef<HTMLInputElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, loading]);
 
@@ -66,7 +66,7 @@ export function AssistantChat() {
                                 <Sparkles className="w-8 h-8 text-primary" />
                             </div>
                             <div>
-                                <h2 className="font-bold text-lg mb-1">Hi, I'm FlawLess Assistant</h2>
+                                <h2 className="font-bold text-lg mb-1">Hi, I'm Onhandl Assistant</h2>
                                 <p className="text-sm text-muted-foreground max-w-xs">Ask me about features, pricing, how to build agents, or anything else.</p>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-sm">
@@ -112,7 +112,7 @@ export function AssistantChat() {
             <form onSubmit={e => { e.preventDefault(); send(input); }}
                 className="flex-shrink-0 mt-4 flex gap-2 items-center bg-card border border-border/60 rounded-2xl px-4 py-2.5 focus-within:border-primary/40 transition-colors shadow-sm">
                 <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)}
-                    placeholder="Ask me anything about FlawLess…" disabled={loading}
+                    placeholder="Ask me anything about Onhandl…" disabled={loading}
                     className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60 disabled:opacity-50" />
                 <button type="submit" disabled={!input.trim() || loading}
                     className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center text-white disabled:opacity-30 hover:bg-primary/90 transition-all disabled:cursor-not-allowed flex-shrink-0">

@@ -29,7 +29,7 @@ export function MarketplaceTab({ agentId, agentName, onClose }: MarketplaceTabPr
     useEffect(() => {
         apiFetch('/auth/payment-methods')
             .then((d: any) => setSavedMethods({ stripe: d.stripe, crypto: d.crypto || [] }))
-            .catch(() => {});
+            .catch(() => { });
     }, []);
 
     const selectedWallet = selectedCryptoIndex !== null ? savedMethods.crypto[selectedCryptoIndex] : null;
@@ -66,7 +66,7 @@ export function MarketplaceTab({ agentId, agentName, onClose }: MarketplaceTabPr
 
     return (
         <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">List this agent on the FlawLess marketplace. The agent must be published first.</p>
+            <p className="text-sm text-muted-foreground">List this agent on the Onhandl marketplace. The agent must be published first.</p>
             <div className="grid grid-cols-2 gap-3">
                 <div>
                     <label className="text-xs font-medium text-muted-foreground mb-1 block">Category</label>

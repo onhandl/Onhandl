@@ -10,7 +10,7 @@ const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').re
 
 const navLinks = [
   { label: 'Marketplace', href: '/marketplace' },
-  { label: 'Community',   href: '/community'   },
+  { label: 'Community', href: '/community' },
 ];
 
 export function PublicNav() {
@@ -36,11 +36,10 @@ export function PublicNav() {
       initial={{ y: -80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      className={`fixed top-4 left-4 right-4 z-50 rounded-2xl transition-all duration-300 ${
-        scrolled
+      className={`fixed top-4 left-4 right-4 z-50 rounded-2xl transition-all duration-300 ${scrolled
           ? 'bg-background/80 backdrop-blur-xl border border-border/60 shadow-xl shadow-black/10'
           : 'bg-background/60 backdrop-blur-md border border-border/40'
-      }`}
+        }`}
     >
       <div className="max-w-7xl mx-auto px-5 py-3 flex justify-between items-center">
         {/* Logo */}
@@ -48,7 +47,7 @@ export function PublicNav() {
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-md shadow-primary/30 group-hover:shadow-lg group-hover:shadow-primary/40 transition-shadow duration-200">
             <Zap className="w-4 h-4 text-white fill-white" />
           </div>
-          <span className="text-base font-bold tracking-tight">FlawLess</span>
+          <span className="text-base font-bold tracking-tight">Onhandl</span>
         </Link>
 
         {/* Desktop links */}

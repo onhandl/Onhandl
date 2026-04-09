@@ -94,7 +94,7 @@ export function FloatingBot() {
                   <Zap className="w-3.5 h-3.5 text-white fill-white" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold leading-none">FlawLess Assistant</p>
+                  <p className="text-sm font-semibold leading-none">Onhandl Assistant</p>
                   <p className="text-[10px] text-muted-foreground mt-0.5">Ask me anything about the platform</p>
                 </div>
               </div>
@@ -125,7 +125,7 @@ export function FloatingBot() {
                     <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
                       <Zap className="w-6 h-6 text-primary fill-primary" />
                     </div>
-                    <p className="text-sm font-medium text-foreground">Hi! I'm the FlawLess assistant.</p>
+                    <p className="text-sm font-medium text-foreground">Hi! I'm the Onhandl assistant.</p>
                     <p className="text-xs text-muted-foreground mt-1">Ask me anything about the platform.</p>
                   </div>
                   <div className="space-y-2">
@@ -143,11 +143,10 @@ export function FloatingBot() {
               ) : (
                 messages.map(m => (
                   <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
-                      m.role === 'user'
+                    <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${m.role === 'user'
                         ? 'bg-primary text-primary-foreground rounded-br-sm'
                         : 'bg-accent/60 text-foreground rounded-bl-sm'
-                    }`}>
+                      }`}>
                       {m.content}
                     </div>
                   </div>
@@ -193,7 +192,7 @@ export function FloatingBot() {
         onClick={() => setOpen(o => !o)}
         whileTap={{ scale: 0.93 }}
         className="relative w-13 h-13 rounded-2xl bg-primary shadow-lg shadow-primary/40 flex items-center justify-center hover:bg-primary/90 transition-colors"
-        aria-label="Open FlawLess assistant"
+        aria-label="Open Onhandl assistant"
         style={{ width: 52, height: 52 }}
       >
         <AnimatePresence mode="wait" initial={false}>

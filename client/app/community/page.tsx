@@ -24,7 +24,7 @@ export default async function CommunityPage() {
       <main className="max-w-6xl mx-auto px-6 pt-28 pb-16 space-y-8">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight">Community</h1>
-          <p className="text-muted-foreground">Official announcements and stories from the FlawLess community.</p>
+          <p className="text-muted-foreground">Official announcements and stories from the Onhandl community.</p>
         </div>
 
         <CommunityFeed

@@ -3,13 +3,13 @@
 @tailwind utilities;
 
 /* ============================================================
-   FLAWLESS DESIGN TOKENS — factory.ai-inspired system
+   Onhandl DESIGN TOKENS — factory.ai-inspired system
    All colours live here. Components use Tailwind utilities
    (bg-fl-base, text-fl-ink, border-fl-line …) — no raw hex.
    ============================================================ */
 
 :root {
-  /* ── Flawless semantic palette ── */
+  /* ── Onhandl semantic palette ── */
   --fl-base:         #eeeeee;   /* page background */
   --fl-surface:      #fafafa;   /* card / panel background */
   --fl-surface-2:    #f4f4f4;   /* hover / alternate surface */

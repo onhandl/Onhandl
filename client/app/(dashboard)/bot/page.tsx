@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import { Bot, MessageSquare } from 'lucide-react';
 import { AssistantChat } from './components/AssistantChat';
-import { AgentChats }    from './components/AgentChats';
+import { AgentChats } from './components/AgentChats';
 
 const TABS = [
-    { id: 'assistant', label: 'Assistant',   icon: Bot           },
-    { id: 'agents',    label: 'Agent Chats', icon: MessageSquare },
+    { id: 'assistant', label: 'Assistant', icon: Bot },
+    { id: 'agents', label: 'Agent Chats', icon: MessageSquare },
 ] as const;
 
 type Tab = typeof TABS[number]['id'];
@@ -23,7 +23,7 @@ export default function BotPage() {
                     <Bot className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                    <h1 className="font-bold text-[15px] leading-tight">FlawLess Assistant</h1>
+                    <h1 className="font-bold text-[15px] leading-tight">Onhandl Assistant</h1>
                     <p className="text-[11px] text-muted-foreground">Platform help & inter-agent messages</p>
                 </div>
                 <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full ml-auto">
@@ -35,11 +35,10 @@ export default function BotPage() {
             <div className="flex gap-1 bg-muted/40 rounded-xl p-1 mb-5 flex-shrink-0">
                 {TABS.map(({ id, label, icon: Icon }) => (
                     <button key={id} onClick={() => setTab(id)}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-semibold transition-all ${
-                            tab === id
+                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-semibold transition-all ${tab === id
                                 ? 'bg-card text-foreground shadow-sm'
                                 : 'text-muted-foreground hover:text-foreground'
-                        }`}>
+                            }`}>
                         <Icon className="w-3.5 h-3.5" />
                         {label}
                     </button>
@@ -48,7 +47,7 @@ export default function BotPage() {
 
             {/* Tab content */}
             {tab === 'assistant' && <AssistantChat />}
-            {tab === 'agents'    && <AgentChats />}
+            {tab === 'agents' && <AgentChats />}
         </div>
     );
 }

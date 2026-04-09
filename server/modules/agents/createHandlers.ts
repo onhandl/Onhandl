@@ -61,7 +61,7 @@ export const createAgentRoutes: FastifyPluginAsync = async (fastify) => {
                         const decoded = fastify.jwt.verify(token) as any;
                         const user = await User.findById(decoded.id).select('apiKeys').lean();
                         providerKeys = resolveProviderKeys((user as any)?.apiKeys);
-                    } catch {}
+                    } catch { }
                 }
 
                 return await AgentEnhancer.enhancePersona(
@@ -120,7 +120,7 @@ export const createAgentRoutes: FastifyPluginAsync = async (fastify) => {
                 if (chains && chains.length > 0) {
                     const wallets: any[] = [];
                     for (const chain of chains) {
-                        try { wallets.push(await WalletService.generateWallet(chain) as any); } catch {}
+                        try { wallets.push(await WalletService.generateWallet(chain) as any); } catch { }
                     }
                     if (wallets.length > 0) agent.blockchain = wallets;
                 }
@@ -133,7 +133,7 @@ export const createAgentRoutes: FastifyPluginAsync = async (fastify) => {
                 const fallbackNode = {
                     agentId: agent._id, nodeId: `character-${Date.now()}`, type: 'input',
                     position: { x: 100, y: 100 },
-                    data: { name: finalCharacter.identity?.name || name, description: agent.description, role: finalCharacter.identity?.role || 'FlawLess Agent', persona, traits: finalCharacter.character?.traits || [], agentType, consoleOutput: [`[${new Date().toLocaleTimeString()}] Agent ${name} initialized.`] }
+                    data: { name: finalCharacter.identity?.name || name, description: agent.description, role: finalCharacter.identity?.role || 'Onhandl Agent', persona, traits: finalCharacter.character?.traits || [], agentType, consoleOutput: [`[${new Date().toLocaleTimeString()}] Agent ${name} initialized.`] }
                 };
                 await saveGraphData(agent._id, graph, fallbackNode);
 
