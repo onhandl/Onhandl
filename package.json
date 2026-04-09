@@ -1,5 +1,5 @@
 {
-  "name": "FlawLess-root",
+  "name": "Onhandl-root",
   "private": true,
   "scripts": {
     "dev": "NODE_ENV=development pnpm --filter \"*\" dev",

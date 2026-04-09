@@ -41,7 +41,7 @@ export function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }: UpgradeM
     const handleChoosePlan = (planName: string) => {
         // TODO: wire Stripe checkout per plan when billing is ready
         const slug = planName.toLowerCase();
-        window.location.href = `mailto:support@flawless.ai?subject=Upgrade to ${planName} plan`;
+        window.location.href = `mailto:support@Onhandl.ai?subject=Upgrade to ${planName} plan`;
         onClose();
     };
 
@@ -64,11 +64,10 @@ export function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }: UpgradeM
                         return (
                             <div
                                 key={plan.name}
-                                className={`relative flex flex-col rounded-2xl border p-5 transition-all ${
-                                    plan.popular
+                                className={`relative flex flex-col rounded-2xl border p-5 transition-all ${plan.popular
                                         ? 'border-primary bg-primary text-white shadow-xl shadow-primary/25'
                                         : 'border-border/60 bg-card/50 hover:border-primary/30'
-                                }`}
+                                    }`}
                             >
                                 {plan.popular && (
                                     <div className="flex items-center gap-1 mb-3 text-xs font-bold uppercase tracking-widest text-white/80">
@@ -107,11 +106,10 @@ export function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }: UpgradeM
                                 ) : (
                                     <button
                                         onClick={() => handleChoosePlan(plan.name)}
-                                        className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
-                                            plan.popular
+                                        className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${plan.popular
                                                 ? 'bg-white text-primary hover:bg-white/90'
                                                 : 'bg-primary text-primary-foreground hover:bg-primary/90'
-                                        }`}
+                                            }`}
                                     >
                                         Choose {plan.name}
                                     </button>

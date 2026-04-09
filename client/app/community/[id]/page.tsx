@@ -37,7 +37,7 @@ export default async function CommunityPostPage({ params }: { params: Promise<{ 
           <div className="flex items-center gap-1.5 mb-4">
             <div className="flex items-center gap-1 bg-primary/10 text-primary text-xs font-semibold px-2.5 py-1 rounded-full">
               <Zap className="w-3 h-3 fill-primary" />
-              FlawLess Official
+              Onhandl Official
             </div>
           </div>
         )}

@@ -36,7 +36,7 @@ export default function NewPostPage() {
 
   const handleSubmit = async () => {
     if (!title.trim()) { setError('Title is required.'); return; }
-    if (!body.trim())  { setError('Body is required.'); return; }
+    if (!body.trim()) { setError('Body is required.'); return; }
     setSaving(true); setError('');
     try {
       const post = await apiFetch('/blog', {
@@ -76,7 +76,7 @@ export default function NewPostPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Create Post</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Share knowledge, updates or stories with the FlawLess community.
+            Share knowledge, updates or stories with the Onhandl community.
           </p>
         </div>
 

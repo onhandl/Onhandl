@@ -14,15 +14,15 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from 
 import { motion, AnimatePresence } from 'framer-motion';
 
 const navItems = [
-  { name: 'Home',        href: '/',                 icon: Home            },
-  { name: 'Dashboard',   href: '/dashboard',         icon: LayoutDashboard },
-  { name: 'Revenue',     href: '/dashboard/revenue', icon: TrendingUp      },
-  { name: 'Sandbox',     href: '/sandbox',           icon: Box             },
-  { name: 'Marketplace', href: '/marketplace',       icon: Store           },
-  { name: 'Bubbles',     href: '/bubbles',            icon: Radio           },
-  { name: 'Registry',   href: '/registry',           icon: Globe           },
-  { name: 'Support',    href: '/support',            icon: Headphones      },
-  { name: 'Settings',    href: '/settings',          icon: Settings        },
+  { name: 'Home', href: '/', icon: Home },
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Revenue', href: '/dashboard/revenue', icon: TrendingUp },
+  { name: 'Sandbox', href: '/sandbox', icon: Box },
+  { name: 'Marketplace', href: '/marketplace', icon: Store },
+  { name: 'Bubbles', href: '/bubbles', icon: Radio },
+  { name: 'Registry', href: '/registry', icon: Globe },
+  { name: 'Support', href: '/support', icon: Headphones },
+  { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
 function Avatar({ url, name, className }: { url?: string | null; name?: string | null; className?: string }) {
@@ -45,7 +45,7 @@ const SidebarContent = ({
   isAdmin?: boolean;
 }) => {
   const pathname = usePathname();
-  const router   = useRouter();
+  const router = useRouter();
 
   return (
     <div className={cn(
@@ -197,8 +197,8 @@ const SidebarContent = ({
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [userName,  setUserName]  = useState<string | null>(null);
-  const [isAdmin,   setIsAdmin]   = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     apiFetch('/auth/me')
@@ -207,7 +207,7 @@ const Sidebar = () => {
         setUserName(data.name || data.username || null);
         setIsAdmin(data.isAdmin ?? false);
       })
-      .catch(() => {/* unauthenticated */});
+      .catch(() => {/* unauthenticated */ });
   }, []);
 
   const sharedProps = { avatarUrl, userName, isAdmin };
@@ -230,14 +230,14 @@ const Sidebar = () => {
           <SheetContent side="left" className="p-0 w-[220px]">
             <SheetTitle className="sr-only">Navigation</SheetTitle>
             <SheetDescription className="sr-only">Site navigation menu</SheetDescription>
-            <SidebarContent collapsed={false} toggleCollapse={() => {}} {...sharedProps} />
+            <SidebarContent collapsed={false} toggleCollapse={() => { }} {...sharedProps} />
           </SheetContent>
         </Sheet>
 
         <Link href="/settings" className="flex items-center gap-2 min-w-0">
           <Avatar url={avatarUrl} name={userName} className="w-7 h-7" />
           <span className="font-semibold text-sm text-foreground truncate">
-            {userName || 'FlawLess'}
+            {userName || 'Onhandl'}
           </span>
         </Link>
       </div>

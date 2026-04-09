@@ -14,7 +14,7 @@ export type AnchorDataInput = z.infer<typeof AnchorDataSchema>;
  */
 export const AnchorDataTool: BlockchainTool<AnchorDataInput, any> = {
     name: "blockchain.ckb.anchoring.anchor_data",
-    description: "Formats an output cell to anchor a specific hex data blob on the CKB blockchain. Used for saving FlawLess states/run receipts.",
+    description: "Formats an output cell to anchor a specific hex data blob on the CKB blockchain. Used for saving Onhandl states/run receipts.",
     schema: AnchorDataSchema,
     uiSchema: {
         state_blob: { type: 'string', label: 'Data Blob (Hex/String)', placeholder: '{"status": "ok"}' },

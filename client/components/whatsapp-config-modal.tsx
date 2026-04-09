@@ -38,7 +38,7 @@ export default function WhatsAppConfigModal({ onClose, onSave }: WhatsAppConfigM
 
     // Generate a random verify token if not provided
     const finalVerifyToken =
-      webhookVerifyToken || `FlawLess_${Math.random().toString(36).substring(2, 15)}`;
+      webhookVerifyToken || `Onhandl_${Math.random().toString(36).substring(2, 15)}`;
 
     // Save the WhatsApp configuration
     onSave({

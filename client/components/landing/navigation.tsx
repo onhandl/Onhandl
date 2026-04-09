@@ -12,17 +12,17 @@ interface NavigationProps {
 }
 
 const navLinks = [
-    { label: 'Features',    href: '#features'    },
-    { label: 'How It Works',href: '#how-it-works' },
-    { label: 'Pricing',     href: '#pricing'      },
-    { label: 'Marketplace', href: '/marketplace'  },
-    { label: 'Community',   href: '/community'    },
+    { label: 'Features', href: '#features' },
+    { label: 'How It Works', href: '#how-it-works' },
+    { label: 'Pricing', href: '#pricing' },
+    { label: 'Marketplace', href: '/marketplace' },
+    { label: 'Community', href: '/community' },
 ];
 
 const LogoMark: React.FC = () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
         <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93 4.93 19.07"
-              stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
     </svg>
 );
 
@@ -35,8 +35,8 @@ export const Navigation: React.FC<NavigationProps> = ({
     const isMobileMenuOpen = externalOpen ?? internalOpen;
     const setIsMobileMenuOpen = externalSetOpen ?? setInternalOpen;
 
-    const [scrolled, setScrolled]       = useState(false);
-    const [isAuthenticated, setIsAuth]  = useState<boolean | null>(null);
+    const [scrolled, setScrolled] = useState(false);
+    const [isAuthenticated, setIsAuth] = useState<boolean | null>(null);
 
     useEffect(() => {
         const fn = () => setScrolled(window.scrollY > 20);
@@ -65,7 +65,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                 {/* Logo */}
                 <a href="/" className="flex items-center gap-2 text-fl-ink hover:opacity-65 transition-opacity">
                     <LogoMark />
-                    <span className="text-[13px] font-medium tracking-tight">FLAWLESS</span>
+                    <span className="text-[13px] font-medium tracking-tight">Onhandl</span>
                 </a>
 
                 {/* Desktop links */}
@@ -125,7 +125,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                         <div className="pt-4 flex flex-col gap-2">
                             {isAuthenticated ? (
                                 <a href="/dashboard" className="btn-fl-primary text-center text-[13px]"
-                                   onClick={() => setIsMobileMenuOpen(false)}>Dashboard</a>
+                                    onClick={() => setIsMobileMenuOpen(false)}>Dashboard</a>
                             ) : (
                                 <>
                                     <a href="/signin" className="btn-fl-outline text-center text-[13px]">Log In</a>

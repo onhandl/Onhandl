@@ -35,15 +35,14 @@ export function BlogCard({ post, currentUserId, isAdmin, onDelete }: Props) {
   };
 
   return (
-    <article className={`bg-card border rounded-xl p-5 hover:border-border transition-colors group ${
-      isOfficial ? 'border-primary/30 hover:border-primary/50' : 'border-border/60'
-    }`}>
+    <article className={`bg-card border rounded-xl p-5 hover:border-border transition-colors group ${isOfficial ? 'border-primary/30 hover:border-primary/50' : 'border-border/60'
+      }`}>
       {/* Official badge */}
       {isOfficial && (
         <div className="flex items-center gap-1.5 mb-3">
           <div className="flex items-center gap-1 bg-primary/10 text-primary text-xs font-semibold px-2 py-0.5 rounded-full">
             <Zap className="w-3 h-3 fill-primary" />
-            FlawLess Official
+            Onhandl Official
           </div>
         </div>
       )}

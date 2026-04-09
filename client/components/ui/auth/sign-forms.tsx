@@ -133,9 +133,9 @@ export function AuthUI({ defaultSignIn = true, onSignIn, onSignUp, onForgotPassw
       <div className="w-full max-w-[400px] rounded-2xl border border-border/60 bg-card shadow-xl shadow-black/5 p-5 sm:p-8">
         <div className="flex items-center gap-2.5 mb-8">
           <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" fill="white"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" fill="white" /></svg>
           </div>
-          <span className="font-bold text-base tracking-tight">FlawLess</span>
+          <span className="font-bold text-base tracking-tight">Onhandl</span>
         </div>
         <AuthFormContainer
           isSignIn={isSignIn} onToggle={() => setIsSignIn((p) => !p)}

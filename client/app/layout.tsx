@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'FlawLess',
+  title: 'Onhandl',
   description: 'Build AI Agents Without Code',
 };
 
