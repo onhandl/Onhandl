@@ -63,7 +63,7 @@ export function simulateInputNode(data: unknown, inputValues?: Record<string, un
           data: {
             id: Math.floor(Math.random() * 1000),
             event: 'user.created',
-            metadata: { source: 'omniflow', version: '2.0' },
+            metadata: { source: 'onhandl', version: '2.0' },
           },
         },
         inputType: 'webhook',

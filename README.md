@@ -283,102 +283,191 @@ Once running, sign up/log in to access the Dashboard. You can immediately begin 
 
 ---
 
-## 10. Running with Docker (Recommended for Local Dev & Deployment)
+## 10. Running with Docker
 
-Docker bundles the client, server, and a local MongoDB instance so you don't need to install Node.js or pnpm locally.
+Two compose files ship with this repo:
+
+| File | Purpose |
+|---|---|
+| `docker-compose.yml` | **Local dev** — source mounted as volumes, hot-reload, localhost URLs |
+| `docker-compose.prod.yml` | **Production (Contabo)** — compiled images, Nginx, onhandl.com domains |
 
 ### Prerequisites
+
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker Engine + Compose v2 on Linux)
 
-### 1. Configure environment variables
+---
+
+### Local Development
+
+#### 1. Configure environment variables
 
 ```bash
 cp server/.env.example server/.env
 ```
 
-Open `server/.env` and fill in your values:
+Minimum values to set in `server/.env`:
 
 ```env
-# Leave MONGO_URI blank — Docker Compose injects it automatically when using the local MongoDB container
+# Leave MONGO_URI blank — Compose injects it from the local MongoDB container
 MONGO_URI=
 
 JWT_SECRET=your_secure_random_string
 
-# AI providers (pick at least one)
 DEFAULT_AI_PROVIDER=ollama        # or gemini / openai
 GEMINI_API_KEY=
 OPENAI_API_KEY=
 OPENAI_BASE_URL=
 OPENAI_MODEL=
 
-# Email / SMTP (for OTP verification emails)
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=
 SMTP_PASS=
 ```
 
-> **MongoDB Atlas instead of local Mongo?** Set your Atlas URI in `MONGO_URI` and comment out the `MONGO_URI` override line in `docker-compose.yml` under the `server` service.
+> **MongoDB Atlas?** Set your Atlas URI in `MONGO_URI` and remove the `MONGO_URI` override under `server` in `docker-compose.yml`.
 
-### 2. Build and start all services
-
-Run this from the **project root**:
+#### 2. Start all services (with hot-reload)
 
 ```bash
 docker compose up --build
 ```
 
-First build takes a few minutes (downloads base images, installs deps, compiles TypeScript and Next.js). Subsequent starts are fast because Docker caches the layers.
+Source code is mounted into the containers — edit any file and the server/client reloads automatically. First build takes a few minutes; subsequent starts use cached layers.
 
-| Service  | URL                          |
-|----------|------------------------------|
-| Frontend | http://localhost:3000        |
-| Backend  | http://localhost:3001        |
-| MongoDB  | mongodb://localhost:27017    |
+| Service  | URL |
+|----------|-----|
+| Frontend | http://localhost:3000 |
+| Backend  | http://localhost:3001 |
+| MongoDB  | mongodb://localhost:27017 |
 
-### 3. Run in the background (detached mode)
+#### 3. Run in the background
 
 ```bash
 docker compose up --build -d
 ```
 
-### 4. View logs
+#### 4. View logs
 
 ```bash
-docker compose logs -f           # all services
-docker compose logs -f server    # server only
-docker compose logs -f client    # client only
+docker compose logs -f            # all services
+docker compose logs -f server     # server only
+docker compose logs -f client     # client only
 ```
 
-### 5. Stop everything
+#### 5. Stop everything
 
 ```bash
-docker compose down              # stop and remove containers
-docker compose down -v           # also delete the MongoDB data volume
+docker compose down               # stop containers
+docker compose down -v            # also delete MongoDB volume
 ```
 
-### 6. Rebuild a single service after code changes
+---
+
+### Production Deployment (Contabo VPS)
+
+The production stack runs fully compiled, non-root containers behind Nginx.
+Domains: `onhandl.com`, `www.onhandl.com` (frontend) · `api.onhandl.com` (backend)
+
+#### 1. Configure environment variables
 
 ```bash
-docker compose build server      # rebuild server image
-docker compose up -d server      # restart with new image
+cp server/.env.example server/.env
 ```
 
-### Deploying to production
+Fill in all production values. The compose file injects the URL env vars automatically — you only need secrets here:
 
-For production deployments (Railway, Render, Fly.io, VPS), set the `NEXT_PUBLIC_API_URL` build arg to your server's public URL so the client calls the right API:
+```env
+MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/onhandl
+JWT_SECRET=<strong-random-secret>
+
+DEFAULT_AI_PROVIDER=gemini
+GEMINI_API_KEY=<your-key>
+
+SMTP_HOST=smtp.resend.com
+SMTP_PORT=587
+SMTP_USER=resend
+SMTP_PASS=<resend-api-key>
+
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_CLIENT_ID=ca_...
+```
+
+#### 2. Provision SSL certificates
+
+Place your certificates at:
+```
+nginx/ssl/cert.pem
+nginx/ssl/key.pem
+```
+
+**Using Certbot (Let's Encrypt):**
+```bash
+# Install certbot on the VPS
+sudo apt install certbot
+
+# Issue certificates (stop Nginx first if running)
+sudo certbot certonly --standalone \
+  -d onhandl.com -d www.onhandl.com -d api.onhandl.com
+
+# Copy to the repo's nginx/ssl directory
+sudo cp /etc/letsencrypt/live/onhandl.com/fullchain.pem nginx/ssl/cert.pem
+sudo cp /etc/letsencrypt/live/onhandl.com/privkey.pem   nginx/ssl/key.pem
+```
+
+#### 3. Point DNS records
+
+| Record | Type | Value |
+|--------|------|-------|
+| `onhandl.com` | A | `<VPS IP>` |
+| `www.onhandl.com` | A | `<VPS IP>` |
+| `api.onhandl.com` | A | `<VPS IP>` |
+
+#### 4. Deploy
 
 ```bash
-# Build client pointing at your production API
-docker build \
-  --build-arg NEXT_PUBLIC_API_URL=https://api.yourdomain.com/api \
-  -f client/Dockerfile \
-  -t omniflow-client \
-  .
-
-# Build server
-docker build -f server/Dockerfile -t omniflow-server .
+docker compose -f docker-compose.prod.yml up --build -d
 ```
 
-Then push both images to your container registry and deploy.
+This builds production images (compiled TypeScript, Next.js standalone), starts the Nginx reverse proxy, and applies `unless-stopped` restart policies.
+
+#### 5. Useful commands
+
+```bash
+# View logs
+docker compose -f docker-compose.prod.yml logs -f
+
+# Rebuild and restart a single service
+docker compose -f docker-compose.prod.yml up --build -d server
+
+# Stop everything
+docker compose -f docker-compose.prod.yml down
+```
+
+---
+
+### Environment Variable Reference
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `MONGO_URI` | Yes | MongoDB Atlas connection string (or blank for local Mongo via Compose) |
+| `JWT_SECRET` | Yes | Secret used to sign JWT tokens |
+| `DEFAULT_AI_PROVIDER` | No | `ollama` (default), `gemini`, or `openai` |
+| `GEMINI_API_KEY` | If using Gemini | Google AI Studio API key |
+| `OPENAI_API_KEY` | If using OpenAI | OpenAI / proxy API key |
+| `OPENAI_BASE_URL` | If using proxy | e.g. `https://share-ai.ckbdev.com/v1` |
+| `OPENAI_MODEL` | If using OpenAI | Model name, e.g. `gpt-4o` |
+| `SMTP_HOST` | For OTP emails | e.g. `smtp.gmail.com` or `smtp.resend.com` |
+| `SMTP_PORT` | For OTP emails | `587` |
+| `SMTP_USER` | For OTP emails | SMTP username |
+| `SMTP_PASS` | For OTP emails | SMTP password / app password |
+| `STRIPE_SECRET_KEY` | Marketplace | Stripe secret key |
+| `STRIPE_WEBHOOK_SECRET` | Marketplace | Stripe webhook signing secret |
+| `STRIPE_CLIENT_ID` | Marketplace | Stripe Connect client ID |
+| `FIBER_NODE_URL` | Blockchain | Fiber node RPC URL (default: `http://localhost:8227`) |
+| `FIBER_AUTH_TOKEN` | Blockchain | Biscuit auth token for Fiber RPC |
+
+> URL variables (`ALLOWED_ORIGINS`, `APP_URL`, `API_URL`, `STRIPE_REDIRECT_URI`) are set automatically by the compose files — do not set them in `.env` unless overriding.
 

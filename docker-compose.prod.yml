@@ -1,0 +1,55 @@
+# Production — Contabo VPS deployment
+# Usage: docker compose -f docker-compose.prod.yml up --build -d
+#
+# Prerequisites:
+#   1. Populate server/.env with MONGO_URI, JWT_SECRET, API keys.
+#   2. Place SSL certificates at nginx/ssl/cert.pem and nginx/ssl/key.pem
+#      (or use Certbot — see README for instructions).
+#   3. Point DNS records:
+#        onhandl.com      → VPS IP
+#        www.onhandl.com  → VPS IP
+#        api.onhandl.com  → VPS IP
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+      target: production
+    restart: unless-stopped
+    expose:
+      - "3001"
+    env_file:
+      - server/.env
+    environment:
+      NODE_ENV: production
+      ALLOWED_ORIGINS: https://onhandl.com,https://www.onhandl.com
+      APP_URL: https://onhandl.com
+      API_URL: https://api.onhandl.com/api
+      STRIPE_REDIRECT_URI: https://api.onhandl.com/api/payments/stripe/callback
+
+  client:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+      target: production
+      args:
+        NEXT_PUBLIC_API_URL: https://api.onhandl.com
+    restart: unless-stopped
+    expose:
+      - "3000"
+    depends_on:
+      - server
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - server
+      - client

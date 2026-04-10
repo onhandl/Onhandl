@@ -64,7 +64,7 @@ export async function simulateActionNode(
         {
           response: simulatedResponse,
           statusCode,
-          headers: { 'content-type': 'application/json', 'x-powered-by': 'Omniflow' },
+          headers: { 'content-type': 'application/json', 'x-powered-by': 'Onhandl' },
         },
         { metadata: meta }
       );

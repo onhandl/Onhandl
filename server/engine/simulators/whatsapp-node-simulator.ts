@@ -28,7 +28,7 @@ export async function simulateWhatsAppSendMessage(
     message:
       (inputValues['message'] as string) ??
       d?.inputs?.find((i: any) => i.key === 'message')?.value ??
-      'Hello from Omniflow!',
+      'Hello from Onhandl!',
   };
 
   const validated = WhatsAppInputSchema.safeParse(rawInput);

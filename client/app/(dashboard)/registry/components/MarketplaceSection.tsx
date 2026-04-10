@@ -78,7 +78,7 @@ export function MarketplaceSection({ agentId, agentName, onPublished }: Marketpl
 
             {open && (
                 <div className="px-4 pb-4 pt-1 space-y-4 border-t border-border/60 bg-muted/10">
-                    <p className="text-xs text-muted-foreground">List this agent on the Omniflow marketplace. The agent must be published first.</p>
+                    <p className="text-xs text-muted-foreground">List this agent on the Onhandl marketplace. The agent must be published first.</p>
 
                     <div className="grid grid-cols-2 gap-3">
                         <div>

@@ -1,3 +1,7 @@
+# Local development — hot-reload, source mounted as volumes
+# Uses localhost URLs; do NOT use this file for production.
+# For production: docker compose -f docker-compose.prod.yml up
+
 services:
   mongo:
     image: mongo:7
@@ -7,21 +11,29 @@ services:
     volumes:
       - mongo_data:/data/db
     environment:
-      MONGO_INITDB_DATABASE: omniflow
+      MONGO_INITDB_DATABASE: onhandl
 
   server:
     build:
       context: .
       dockerfile: server/Dockerfile
+      target: development
     restart: unless-stopped
     ports:
       - "3001:3001"
     env_file:
       - server/.env
     environment:
-      # Override MONGO_URI to point at the compose mongo service
-      # Comment this out if you're using MongoDB Atlas
-      MONGO_URI: mongodb://mongo:27017/omniflow
+      NODE_ENV: development
+      # Override MONGO_URI to point at the compose mongo service.
+      # Comment this out if you are using MongoDB Atlas.
+      MONGO_URI: mongodb://mongo:27017/onhandl
+    volumes:
+      - ./server:/app/server
+      # Protect container-installed node_modules from being overwritten
+      # by the host bind mount (anonymous volumes take precedence).
+      - /app/server/node_modules
+      - /app/node_modules
     depends_on:
       - mongo
 
@@ -29,14 +41,22 @@ services:
     build:
       context: .
       dockerfile: client/Dockerfile
-      args:
-        # The client calls the server — in production point this at server's public URL
-        NEXT_PUBLIC_API_URL: http://localhost:3001/api
+      target: development
     restart: unless-stopped
     ports:
       - "3000:3000"
+    environment:
+      # Browser calls go to localhost:3001 (the exposed port on the host).
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+    volumes:
+      - ./client:/app/client
+      - /app/client/node_modules
+      - /app/node_modules
+      # Persist Next.js build cache between restarts
+      - client_next_cache:/app/client/.next
     depends_on:
       - server
 
 volumes:
   mongo_data:
+  client_next_cache:

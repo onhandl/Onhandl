@@ -9,7 +9,7 @@ import mongoose from 'mongoose';
 import { AgentDefinition } from '../models/AgentDefinition';
 import { AgentNode } from '../models/AgentNode';
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/omniflow';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/onhandl';
 const TOOL_NAME = 'blockchain.ckb_fiber.channel.open_channel';
 
 async function main() {

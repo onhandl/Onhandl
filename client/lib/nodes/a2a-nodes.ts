@@ -3,7 +3,7 @@ export const a2aNodes = [
     type: 'agent_call',
     category: 'a2a',
     name: 'Agent Call',
-    description: 'Send a structured A2A message to another registered Omniflow agent',
+    description: 'Send a structured A2A message to another registered Onhandl agent',
     icon: 'Bot',
     inputs: [
       {

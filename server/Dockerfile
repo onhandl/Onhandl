@@ -1,34 +1,40 @@
-# ---- base ----
+# ── base ─────────────────────────────────────────────────────────────────────
 FROM node:20-alpine AS base
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
-# ---- builder ----
-FROM base AS builder
+# ── deps — install all workspace dependencies ─────────────────────────────────
+FROM base AS deps
 WORKDIR /app
-
-# Layer-cache: install deps before copying source
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY server/package.json ./server/
 COPY client/package.json ./client/
 RUN pnpm install --frozen-lockfile
 
-# Compile TypeScript
+# ── development — hot-reload via tsx watch ────────────────────────────────────
+FROM deps AS development
+ENV NODE_ENV=development
+WORKDIR /app/server
+EXPOSE 3001
+CMD ["pnpm", "dev"]
+
+# ── builder — compile TypeScript ──────────────────────────────────────────────
+FROM deps AS builder
+WORKDIR /app
 COPY server ./server
 RUN pnpm --filter server build
-
-# pnpm deploy creates a self-contained directory with real (non-symlinked)
-# node_modules — safe to COPY into the next stage without broken links.
+# pnpm deploy creates a self-contained dir with non-symlinked node_modules
 RUN pnpm deploy --filter server --prod /deploy
 
-# ---- runner ----
-FROM node:20-alpine AS runner
+# ── production — lean, non-root ───────────────────────────────────────────────
+FROM node:20-alpine AS production
 WORKDIR /app
 ENV NODE_ENV=production
 
-# /deploy contains package.json + flat node_modules (no pnpm virtual store)
 COPY --from=builder /deploy/node_modules ./node_modules
-# dist/ is built output — pnpm deploy copies the package dir so grab it from builder
 COPY --from=builder /app/server/dist ./dist
+
+RUN chown -R node:node /app
+USER node
 
 EXPOSE 3001
 CMD ["node", "dist/src/index.js"]

@@ -174,7 +174,7 @@ export default function FlowConsole() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `omniflow-logs-${new Date().toISOString().slice(0, 10)}.txt`;
+    a.download = `onhandl-logs-${new Date().toISOString().slice(0, 10)}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
