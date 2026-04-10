@@ -30,6 +30,7 @@ export const exportRoutes: FastifyPluginAsync = async (fastify) => {
             theme,
             pwaDownloadCount: existing.pwaDownloadCount || 0,
             lastExportedAt: new Date(),
+            mcpEnabled: existing.mcpEnabled || false,
         };
         await agent.save();
 
@@ -63,6 +64,7 @@ export const exportRoutes: FastifyPluginAsync = async (fastify) => {
             theme: existing.theme || 'dark',
             pwaDownloadCount: (existing.pwaDownloadCount || 0) + 1,
             lastExportedAt: new Date(),
+            mcpEnabled: existing.mcpEnabled || false,
         };
         await agent.save();
 
