@@ -17,32 +17,32 @@ WORKDIR /app/client
 EXPOSE 3000
 CMD ["pnpm", "dev"]
 
-# ── builder — Next.js standalone build ───────────────────────────────────────
+# ── builder — build + deploy ──────────────────────────────────────────────────
 FROM deps AS builder
 WORKDIR /app
-# API URL is baked in at build time; override via --build-arg for production
 ARG NEXT_PUBLIC_API_URL=http://localhost:3001
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 COPY client ./client
 RUN pnpm --filter client build
+# pnpm deploy gives a flat, non-symlinked node_modules — avoids pnpm symlink
+# tracing issues that break Next.js standalone mode in monorepos.
+RUN pnpm deploy --filter client --prod --legacy /client-deploy
 
-# ── production — minimal Next.js standalone runner ───────────────────────────
-# pnpm uses symlinks that @vercel/nft (Next.js file tracer) can't follow, so
-# the standalone bundle is missing `next` and other hoisted packages.
-# Fix: copy the full workspace node_modules from builder so every dep resolves.
+# ── production ────────────────────────────────────────────────────────────────
+# Uses pnpm deploy (flat node_modules) + next start.
+# --chown on every COPY avoids a separate chown -R pass over pnpm's huge store
+# (that was the 12-minute step).
 FROM node:20-alpine AS production
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 
-COPY --from=builder /app/client/.next/standalone ./
-COPY --from=builder /app/client/.next/static ./.next/static
-COPY --from=builder /app/client/public ./public
-# Overwrite the incomplete standalone node_modules with the full resolved set
-COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder --chown=node:node /client-deploy/node_modules ./node_modules
+COPY --from=builder --chown=node:node /client-deploy/package.json  ./package.json
+COPY --from=builder --chown=node:node /app/client/.next            ./.next
+COPY --from=builder --chown=node:node /app/client/public           ./public
 
-RUN chown -R node:node /app
 USER node
-
 EXPOSE 3000
-CMD ["node", "server.js"]
+CMD ["./node_modules/.bin/next", "start"]

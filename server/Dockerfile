@@ -30,10 +30,9 @@ FROM node:20-alpine AS production
 WORKDIR /app
 ENV NODE_ENV=production
 
-COPY --from=builder /deploy/node_modules ./node_modules
-COPY --from=builder /app/server/dist ./dist
+COPY --from=builder --chown=node:node /deploy/node_modules ./node_modules
+COPY --from=builder --chown=node:node /app/server/dist      ./dist
 
-RUN chown -R node:node /app
 USER node
 
 EXPOSE 3001
