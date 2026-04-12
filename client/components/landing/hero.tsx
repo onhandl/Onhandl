@@ -57,7 +57,8 @@ export const Hero: React.FC<HeroProps> = ({ handleAnchorClick }) => {
       <div
         className="absolute top-0 right-0 w-[560px] h-[560px] pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse at top right, rgba(239,111,46,0.07) 0%, transparent 70%)',
+          background:
+            'radial-gradient(ellipse at top right, color-mix(in srgb, var(--fl-accent) 7%, transparent) 0%, transparent 70%)',
         }}
         aria-hidden
       />

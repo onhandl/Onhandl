@@ -23,8 +23,8 @@ const config: Config = {
           'ink-2': 'var(--fl-ink-2)',         // #3d3a39 — secondary text
           'ink-3': 'var(--fl-ink-3)',         // #8a8380 — muted text
           'ink-inv': 'var(--fl-ink-inv)',       // #eeeeee — text on dark
-          accent: 'var(--fl-accent)',        // #ef6f2e — orange
-          'accent-dark': 'var(--fl-accent-dark)',   // #ee6018 — deeper orange
+          accent: 'var(--fl-accent)',
+          'accent-dark': 'var(--fl-accent-dark)',
           'accent-bg': 'var(--fl-accent-bg)',     // orange tint
           line: 'var(--fl-line)',          // #ccc9c7 — default border
           'line-2': 'var(--fl-line-2)',        // #b8b3b0 — stronger border

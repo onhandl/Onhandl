@@ -1,17 +1,18 @@
 import type React from 'react';
 import type { Metadata, Viewport } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Figtree, JetBrains_Mono } from 'next/font/google';
 import '@/styles/globals.css';
 import { FloatingBot } from '@/components/floating-bot';
 
-// Geist — matches factory.ai exactly
-const geistSans = Geist({
+const figtree = Figtree({
   subsets: ['latin'],
+  display: 'swap',
   variable: '--font-sans',
 });
 
-const geistMono = Geist_Mono({
+const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
+  display: 'swap',
   variable: '--font-mono',
 });
 
@@ -36,7 +37,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
+        className={`${figtree.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
         {children}
         <FloatingBot />

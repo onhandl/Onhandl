@@ -22,9 +22,9 @@
   --fl-ink-3:        #8a8380;   /* muted text */
   --fl-ink-inv:      #eeeeee;   /* text on dark panels */
 
-  --fl-accent:       #ef6f2e;   /* orange brand accent */
-  --fl-accent-dark:  #ee6018;   /* deeper orange */
-  --fl-accent-bg:    rgba(239,111,46,0.08); /* tinted accent fill */
+  --fl-accent:       #e0692e;   /* orange brand accent — slightly softer */
+  --fl-accent-dark:  #c55a24;   /* deeper orange */
+  --fl-accent-bg:    color-mix(in srgb, var(--fl-accent) 10%, transparent);
 
   --fl-line:         #ccc9c7;   /* default border */
   --fl-line-2:       #b8b3b0;   /* stronger border */
@@ -52,9 +52,9 @@
   --input:              var(--fl-line);
   --ring:               var(--fl-accent);
 
-  /* Typography */
-  --font-sans: 'Geist', 'Geist Fallback', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback', 'Roboto Mono', monospace;
+  /* Typography — next/font injects --font-sans / --font-mono on <body>; stacks are fallbacks only */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Code', 'Roboto Mono', monospace;
 
   /* Radius */
   --radius: 0.625rem;
@@ -235,8 +235,8 @@
 .node-playing   { animation: nodePulse 1.5s ease-in-out infinite; }
 
 @keyframes nodePulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 111, 46, 0); }
-  50%       { box-shadow: 0 0 0 6px rgba(239, 111, 46, 0.18); }
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--fl-accent) 0%, transparent); }
+  50%       { box-shadow: 0 0 0 6px color-mix(in srgb, var(--fl-accent) 18%, transparent); }
 }
 
 .node-title {
