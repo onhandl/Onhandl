@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '') + '/api';
+import { getPublicApiBaseUrl } from '@/lib/api-public';
 
 interface NavigationProps {
     isMobileMenuOpen?: boolean;
@@ -45,7 +45,7 @@ export const Navigation: React.FC<NavigationProps> = ({
     }, []);
 
     useEffect(() => {
-        fetch(`${API_BASE}/auth/me`, { credentials: 'include' })
+        fetch(`${getPublicApiBaseUrl()}/auth/me`, { credentials: 'include' })
             .then(r => setIsAuth(r.ok))
             .catch(() => setIsAuth(false));
     }, []);
@@ -55,8 +55,8 @@ export const Navigation: React.FC<NavigationProps> = ({
     };
 
     const navCls = scrolled
-        ? 'bg-fl-base/95 backdrop-blur-sm border-b border-fl-line'
-        : 'bg-transparent';
+        ? 'bg-fl-base/80 backdrop-blur-md border-b border-fl-line/80 shadow-[0_1px_0_0_rgba(0,0,0,0.04)] supports-[backdrop-filter]:bg-fl-base/70'
+        : 'bg-fl-base/40 backdrop-blur-sm supports-[backdrop-filter]:bg-fl-base/25';
 
     return (
         <nav className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-200 ${navCls}`}>
@@ -110,7 +110,7 @@ export const Navigation: React.FC<NavigationProps> = ({
 
             {/* Mobile drawer */}
             {isMobileMenuOpen && (
-                <div className="md:hidden bg-fl-base border-t border-fl-line">
+                <div className="md:hidden bg-fl-base/95 backdrop-blur-md border-t border-fl-line shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
                     <div className="max-w-[1400px] mx-auto px-9 py-4 flex flex-col">
                         {navLinks.map(link => (
                             <a

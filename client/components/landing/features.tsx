@@ -4,6 +4,10 @@ import React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { MousePointerClick, Plug, LayoutTemplate, Zap, ShieldCheck, BarChart3 } from 'lucide-react';
 
+import { landingEase } from '@/components/landing/motion-ease';
+
+const ease = landingEase;
+
 const features = [
     { icon: MousePointerClick, label: '01', title: 'Drag-and-Drop Workflow',
       description: 'Build complex AI pipelines visually. Connect nodes, define logic, and watch agents come alive — no engineering background needed.',
@@ -19,8 +23,6 @@ const features = [
     { icon: BarChart3,     label: '06', title: 'Deep Analytics',
       description: 'Track every execution. Understand performance trends and optimize automatically.', size: 'normal' },
 ];
-
-const ease = [0.16, 1, 0.3, 1] as [number, number, number, number];
 
 export const Features: React.FC = () => {
     const shouldReduce = useReducedMotion();

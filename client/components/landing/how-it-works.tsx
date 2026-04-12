@@ -4,6 +4,10 @@ import React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { BookOpen, Workflow, Rocket, Check } from 'lucide-react';
 
+import { landingEase } from '@/components/landing/motion-ease';
+
+const ease = landingEase;
+
 const steps = [
     {
         number: '01',
@@ -30,8 +34,6 @@ const steps = [
         bullets: ['One-click deployment', 'Real-time monitoring', 'Seamless iteration'],
     },
 ];
-
-const ease = [0.16, 1, 0.3, 1] as [number, number, number, number];
 
 export const HowItWorks: React.FC = () => {
     const shouldReduce = useReducedMotion();

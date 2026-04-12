@@ -1,5 +1,15 @@
 import { Testimonial, PricingPlan, FaqItem } from './types';
 
+/** Waitlist section — capacity messaging */
+export const WAITLIST_TOTAL_SPOTS = 6_000;
+
+export const WAITLIST_BENEFITS = [
+  '25% lifetime discount',
+  'Exclusive beta features',
+  'Direct product team access',
+  'Shape the roadmap',
+] as const;
+
 export const testimonials: Testimonial[] = [
     {
         rating: 5,

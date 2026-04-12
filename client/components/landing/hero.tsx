@@ -4,38 +4,14 @@ import React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 
-import { ContainerTextFlip } from "@/components/ui/overlays/container-text-flip";
-import { cn } from "@/lib/utils";
-
-export function ContainerTextFlipDemo() {
-  const words = ["Anyone", "Everyone", "Anything"];
-  return (
-    <motion.span
-      initial={{
-        opacity: 0,
-      }}
-      whileInView={{
-        opacity: 1,
-      }}
-      className={cn(
-        "relative mb-6 max-w-2xl text-left text-4xl leading-normal font-bold tracking-tight text-zinc-700 md:text-7xl dark:text-zinc-100",
-      )}
-      layout
-    >
-      <span className="inline-block">
-        <ContainerTextFlip words={words} />
-        {/* <Blips /> */}
-      </span>
-    </motion.span>
-  );
-}
-
+import { ContainerTextFlipHeading } from '@/components/landing/hero/container-text-flip-heading';
+import { landingEase } from '@/components/landing/motion-ease';
 
 interface HeroProps {
   handleAnchorClick: (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => void;
 }
 
-const ease = [0.16, 1, 0.3, 1] as [number, number, number, number];
+const ease = landingEase;
 
 export const Hero: React.FC<HeroProps> = ({ handleAnchorClick }) => {
   const shouldReduce = useReducedMotion();
@@ -62,6 +38,15 @@ export const Hero: React.FC<HeroProps> = ({ handleAnchorClick }) => {
         }}
         aria-hidden
       />
+      {/* Very subtle neutral + accent atmosphere (21st-style depth, low saturation) */}
+      <div
+        className="absolute bottom-0 left-0 w-[420px] h-[420px] pointer-events-none opacity-90"
+        style={{
+          background:
+            'radial-gradient(circle at bottom left, color-mix(in srgb, var(--fl-accent) 4%, transparent) 0%, transparent 65%)',
+        }}
+        aria-hidden
+      />
 
       <div className="relative z-10 max-w-[1400px] mx-auto px-9 w-full py-20">
 
@@ -83,15 +68,15 @@ export const Hero: React.FC<HeroProps> = ({ handleAnchorClick }) => {
           transition={{ duration: 0.6, delay: 0.06, ease }}
           className="text-[60px] md:text-[76px] lg:text-[92px] font-normal leading-none tracking-factory-h1 text-fl-ink max-w-[900px] mb-2"
         >
-          <ContainerTextFlipDemo /> Should
+          <ContainerTextFlipHeading /> Should
         </motion.h1>
         <motion.h1
           initial={{ opacity: 0, y: shouldReduce ? 0 : 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1, ease }}
-          className="text-[60px] md:text-[76px] lg:text-[92px] font-normal leading-none tracking-factory-h1 text-fl-accent mb-10"
+          className="text-[60px] md:text-[76px] lg:text-[92px] font-normal leading-none tracking-factory-h1 text-fl-ink mb-10"
         >
-          have an AGENT
+          have an <span className="text-fl-accent">AGENT</span>
         </motion.h1>
 
         {/* Sub-heading */}

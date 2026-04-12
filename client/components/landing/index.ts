@@ -10,3 +10,4 @@ export * from './pricing';
 export * from './faq';
 export * from './waitlist';
 export * from './footer';
+export { LandingPage } from './landing-page';

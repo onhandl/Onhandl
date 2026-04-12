@@ -3,6 +3,8 @@
 import React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Check } from 'lucide-react';
+import { landingEase } from '@/components/landing/motion-ease';
+
 import { PricingPlan } from './types';
 
 interface PricingProps {
@@ -10,7 +12,7 @@ interface PricingProps {
     handleAnchorClick: (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => void;
 }
 
-const ease = [0.16, 1, 0.3, 1] as [number, number, number, number];
+const ease = landingEase;
 
 export const Pricing: React.FC<PricingProps> = ({ pricingPlans, handleAnchorClick }) => {
     const shouldReduce = useReducedMotion();
