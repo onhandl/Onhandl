@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { agentControlApi } from '@/api/fiber-api';
+import { agentControlApi } from '@/api/agent-api';
 import {
     IconFriends, IconCircleDashedCheck, IconSubtitlesEdit,
     IconPlayerPlay, IconPlayerStop, IconDots, IconArrowRight, IconClock,
@@ -19,13 +19,13 @@ interface AgentCardProps {
 
 export function AgentCard({ agent, onEdit, onControlChange, index }: AgentCardProps) {
     const isPublished = !agent.isDraft;
-    const isRunning   = agent.status === 'running';
+    const isRunning = agent.status === 'running';
 
     const handleControl = async (e: React.MouseEvent) => {
         e.preventDefault();
         try {
             if (isRunning) await agentControlApi.stop(agent._id);
-            else           await agentControlApi.start(agent._id);
+            else await agentControlApi.start(agent._id);
             onControlChange?.(agent._id, isRunning ? 'stopped' : 'running');
         } catch { /* silent */ }
     };
@@ -76,8 +76,7 @@ export function AgentCard({ agent, onEdit, onControlChange, index }: AgentCardPr
                         </button>
 
                         {/* Status badge */}
-                        <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
-                            isPublished
+                        <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${isPublished
                                 ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
                                 : 'bg-amber-500/10 text-amber-600 border-amber-500/20'}`}>
                             {isPublished

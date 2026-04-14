@@ -104,3 +104,17 @@ export const agentApi = {
 
     getCryptoNetworks: async () => apiFetch('/payments/crypto/networks'),
 };
+
+export const agentControlApi = {
+    start: (agentId: string, reason?: string) =>
+        apiFetch(`/agents/${agentId}/start`, { method: 'POST', body: JSON.stringify({ reason }) }),
+
+    stop: (agentId: string, reason?: string) =>
+        apiFetch(`/agents/${agentId}/stop`, { method: 'POST', body: JSON.stringify({ reason }) }),
+
+    status: (agentId: string) =>
+        apiFetch(`/agents/${agentId}/status`),
+
+    commands: (agentId: string) =>
+        apiFetch(`/agents/${agentId}/commands`),
+};

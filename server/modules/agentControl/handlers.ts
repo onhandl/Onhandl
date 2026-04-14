@@ -10,8 +10,7 @@
  */
 import { FastifyRequest, FastifyReply } from 'fastify'
 import { AgentDefinition } from '../../models/AgentDefinition'
-import { AgentCard }       from '../../models/AgentCard'
-import { AgentCommand }    from '../../models/AgentCommand'
+import { AgentCommand } from '../../models/AgentCommand'
 
 function getUser(req: FastifyRequest): string | null {
     const c = (req as any).cookies?.['auth_token']
@@ -33,9 +32,6 @@ export async function startAgent(request: FastifyRequest, reply: FastifyReply) {
 
     await AgentDefinition.updateOne({ _id: id }, { status: 'running' })
 
-    // Mark card active if it exists in registry
-    await AgentCard.updateOne({ agentId: id }, { status: 'active', lastHeartbeat: new Date() })
-
     await AgentCommand.create({ agentId: id, issuedBy: userId, command: 'start', reason })
 
     return { agentId: id, status: 'running', message: 'Agent started' }
@@ -53,9 +49,6 @@ export async function stopAgent(request: FastifyRequest, reply: FastifyReply) {
     if (!agent) return reply.code(404).send({ error: 'Agent not found' })
 
     await AgentDefinition.updateOne({ _id: id }, { status: 'stopped' })
-
-    // Mark card inactive — removes from active registry
-    await AgentCard.updateOne({ agentId: id }, { status: 'inactive' })
 
     await AgentCommand.create({ agentId: id, issuedBy: userId, command: 'stop', reason })
 
@@ -75,8 +68,8 @@ export async function getAgentStatus(request: FastifyRequest, reply: FastifyRepl
 
     return {
         agentId: id,
-        name:    agent.name,
-        status:  agent.status,
+        name: agent.name,
+        status: agent.status,
         isDraft: agent.isDraft,
         lastCommand: lastCommand ? { command: lastCommand.command, reason: lastCommand.reason, at: lastCommand.createdAt } : null,
     }

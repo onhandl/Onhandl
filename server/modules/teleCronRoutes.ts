@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from 'fastify';
-import { telegramService } from '../services/telegram-service';
+import { telegramService, TelegramService } from '../services/telegram-service';
 
 export const teleCronRoutes: FastifyPluginAsync = async (fastify) => {
     // Telegram Webhook
@@ -46,7 +46,6 @@ export const teleCronRoutes: FastifyPluginAsync = async (fastify) => {
             try {
                 // We can't easily use the existing telegramService singleton because it might have a different token
                 // So we might need to instantiate a temporary one or add a method to the service to test arbitrary tokens
-                const { TelegramService } = require('../services/telegram-service');
                 const tempService = new TelegramService(botToken);
 
                 const result = await tempService.sendMessage(

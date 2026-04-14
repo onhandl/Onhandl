@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import {
   Home, LayoutDashboard, Box, Settings,
   Store, TrendingUp, ChevronLeft, ChevronRight,
-  LogOut, Menu, User, Headphones, Shield, Globe,
+  LogOut, Menu, User, Headphones, Shield,
 } from 'lucide-react';
 import { Button } from '@/components/ui/buttons/button';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/overlays/sheet';
@@ -19,7 +19,6 @@ const navItems = [
   { name: 'Revenue', href: '/dashboard/revenue', icon: TrendingUp },
   { name: 'Sandbox', href: '/sandbox', icon: Box },
   { name: 'Marketplace', href: '/marketplace', icon: Store },
-  { name: 'Registry', href: '/registry', icon: Globe },
   { name: 'Support', href: '/support', icon: Headphones },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];

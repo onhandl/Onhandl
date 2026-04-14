@@ -22,7 +22,6 @@ import { waitlistRoutes } from '../modules/waitlistRoutes'
 import { userSettingsRoutes } from '../modules/userSettingsRoutes'
 import { reviewRoutes } from '../modules/reviewRoutes'
 import { creatorRoutes } from '../modules/creatorRoutes'
-import { registryRoutes } from '../modules/registry/routes'
 import { mcpRoutes } from '../modules/mcp/routes'
 import { syncBlockchainToolsToDb } from '../services/ToolSyncer'
 import { ENV } from '../lib/environments'
@@ -72,7 +71,6 @@ fastify.register(waitlistRoutes, { prefix: '/api' })
 fastify.register(userSettingsRoutes, { prefix: '/api/auth' })
 fastify.register(reviewRoutes, { prefix: '/api' })
 fastify.register(creatorRoutes, { prefix: '/api' })
-fastify.register(registryRoutes, { prefix: '/api/registry' })
 fastify.register(mcpRoutes, { prefix: '/mcp' })
 
 fastify.get('/api/health', async () => ({ status: 'ok' }))

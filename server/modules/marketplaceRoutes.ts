@@ -2,9 +2,6 @@ import { FastifyPluginAsync } from 'fastify';
 import { AgentDefinition } from '../models/AgentDefinition';
 import { Workspace } from '../models/Workspace';
 import { Purchase } from '../models/Purchase';
-import { AgentCard } from '../models/AgentCard';
-import { AgentPayment } from '../models/AgentPayment';
-import { payAgent } from '../services/fiber/PaymentProtocol';
 
 export const MARKETPLACE_CATEGORIES = [
     'Trading Bot',
@@ -65,8 +62,8 @@ export const marketplaceRoutes: FastifyPluginAsync = async (fastify) => {
             ...a,
             creator: a.ownerId
                 ? {
-                    _id:      a.ownerId._id,
-                    name:     a.ownerId.name || a.ownerId.username || 'Anonymous',
+                    _id: a.ownerId._id,
+                    name: a.ownerId.name || a.ownerId.username || 'Anonymous',
                     avatarUrl: a.ownerId.avatarUrl || null,
                 }
                 : null,
@@ -94,11 +91,11 @@ export const marketplaceRoutes: FastifyPluginAsync = async (fastify) => {
             ...agent,
             creator: owner
                 ? {
-                    _id:      owner._id,
-                    name:     owner.name || owner.username || 'Anonymous',
+                    _id: owner._id,
+                    name: owner.name || owner.username || 'Anonymous',
                     username: owner.username,
                     avatarUrl: owner.avatarUrl || null,
-                    bio:      owner.bio || null,
+                    bio: owner.bio || null,
                     profileViews: owner.profileViews || 0,
                 }
                 : null,
@@ -286,24 +283,6 @@ export const marketplaceRoutes: FastifyPluginAsync = async (fastify) => {
                 currency: netPrice.asset, status: 'pending',
                 cryptoTxHash: txHash, network,
             });
-
-            // CKB/Fiber: initiate agent-to-agent payment if fromAgentId is provided
-            if (network === 'CKB' && fromAgentId) {
-                const sellerCard = await AgentCard.findOne({ agentId: source._id });
-                if (sellerCard) {
-                    try {
-                        await payAgent({
-                            fromAgentId, toAgentId: String(source._id),
-                            network, asset: netPrice.asset, amount: netPrice.price,
-                            memo: `Marketplace purchase of ${source.name}`,
-                            marketplacePurchaseId: purchase._id as any,
-                        } as any);
-                    } catch (e: any) {
-                        // Payment initiation failed — purchase stays pending for manual resolution
-                        console.warn('[Marketplace] Fiber payment failed:', e.message);
-                    }
-                }
-            }
 
             return reply.code(201).send({
                 purchase,
