@@ -8,15 +8,12 @@
     "start": "node dist/src/index.js"
   },
   "dependencies": {
-    "@ckb-ccc/shell": "^1.1.25",
     "@ckb-lumos/lumos": "^0.23.0",
-    "@cloudinary/url-gen": "^1.22.0",
     "@fastify/cookie": "9",
     "@fastify/cors": "9",
     "@fastify/jwt": "^6.7.1",
     "@google/genai": "^1.46.0",
     "@nervosnetwork/ckb-sdk-core": "^0.109.5",
-    "@nervosnetwork/fiber-js": "^0.8.0",
     "@opentelemetry/api": "^1.9.1",
     "agenda": "^5.0.0",
     "ajv": "^8.18.0",
@@ -29,7 +26,6 @@
     "nodemailer": "^8.0.4",
     "openai": "^6.32.0",
     "stripe": "^21.0.1",
-    "telegraf": "^4.16.3",
     "zod": "^3.25.76"
   },
   "devDependencies": {

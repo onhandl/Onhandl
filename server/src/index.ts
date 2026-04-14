@@ -4,7 +4,6 @@ import connectDb from '../database/connectDB'
 import fastifyJwt from '@fastify/jwt'
 import fastifyCookie from '@fastify/cookie'
 import { authRoutes } from '../modules/authRoutes'
-import { userRoutes } from '../modules/userRoutes'
 import { workspaceRoutes } from '../modules/workspaceRoutes'
 import { agentRoutes } from '../modules/agentRoutes'
 import { executionRoutes } from '../modules/executionRoutes'
@@ -64,7 +63,6 @@ fastify.register(fastifyCookie)
 fastify.register(authRoutes, { prefix: '/api/auth' })
 fastify.register(aiRoutes, { prefix: '/api/ai' })
 fastify.register(botRoutes, { prefix: '/api/bot' })
-fastify.register(userRoutes, { prefix: '/api' })
 fastify.register(workspaceRoutes, { prefix: '/api' })
 fastify.register(agentRoutes, { prefix: '/api' })
 fastify.register(executionRoutes, { prefix: '/api' })

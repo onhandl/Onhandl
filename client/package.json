@@ -50,7 +50,6 @@
     "@xyflow/react": "latest",
     "aos": "^2.3.4",
     "autoprefixer": "^10.4.20",
-    "borgen": "^2.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "1.0.4",
@@ -62,7 +61,6 @@
     "input-otp": "1.4.1",
     "jszip": "^3.10.1",
     "lucide-react": "^0.454.0",
-    "mongoose": "^9.3.2",
     "motion": "^12.38.0",
     "next": "15.1.0",
     "next-themes": "latest",
@@ -76,7 +74,6 @@
     "sonner": "^1.7.1",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
-    "telegraf": "^4.16.3",
     "vaul": "^0.9.6",
     "wagmi": "^2.14.15",
     "zod": "^3.24.1"
