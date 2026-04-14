@@ -12,29 +12,29 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
 import { AgentDetailPanel } from './components/AgentDetailPanel';
-import { UpgradeModal } from '@/components/modals/upgrade-modal';
+import { UpgradePricingModal } from '@/components/modals/upgrade-pricing-modal';
 
 type Tab = 'all' | 'published' | 'drafts' | 'listed';
 
 const TABS: { key: Tab; label: string }[] = [
-  { key: 'all',       label: 'All Agents'    },
-  { key: 'published', label: 'Published'      },
-  { key: 'drafts',    label: 'Drafts'         },
-  { key: 'listed',    label: 'On Marketplace' },
+  { key: 'all', label: 'All Agents' },
+  { key: 'published', label: 'Published' },
+  { key: 'drafts', label: 'Drafts' },
+  { key: 'listed', label: 'On Marketplace' },
 ];
 
 const ease = [0.16, 1, 0.3, 1] as [number, number, number, number];
 
 export default function RevenuePage() {
-  const [agents,       setAgents]      = useState<any[]>([]);
-  const [counts,       setCounts]      = useState({ all: 0, published: 0, drafts: 0, listed: 0 });
-  const [revenueData,  setRevenueData] = useState<any>(null);
-  const [loading,      setLoading]     = useState(true);
-  const [search,       setSearch]      = useState('');
-  const [debouncedQ,   setDebounced]   = useState('');
-  const [activeTab,    setActiveTab]   = useState<Tab>('all');
-  const [selected,     setSelected]    = useState<any | null>(null);
-  const [upgradeOpen,  setUpgradeOpen] = useState(false);
+  const [agents, setAgents] = useState<any[]>([]);
+  const [counts, setCounts] = useState({ all: 0, published: 0, drafts: 0, listed: 0 });
+  const [revenueData, setRevenueData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [debouncedQ, setDebounced] = useState('');
+  const [activeTab, setActiveTab] = useState<Tab>('all');
+  const [selected, setSelected] = useState<any | null>(null);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(search), 350);
@@ -49,15 +49,15 @@ export default function RevenuePage() {
       apiFetch('/agents?status=listed').catch(() => []),
     ]);
     setCounts({
-      all:       Array.isArray(all)       ? all.length       : 0,
+      all: Array.isArray(all) ? all.length : 0,
       published: Array.isArray(published) ? published.length : 0,
-      drafts:    Array.isArray(drafts)    ? drafts.length    : 0,
-      listed:    Array.isArray(listed)    ? listed.length    : 0,
+      drafts: Array.isArray(drafts) ? drafts.length : 0,
+      listed: Array.isArray(listed) ? listed.length : 0,
     });
   }, []);
 
   const fetchRevenueOverview = useCallback(async () => {
-    apiFetch('/agents/revenue').then(setRevenueData).catch(() => {});
+    apiFetch('/agents/revenue').then(setRevenueData).catch(() => { });
   }, []);
 
   const fetchAgents = useCallback(async () => {
@@ -87,7 +87,7 @@ export default function RevenuePage() {
   // Build combined chart data: group chartData from revenue endpoint by date
   const combinedChart = (revenueData?.chartData || []).map((d: any) => ({
     date: d.date,
-    Revenue:   d.revenue,
+    Revenue: d.revenue,
     Purchases: d.purchases,
   }));
 
@@ -108,10 +108,10 @@ export default function RevenuePage() {
         {/* Top stats: views / revenue / calls / upgrade */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {[
-            { label: 'Total Views',    value: (revenueData?.totalViews     ?? 0).toLocaleString(), icon: Eye,          color: 'text-blue-400',    bg: 'bg-blue-500/10'    },
-            { label: 'Total Revenue',  value: `$${(revenueData?.totalRevenue ?? 0).toFixed(2)}`,   icon: TrendingUp,   color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-            { label: 'Total Purchases',value: (revenueData?.totalPurchases  ?? 0).toLocaleString(), icon: ShoppingCart, color: 'text-violet-400',  bg: 'bg-violet-500/10'  },
-            { label: 'Upgrade Plan',   value: 'Unlock more',                                        icon: Crown,        color: 'text-amber-500',   bg: 'bg-amber-500/10', action: () => setUpgradeOpen(true) },
+            { label: 'Total Views', value: (revenueData?.totalViews ?? 0).toLocaleString(), icon: Eye, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+            { label: 'Total Revenue', value: `$${(revenueData?.totalRevenue ?? 0).toFixed(2)}`, icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+            { label: 'Total Purchases', value: (revenueData?.totalPurchases ?? 0).toLocaleString(), icon: ShoppingCart, color: 'text-violet-400', bg: 'bg-violet-500/10' },
+            { label: 'Upgrade Plan', value: 'Unlock more', icon: Crown, color: 'text-amber-500', bg: 'bg-amber-500/10', action: () => setUpgradeOpen(true) },
           ].map(({ label, value, icon: Icon, color, bg, action }, i) => (
             <motion.div key={label}
               initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
@@ -161,8 +161,8 @@ export default function RevenuePage() {
                 <YAxis tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 11 }} />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Area type="monotone" dataKey="Revenue"   stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#revGrad)"    />
-                <Area type="monotone" dataKey="Purchases" stroke="#8b5cf6"              strokeWidth={2} fill="url(#purchGrad2)" />
+                <Area type="monotone" dataKey="Revenue" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#revGrad)" />
+                <Area type="monotone" dataKey="Purchases" stroke="#8b5cf6" strokeWidth={2} fill="url(#purchGrad2)" />
               </AreaChart>
             </ResponsiveContainer>
           )}
@@ -178,17 +178,15 @@ export default function RevenuePage() {
           <div className="flex gap-0.5 bg-muted/30 p-1 rounded-xl border border-border/40 flex-wrap">
             {TABS.map(({ key, label }) => (
               <button key={key} onClick={() => handleTabChange(key)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
-                  activeTab === key
-                    ? 'bg-card text-foreground shadow-sm border border-border/40'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap ${activeTab === key
+                  ? 'bg-card text-foreground shadow-sm border border-border/40'
+                  : 'text-muted-foreground hover:text-foreground'
+                  }`}
                 title={`${counts[key]} agents`}
               >
                 {label}
-                <span className={`inline-flex items-center justify-center min-w-[18px] h-[18px] text-[10px] font-bold rounded-full px-1 ${
-                  activeTab === key ? 'bg-primary/15 text-primary' : 'bg-muted/60 text-muted-foreground'
-                }`}>
+                <span className={`inline-flex items-center justify-center min-w-[18px] h-[18px] text-[10px] font-bold rounded-full px-1 ${activeTab === key ? 'bg-primary/15 text-primary' : 'bg-muted/60 text-muted-foreground'
+                  }`}>
                   {counts[key]}
                 </span>
               </button>
@@ -240,9 +238,8 @@ export default function RevenuePage() {
                             <Store className="w-2.5 h-2.5" /> Listed
                           </span>
                         )}
-                        <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                          isPublished ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
-                        }`}>
+                        <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${isPublished ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                          }`}>
                           {isPublished ? <CheckCircle2 className="w-2.5 h-2.5" /> : <Circle className="w-2.5 h-2.5" />}
                           {isPublished ? 'Live' : 'Draft'}
                         </span>
@@ -278,7 +275,7 @@ export default function RevenuePage() {
       </div>
 
       {selected && <AgentDetailPanel agent={selected} onClose={() => setSelected(null)} />}
-      <UpgradeModal isOpen={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
+      <UpgradePricingModal isOpen={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
     </div>
   );
 }

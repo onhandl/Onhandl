@@ -4,29 +4,29 @@ import { useState, useEffect } from 'react';
 import { apiFetch } from '@/lib/api-client';
 import { useToast } from '@/components/ui';
 import { Loader2, User, KeyRound, CreditCard, Bell, Coins, ChevronRight } from 'lucide-react';
-import { UpgradeModal } from '@/components/modals/upgrade-modal';
-import { ProfileSection }         from './components/profile-section';
-import { BillingSection }         from './components/billing-section';
-import { ApiKeysCard }            from './components/api-keys-card';
-import { PaymentMethodsCard }     from './components/payment-methods-card';
-import { NotificationsCard }      from './components/notifications-card';
+import { UpgradePricingModal } from '@/components/modals/upgrade-pricing-modal';
+import { ProfileSection } from './components/profile-section';
+import { BillingSection } from './components/billing-section';
+import { ApiKeysCard } from './components/api-keys-card';
+import { PaymentMethodsCard } from './components/payment-methods-card';
+import { NotificationsCard } from './components/notifications-card';
 
 type Section = 'profile' | 'billing' | 'api-keys' | 'payments' | 'notifications';
 
 const NAV: { key: Section; label: string; icon: React.ElementType; description: string }[] = [
-  { key: 'profile',       label: 'Profile',           icon: User,        description: 'Your account info'       },
-  { key: 'billing',       label: 'Billing & Tokens',  icon: Coins,       description: 'Plan, usage & upgrade'   },
-  { key: 'api-keys',      label: 'AI Provider Keys',  icon: KeyRound,    description: 'Gemini, OpenAI, Ollama'   },
-  { key: 'payments',      label: 'Payment Methods',   icon: CreditCard,  description: 'Stripe & crypto wallets'  },
-  { key: 'notifications', label: 'Notifications',     icon: Bell,        description: 'Alerts & digests'         },
+  { key: 'profile', label: 'Profile', icon: User, description: 'Your account info' },
+  { key: 'billing', label: 'Billing & Tokens', icon: Coins, description: 'Plan, usage & upgrade' },
+  { key: 'api-keys', label: 'AI Provider Keys', icon: KeyRound, description: 'Gemini, OpenAI, Ollama' },
+  { key: 'payments', label: 'Payment Methods', icon: CreditCard, description: 'Stripe & crypto wallets' },
+  { key: 'notifications', label: 'Notifications', icon: Bell, description: 'Alerts & digests' },
 ];
 
 export default function SettingsPage() {
-  const [loading,      setLoading]     = useState(true);
-  const [active,       setActive]      = useState<Section>('profile');
-  const [upgradeOpen,  setUpgradeOpen] = useState(false);
-  const [tokenInfo,    setTokenInfo]   = useState<{ tokens: number; plan: string } | null>(null);
-  const [user,         setUser]        = useState({ username: '', email: '', whatsapp: '', telegramUsername: '', avatarUrl: '' });
+  const [loading, setLoading] = useState(true);
+  const [active, setActive] = useState<Section>('profile');
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [tokenInfo, setTokenInfo] = useState<{ tokens: number; plan: string } | null>(null);
+  const [user, setUser] = useState({ username: '', email: '', whatsapp: '', telegramUsername: '', avatarUrl: '' });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -65,11 +65,10 @@ export default function SettingsPage() {
             <div className="flex md:hidden gap-2 overflow-x-auto pb-2 scrollbar-none">
               {NAV.map(({ key, label, icon: Icon }) => (
                 <button key={key} onClick={() => setActive(key)}
-                  className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
-                    active === key
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted/60'
-                  }`}
+                  className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${active === key
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted/60'
+                    }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
                   {label}
@@ -81,17 +80,14 @@ export default function SettingsPage() {
             <nav className="hidden md:flex flex-col rounded-2xl border border-border/60 bg-card overflow-hidden">
               {NAV.map(({ key, label, icon: Icon, description }, idx) => (
                 <button key={key} onClick={() => setActive(key)}
-                  className={`group flex items-center gap-3 px-4 py-3.5 text-left transition-colors cursor-pointer ${
-                    idx !== NAV.length - 1 ? 'border-b border-border/40' : ''
-                  } ${
-                    active === key
+                  className={`group flex items-center gap-3 px-4 py-3.5 text-left transition-colors cursor-pointer ${idx !== NAV.length - 1 ? 'border-b border-border/40' : ''
+                    } ${active === key
                       ? 'bg-primary/8 text-foreground'
                       : 'hover:bg-muted/30 text-muted-foreground hover:text-foreground'
-                  }`}
+                    }`}
                 >
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${
-                    active === key ? 'bg-primary/15' : 'bg-muted/40 group-hover:bg-muted/60'
-                  }`}>
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${active === key ? 'bg-primary/15' : 'bg-muted/40 group-hover:bg-muted/60'
+                    }`}>
                     <Icon className={`w-4 h-4 ${active === key ? 'text-primary' : ''}`} />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -134,7 +130,7 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <UpgradeModal isOpen={upgradeOpen} onClose={() => setUpgradeOpen(false)} currentPlan={tokenInfo?.plan} />
+      <UpgradePricingModal isOpen={upgradeOpen} onClose={() => setUpgradeOpen(false)} currentPlan={tokenInfo?.plan} />
     </div>
   );
 }
