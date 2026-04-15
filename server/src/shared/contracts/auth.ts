@@ -1,20 +1,23 @@
-/**
- * Shared auth contracts — imported by controllers, services, and the auth plugin.
- * Framework-agnostic; does NOT import Fastify or Express types.
- */
+import '@fastify/jwt';
 
-/** The decoded JWT payload attached to every authenticated request. */
+/**
+ * Authenticated user payload attached by request.jwtVerify()
+ *
+ * Keep this minimal and stable.
+ * Only include fields that are actually present in your JWT payload
+ * or returned by formatUser.
+ */
 export interface AuthenticatedUser {
-    id: string;
-    username: string;
+  id: string;
+  username?: string;
+  email?: string;
+  isAdmin?: boolean;
+  role?: string;
 }
 
-/** Augment @fastify/jwt so request.user is typed everywhere. */
 declare module '@fastify/jwt' {
-    interface FastifyJWT {
-        /** shape of the signed payload */
-        payload: AuthenticatedUser;
-        /** shape of request.user after jwtVerify */
-        user: AuthenticatedUser;
-    }
+  interface FastifyJWT {
+    payload: AuthenticatedUser;
+    user: AuthenticatedUser;
+  }
 }

@@ -1,42 +1,55 @@
+import fp from 'fastify-plugin';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-
-// Import module augmentation side-effect (types only)
 import '../../shared/contracts/auth';
 
-/**
- * Auth Plugin
- *
- * Registers `fastify.authenticate` — a preHandler/onRequest hook that:
- * 1. Calls `request.jwtVerify()` which reads the `auth_token` cookie
- *    (configured in the JWT plugin registration in app.ts)
- * 2. Populates `request.user: AuthenticatedUser` automatically
- * 3. Throws 401 on missing / invalid / expired token
- *
- * Usage in routes:
- *   fastify.get('/protected', { onRequest: [fastify.authenticate] }, handler)
- *
- * Inside handler:
- *   request.user.id       // string
- *   request.user.username // string
- */
-async function authPlugin(fastify: FastifyInstance) {
-    fastify.decorate(
-        'authenticate',
-        async function authenticate(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-            try {
-                await request.jwtVerify();
-            } catch (err) {
-                reply.send(err); // @fastify/jwt sends a 401 with the correct body
-            }
+async function authPlugin(fastify: FastifyInstance): Promise<void> {
+  fastify.decorate(
+    'authenticate',
+    async function authenticate(
+      request: FastifyRequest,
+      reply: FastifyReply
+    ): Promise<void> {
+      try {
+        await request.jwtVerify();
+      } catch {
+        return reply.code(401).send({ error: 'Unauthorized' });
+      }
+    }
+  );
+
+  fastify.decorate(
+    'authorizeAdmin',
+    async function authorizeAdmin(
+      request: FastifyRequest,
+      reply: FastifyReply
+    ): Promise<void> {
+      try {
+        await request.jwtVerify();
+
+        if (!request.user?.isAdmin) {
+          return reply.code(403).send({ error: 'Admin access required' });
         }
-    );
+      } catch {
+        return reply.code(401).send({ error: 'Unauthorized' });
+      }
+    }
+  );
 }
 
-export default authPlugin;
+export default fp(authPlugin, {
+  name: 'auth-plugin',
+});
 
-// Augment FastifyInstance so TypeScript knows about fastify.authenticate
 declare module 'fastify' {
-    interface FastifyInstance {
-        authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
-    }
+  interface FastifyInstance {
+    authenticate: (
+      request: FastifyRequest,
+      reply: FastifyReply
+    ) => Promise<void>;
+
+    authorizeAdmin: (
+      request: FastifyRequest,
+      reply: FastifyReply
+    ) => Promise<void>;
+  }
 }

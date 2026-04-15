@@ -1,6 +1,9 @@
 import { AgentDefinition } from '../../infrastructure/database/models/AgentDefinition';
 import { Workspace } from '../../infrastructure/database/models/Workspace';
 import { Purchase } from '../../infrastructure/database/models/Purchase';
+import { User } from '../../infrastructure/database/models/User';
+import { Review } from '../../infrastructure/database/models/Review';
+import mongoose from 'mongoose';
 
 export const MarketplaceRepository = {
     async listPublished(filter: Record<string, unknown>, skip: number, limit: number) {
@@ -56,5 +59,41 @@ export const MarketplaceRepository = {
         return Purchase.find({ buyerId })
             .populate('agentId', 'name description marketplace')
             .sort({ createdAt: -1 });
+    },
+    async incrementCreatorProfileViews(creatorId: string, shouldIncrement: boolean) {
+        return User.findByIdAndUpdate(
+            creatorId,
+            shouldIncrement ? { $inc: { profileViews: 1 } } : {},
+            { new: true }
+        ).select('username name avatarUrl bio profileViews createdAt');
+    },
+    async findCreatorAgents(creatorId: string) {
+        return AgentDefinition.find({
+            ownerId: new mongoose.Types.ObjectId(creatorId),
+            'marketplace.published': true,
+        })
+            .select('name description agentType marketplace createdAt updatedAt')
+            .sort({ 'marketplace.stats.views': -1 })
+            .lean();
+    },
+    async findCreatorStats(creatorId: string) {
+        const [agents, purchases, reviews] = await Promise.all([
+            AgentDefinition.find({ ownerId: creatorId }).select('name marketplace isDraft'),
+            Purchase.find({ sellerId: new mongoose.Types.ObjectId(creatorId) }),
+            Review.find({
+                agentId: {
+                    $in: (await AgentDefinition.find({ ownerId: creatorId }).select('_id')).map((a) => a._id),
+                },
+            }).select('rating'),
+        ]);
+        return { agents, purchases, reviews };
+    },
+    async updateCreatorProfile(creatorId: string, update: Record<string, any>) {
+        return User.findByIdAndUpdate(creatorId, update, { new: true }).select(
+            'username name avatarUrl bio profileViews'
+        );
+    },
+    async findUserForStats(userId: string) {
+        return User.findById(userId).select('username name avatarUrl bio profileViews createdAt');
     },
 };

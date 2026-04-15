@@ -6,7 +6,6 @@ import {
     createAgent, createAgentFromTemplate, updateAgent, deleteAgent, previewEnhancePersona,
 } from './agent.service';
 import { AgentRepository } from './agent.repository';
-import type { AuthenticatedUser } from '../../shared/contracts/auth';
 
 // ── READ ─────────────────────────────────────────────────────────────────────
 
@@ -16,8 +15,7 @@ export const readAgentRoutes: FastifyPluginAsync = async (fastify) => {
         '/agents',
         { onRequest: [fastify.authenticate] },
         async (request, reply) => {
-            const user = request.user as AuthenticatedUser;
-            return listAgents(user.id, request.query);
+            return listAgents(request.user.id, request.query);
         }
     );
 
@@ -25,8 +23,7 @@ export const readAgentRoutes: FastifyPluginAsync = async (fastify) => {
         '/agents/revenue',
         { onRequest: [fastify.authenticate] },
         async (request, reply) => {
-            const user = request.user as AuthenticatedUser;
-            return getRevenueDashboard(user.id);
+            return getRevenueDashboard(request.user.id);
         }
     );
 
@@ -34,8 +31,7 @@ export const readAgentRoutes: FastifyPluginAsync = async (fastify) => {
         '/agents/plan-status',
         { onRequest: [fastify.authenticate] },
         async (request, reply) => {
-            const user = request.user as AuthenticatedUser;
-            try { return await getPlanStatus(user.id); }
+            try { return await getPlanStatus(request.user.id); }
             catch (e: any) { return reply.code(e.code || 500).send({ error: e.message }); }
         }
     );
@@ -73,9 +69,7 @@ export const createAgentRoutes: FastifyPluginAsync = async (fastify) => {
             try {
                 const { name, persona, agentType = 'operational_agent', chains = [] } = request.body;
                 if (!name || !persona) return reply.code(400).send({ error: 'Name and Persona are required' });
-                // request.user may be undefined if not authenticated — previewEnhancePersona handles null userId
-                const userId = (request.user as AuthenticatedUser | undefined)?.id;
-                return await previewEnhancePersona(name, persona, agentType, chains, userId);
+                return await previewEnhancePersona(name, persona, agentType, chains, request.user?.id);
             } catch (err: any) {
                 return reply.code(500).send({ error: err.message });
             }
@@ -86,9 +80,8 @@ export const createAgentRoutes: FastifyPluginAsync = async (fastify) => {
         '/agents',
         { onRequest: [fastify.authenticate] },
         async (request, reply) => {
-            const user = request.user as AuthenticatedUser;
             try {
-                const agent = await createAgent({ userId: user.id, ...request.body, log: (msg) => request.log.error(msg) });
+                const agent = await createAgent({ userId: request.user.id, ...request.body, log: (msg) => request.log.error(msg) });
                 return reply.code(201).send(agent);
             } catch (err: any) {
                 return reply.code(err.code || 500).send({ error: err.message || 'Internal server error', details: err.details });
@@ -100,9 +93,8 @@ export const createAgentRoutes: FastifyPluginAsync = async (fastify) => {
         '/agents/from-template',
         { onRequest: [fastify.authenticate] },
         async (request, reply) => {
-            const user = request.user as AuthenticatedUser;
             try {
-                return await createAgentFromTemplate(user.id, request.body.templateId, request.body.name);
+                return await createAgentFromTemplate(request.user.id, request.body.templateId, request.body.name);
             } catch (err: any) {
                 return reply.code(err.code || 500).send({ error: err.message || 'Failed to create agent from template' });
             }
@@ -138,7 +130,7 @@ export const updateAgentRoutes: FastifyPluginAsync = async (fastify) => {
         '/agent/query',
         async (request, reply) => {
             const { prompt, agentId, sessionId } = request.body;
-            const userId = (request.user as AuthenticatedUser | undefined)?.id || '60c72b2f9b1d8e1f4c8b4567';
+            const userId = request.user?.id || '60c72b2f9b1d8e1f4c8b4567';
             try {
                 const readable = new Readable({ read() { } });
                 Orchestrator.handleQuery(prompt, agentId, userId, sessionId, readable)

@@ -1,31 +1,23 @@
 import { FastifyInstance } from 'fastify';
-import { SupportTicket } from '../../../infrastructure/database/models/SupportTicket';
-import { requireAdmin } from '../admin.middleware';
+import { AdminService } from '../admin.service';
 
 export function registerSupportHandlers(fastify: FastifyInstance) {
     // GET /api/admin/support-tickets
-    fastify.get('/support-tickets', async (request, reply) => {
-        const auth = await requireAdmin(request, reply, fastify);
-        if (!auth) return;
-
-        const tickets = await SupportTicket.find()
-            .sort({ createdAt: -1 })
-            .lean();
-        return reply.send(tickets);
+    fastify.get('/support-tickets', { onRequest: [fastify.authorizeAdmin] }, async () => {
+        return AdminService.listSupportTickets();
     });
 
     // PATCH /api/admin/support-tickets/:id — update status + notes
-    fastify.patch('/support-tickets/:id', async (request: any, reply) => {
-        const auth = await requireAdmin(request, reply, fastify);
-        if (!auth) return;
-
-        const { status, adminNotes } = request.body as any;
-        const ticket = await SupportTicket.findByIdAndUpdate(
-            request.params.id,
-            { ...(status && { status }), ...(adminNotes !== undefined && { adminNotes }) },
-            { new: true }
-        );
-        if (!ticket) return reply.code(404).send({ error: 'Ticket not found' });
-        return reply.send(ticket);
-    });
+    fastify.patch<{ Params: { id: string }; Body: { status?: string; adminNotes?: string } }>(
+        '/support-tickets/:id',
+        { onRequest: [fastify.authorizeAdmin] },
+        async (request, reply) => {
+            const { status, adminNotes } = request.body;
+            try {
+                return await AdminService.updateSupportTicket(request.params.id, status, adminNotes);
+            } catch (err: any) {
+                return reply.code(err.code || 500).send({ error: err.message });
+            }
+        }
+    );
 }

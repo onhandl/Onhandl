@@ -1,6 +1,5 @@
 import { FastifyPluginAsync } from 'fastify';
 import { PaymentService, CRYPTO_NETWORKS } from './payment.service';
-import type { AuthenticatedUser } from '../../shared/contracts/auth';
 import { ENV } from '../../shared/config/environments';
 
 export const paymentRoutes: FastifyPluginAsync = async (fastify) => {
@@ -8,8 +7,7 @@ export const paymentRoutes: FastifyPluginAsync = async (fastify) => {
     // ── Stripe Connect ────────────────────────────────────────────────────────
 
     fastify.get('/stripe/connect-url', { onRequest: [fastify.authenticate] }, async (request, reply) => {
-        const user = request.user as AuthenticatedUser;
-        try { return PaymentService.getStripeConnectUrl(user.id); }
+        try { return PaymentService.getStripeConnectUrl(request.user.id); }
         catch (e: any) { return reply.code(e.code || 500).send({ error: e.message }); }
     });
 
@@ -21,8 +19,7 @@ export const paymentRoutes: FastifyPluginAsync = async (fastify) => {
     });
 
     fastify.get('/stripe/status', { onRequest: [fastify.authenticate] }, async (request, reply) => {
-        const user = request.user as AuthenticatedUser;
-        return PaymentService.getStripeStatus(user.id);
+        return PaymentService.getStripeStatus(request.user.id);
     });
 
     // ── Stripe Checkout ───────────────────────────────────────────────────────
@@ -30,8 +27,7 @@ export const paymentRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.post<{ Params: { agentId: string } }>(
         '/stripe/checkout/:agentId', { onRequest: [fastify.authenticate] },
         async (request, reply) => {
-            const user = request.user as AuthenticatedUser;
-            try { return PaymentService.createStripeCheckoutSession(user.id, request.params.agentId); }
+            try { return PaymentService.createStripeCheckoutSession(request.user.id, request.params.agentId); }
             catch (e: any) { return reply.code(e.code || 500).send({ error: e.message }); }
         }
     );
@@ -50,8 +46,7 @@ export const paymentRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.post<{ Params: { agentId: string }; Body: { txHash: string; network: string } }>(
         '/crypto/purchase/:agentId', { onRequest: [fastify.authenticate] },
         async (request, reply) => {
-            const user = request.user as AuthenticatedUser;
-            try { return PaymentService.initiateCryptoPurchase(user.id, request.params.agentId, request.body.txHash, request.body.network); }
+            try { return PaymentService.initiateCryptoPurchase(request.user.id, request.params.agentId, request.body.txHash, request.body.network); }
             catch (e: any) { return reply.code(e.code || 500).send({ error: e.message }); }
         }
     );

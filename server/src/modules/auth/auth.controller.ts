@@ -8,10 +8,9 @@ import {
     sendForgotPasswordOtp,
     resetPassword,
 } from './auth.service';
-import type { AuthenticatedUser } from '../../shared/contracts/auth';
 
-function setAuthCookie(fastify: any, reply: any, userId: string, username: string) {
-    const token = fastify.jwt.sign({ id: userId, username });
+function setAuthCookie(fastify: any, reply: any, userId: string, username: string, isAdmin: boolean = false) {
+    const token = fastify.jwt.sign({ id: userId, username, isAdmin });
     const isProd = process.env.NODE_ENV === 'production';
     const cookieOptions: Record<string, unknown> = {
         path: '/',
@@ -53,7 +52,7 @@ export async function authController(fastify: FastifyInstance) {
             if (!email || !code) return reply.code(400).send({ error: 'Email and code are required' });
             try {
                 const user = await verifyEmailOtp(email, code);
-                setAuthCookie(fastify, reply, String(user._id), user.username ?? '');
+                setAuthCookie(fastify, reply, String(user._id), user.username ?? '', user.isAdmin);
                 return reply.code(201).send({
                     success: true,
                     user: { id: user._id, username: user.username, email: user.email },
@@ -71,7 +70,7 @@ export async function authController(fastify: FastifyInstance) {
             if (!password) return reply.code(400).send({ error: 'Password is required' });
             try {
                 const user = await loginUser(username, password);
-                setAuthCookie(fastify, reply, String(user._id), user.username ?? '');
+                setAuthCookie(fastify, reply, String(user._id), user.username ?? '', user.isAdmin);
                 return reply.send({
                     success: true,
                     user: { id: user._id, username: user.username, email: user.email },
@@ -122,9 +121,8 @@ export async function authController(fastify: FastifyInstance) {
         '/me',
         { onRequest: [fastify.authenticate] },
         async (request, reply) => {
-            const user = request.user as AuthenticatedUser;
             try {
-                return reply.send(await UserService.getProfile(user.id, 'username email name whatsapp telegramUsername avatarUrl bio tokens plan planExpiry notifications savedPaymentMethods apiKeys profileViews isAdmin createdAt updatedAt'));
+                return reply.send(await UserService.getProfile(request.user.id, 'username email name whatsapp telegramUsername avatarUrl bio tokens plan planExpiry notifications savedPaymentMethods apiKeys profileViews isAdmin createdAt updatedAt'));
             } catch (e: any) { return reply.code(e.code || 404).send({ error: e.message }); }
         }
     );
@@ -133,8 +131,7 @@ export async function authController(fastify: FastifyInstance) {
         '/me/avatar',
         { onRequest: [fastify.authenticate] },
         async (request, reply) => {
-            const user = request.user as AuthenticatedUser;
-            try { return reply.send(await UserService.getAvatar(user.id)); }
+            try { return reply.send(await UserService.getAvatar(request.user.id)); }
             catch (e: any) { return reply.code(e.code || 404).send({ error: e.message }); }
         }
     );
@@ -143,8 +140,7 @@ export async function authController(fastify: FastifyInstance) {
         '/me',
         { onRequest: [fastify.authenticate] },
         async (request, reply) => {
-            const user = request.user as AuthenticatedUser;
-            try { return reply.send(await UserService.updateProfile(user.id, request.body)); }
+            try { return reply.send(await UserService.updateProfile(request.user.id, request.body)); }
             catch (e: any) { return reply.code(e.code || 404).send({ error: e.message }); }
         }
     );

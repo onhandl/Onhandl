@@ -294,6 +294,9 @@ importers:
       fastify:
         specifier: ^4.26.2
         version: 4.29.1
+      fastify-plugin:
+        specifier: ^5.1.0
+        version: 5.1.0
       mongoose:
         specifier: ^8.2.1
         version: 8.23.0(@aws-sdk/credential-providers@3.1015.0)(socks@2.8.7)

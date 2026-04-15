@@ -1,6 +1,5 @@
 import { FastifyInstance } from 'fastify';
 import { BlogService } from './blog.service';
-import type { AuthenticatedUser } from '../../shared/contracts/auth';
 
 export async function blogRoutes(fastify: FastifyInstance) {
     fastify.get<{ Querystring: { type?: string } }>('/blog', async (request, reply) => {
@@ -19,9 +18,8 @@ export async function blogRoutes(fastify: FastifyInstance) {
     fastify.post<{ Body: { title: string; body: string; tags?: string[] } }>(
         '/blog', { onRequest: [fastify.authenticate] },
         async (request, reply) => {
-            const user = request.user as AuthenticatedUser;
             try {
-                const post = await BlogService.createPost(user.id, user.username, request.body.title, request.body.body, request.body.tags ?? []);
+                const post = await BlogService.createPost(request.user.id, request.user.username ?? '', request.body.title, request.body.body, request.body.tags ?? []);
                 return reply.code(201).send(post);
             } catch (e: any) { return reply.code(e.code || 500).send({ error: e.message }); }
         }
@@ -30,8 +28,7 @@ export async function blogRoutes(fastify: FastifyInstance) {
     fastify.put<{ Params: { id: string }; Body: { title?: string; body?: string; tags?: string[] } }>(
         '/blog/:id', { onRequest: [fastify.authenticate] },
         async (request, reply) => {
-            const user = request.user as AuthenticatedUser;
-            try { return reply.send(await BlogService.updatePost(user.id, request.params.id, request.body)); }
+            try { return reply.send(await BlogService.updatePost(request.user.id, request.params.id, request.body)); }
             catch (e: any) { return reply.code(e.code || 500).send({ error: e.message }); }
         }
     );
@@ -39,8 +36,7 @@ export async function blogRoutes(fastify: FastifyInstance) {
     fastify.delete<{ Params: { id: string } }>(
         '/blog/:id', { onRequest: [fastify.authenticate] },
         async (request, reply) => {
-            const user = request.user as AuthenticatedUser;
-            try { return reply.send(await BlogService.deletePost(user.id, request.params.id)); }
+            try { return reply.send(await BlogService.deletePost(request.user.id, request.params.id)); }
             catch (e: any) { return reply.code(e.code || 500).send({ error: e.message }); }
         }
     );
