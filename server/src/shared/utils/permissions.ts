@@ -1,4 +1,5 @@
 import { AuthContext } from '../contracts/auth';
+import { scopeError } from '../errors';
 
 /**
  * Valid SDK Scopes
@@ -20,8 +21,7 @@ export type SDKScope =
  * Checks if the given auth context has the required scope.
  */
 export function hasScope(auth: AuthContext, requiredScope: SDKScope): boolean {
-    // Users (browser/app) bypass specific API key scope checks for now 
-    // (as they are usually authenticated via standard JWT with full access)
+    // Users (browser/app) bypass specific API key scope checks for now
     if (auth.type === 'user') return true;
 
     if (!auth.scopes || auth.scopes.length === 0) return false;
@@ -33,13 +33,10 @@ export function hasScope(auth: AuthContext, requiredScope: SDKScope): boolean {
 }
 
 /**
- * Throws a formatted error if the context lacks the required scope.
+ * Throws a structured AppError if the context lacks the required scope.
  */
 export function assertScope(auth: AuthContext, requiredScope: SDKScope) {
     if (!hasScope(auth, requiredScope)) {
-        throw {
-            code: 403,
-            message: `Missing required scope: ${requiredScope}`
-        };
+        throw scopeError(requiredScope);
     }
 }

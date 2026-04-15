@@ -9,6 +9,17 @@ import { getUserPlan, assertCanDelete, assertCanReEdit } from '../../shared/util
 
 // ── List & filter ─────────────────────────────────────────────────────────────
 
+export async function getAgentCharacter(id: string) {
+    const agent = await AgentRepository.findById(id);
+    if (!agent) return null;
+    return {
+        agentId: agent._id,
+        name: agent.name,
+        persona: agent.persona,
+        character: agent.character || {},
+    };
+}
+
 export async function listAgents(userId: string, query: { isDraft?: string; status?: string; search?: string }) {
     let workspace = await Workspace.findOne({ ownerId: userId });
     if (!workspace) {
