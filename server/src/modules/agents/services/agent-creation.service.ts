@@ -6,6 +6,7 @@ import { WalletService } from '../../../infrastructure/blockchain/wallet.service
 import { Workspace } from '../../../infrastructure/database/models/Workspace';
 import { User } from '../../../infrastructure/database/models/User';
 import { resolveProviderKeys } from '../../../shared/utils/provider-utils';
+import { getUserPlan, assertAgentLimit, assertTemplateAccess } from '../../../shared/utils/plan-enforcement';
 
 export interface CreateAgentParams {
     userId: string;
@@ -26,11 +27,16 @@ export const AgentCreationService = {
         const { userId, name, description, persona, graph, identities, character,
             isDraft, agentType = 'operational_agent', chains, log } = params;
 
-        const [workspace, user] = await Promise.all([
+        const [workspace, user, planId] = await Promise.all([
             Workspace.findOne({ ownerId: userId }),
             User.findById(userId).select('apiKeys').lean(),
+            getUserPlan(userId),
         ]);
         if (!workspace) throw { code: 404, message: 'No workspace found' };
+
+        // ── Plan enforcement: agent limit ─────────────────────────────────────
+        const currentCount = await AgentRepository.count({ workspaceId: workspace._id });
+        assertAgentLimit(planId, currentCount);
 
         const { provider, apiKey, model } = resolveProviderKeys((user as any)?.apiKeys);
 
@@ -85,11 +91,19 @@ export const AgentCreationService = {
             await workspace.save();
         }
 
-        const user = await User.findById(userId).select('apiKeys').lean();
+        const [user, planId] = await Promise.all([
+            User.findById(userId).select('apiKeys').lean(),
+            getUserPlan(userId),
+        ]);
         const { provider, model } = resolveProviderKeys((user as any)?.apiKeys);
+
+        // ── Plan enforcement: agent limit + template tier ─────────────────────
+        const currentCount = await AgentRepository.count({ workspaceId: workspace._id });
+        assertAgentLimit(planId, currentCount);
 
         const template = AgentTemplateService.getTemplateById(templateId);
         if (!template) throw { code: 404, message: 'Template not found' };
+        assertTemplateAccess(planId, (template as any).tier ?? 'basic');
 
         const agent = await AgentRepository.create({
             ownerId: userId, workspaceId: workspace._id, name,

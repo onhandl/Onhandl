@@ -5,6 +5,7 @@ import { validateCharacter } from '../../core/characters/validator';
 import { Workspace } from '../../infrastructure/database/models/Workspace';
 import { User } from '../../infrastructure/database/models/User';
 import { PLANS, PlanId } from '../../shared/constants/tokens';
+import { getUserPlan, assertCanDelete, assertCanReEdit } from '../../shared/utils/plan-enforcement';
 
 // ── List & filter ─────────────────────────────────────────────────────────────
 
@@ -76,6 +77,7 @@ export async function getPlanStatus(userId: string) {
 
 export interface UpdateAgentParams {
     id: string;
+    userId?: string; // required for plan enforcement
     name?: string;
     description?: string;
     persona?: string;
@@ -91,8 +93,13 @@ export interface UpdateAgentParams {
 }
 
 export async function updateAgent(params: UpdateAgentParams) {
-    const { id, name, description, persona, graph, identities, character,
+    const { id, userId, name, description, persona, graph, identities, character,
         isDraft, provider, apiKey, model, agentType, log } = params;
+
+    if (userId) {
+        const planId = await getUserPlan(userId);
+        assertCanReEdit(planId);
+    }
 
     const agent = await AgentRepository.findById(id);
     if (!agent) throw { code: 404, message: 'Agent not found' };
@@ -132,7 +139,11 @@ export async function updateAgent(params: UpdateAgentParams) {
 
 // ── Delete agent ──────────────────────────────────────────────────────────────
 
-export async function deleteAgent(id: string) {
+export async function deleteAgent(id: string, userId?: string) {
+    if (userId) {
+        const planId = await getUserPlan(userId);
+        assertCanDelete(planId);
+    }
     const agent = await AgentRepository.findByIdAndDelete(id);
     if (!agent) throw { code: 404, message: 'Agent not found' };
     await AgentRepository.deleteGraph(id);

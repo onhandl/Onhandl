@@ -1,5 +1,6 @@
 import { MarketplaceRepository } from './marketplace.repository';
 import { MARKETPLACE_CATEGORIES } from '../../shared/contracts/marketplace';
+import { getUserPlan, assertMarketplacePublish } from '../../shared/utils/plan-enforcement';
 
 export const MarketplaceService = {
     async listAgents(query: {
@@ -70,6 +71,10 @@ export const MarketplaceService = {
     },
 
     async publishListing(id: string, userId: string, data: any) {
+        // ── Plan enforcement: marketplace publishing (Starter+) ──────────────────
+        const planId = await getUserPlan(userId);
+        assertMarketplacePublish(planId);
+
         const { published = true, category = 'Custom', visibility = 'public', pricing, paymentMethods, networkPricing } = data;
 
         if (category && !(MARKETPLACE_CATEGORIES as readonly string[]).includes(category) && category !== 'Custom') {

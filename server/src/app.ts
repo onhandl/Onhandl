@@ -5,52 +5,55 @@ import fastifyCookie from '@fastify/cookie';
 
 import { ENV } from './shared/config/environments';
 import { registerRoutes } from './api/routes';
+
 import authPlugin from './api/plugins/auth.plugin';
 import apiKeyAuthPlugin from './api/plugins/api-key-auth.plugin';
 import rateLimitPlugin from './api/plugins/rate-limit.plugin';
 
-export const app = Fastify({ logger: true });
+import { registerOpenApi } from './api/docs/openapi';
+import { registerScalarDocs } from './api/docs/scalar.controller';
 
-// ── CORS ────────────────────────────────────────────────────────────────────
-app.register(cors, {
+export async function buildApp() {
+  const app = Fastify({ logger: true });
+
+  app.register(cors, {
     origin: (origin: string | undefined, cb: (err: Error | null, allow: boolean) => void) => {
-        if (ENV.NODE_ENV !== 'production') {
-            cb(null, true);
-            return;
-        }
-        if (!origin || ENV.ALLOWED_ORIGINS.includes(origin)) {
-            cb(null, true);
-        } else {
-            cb(new Error('Not allowed by CORS'), false);
-        }
+      if (ENV.NODE_ENV !== 'production') {
+        cb(null, true);
+        return;
+      }
+
+      if (!origin || ENV.ALLOWED_ORIGINS.includes(origin)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Not allowed by CORS'), false);
+      }
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key'],
-});
+  });
 
-// ── PLUGINS ─────────────────────────────────────────────────────────────────
-// cookie must be registered before jwt so jwtVerify can read from cookies
-app.register(fastifyCookie);
-app.register(fastifyJwt, {
+  app.register(fastifyCookie);
+
+  app.register(fastifyJwt, {
     secret: ENV.JWT_SECRET,
-    // Automatically extract token from the auth_token cookie.
-    // Falls back to Authorization: Bearer header if cookie is absent.
     cookie: {
-        cookieName: 'auth_token',
-        signed: false,
+      cookieName: 'auth_token',
+      signed: false,
     },
-});
+  });
 
-// ── AUTH PLUGIN ───────────────────────────────────────────────────────────────
-// Decorates the app with fastify.authenticate (onRequest hook).
-// After jwtVerify, request.user: AuthenticatedUser is available in every handler.
-app.register(authPlugin);
-app.register(apiKeyAuthPlugin);
-app.register(rateLimitPlugin);
+  app.register(authPlugin);
+  app.register(apiKeyAuthPlugin);
+  app.register(rateLimitPlugin);
 
-// ── ROUTES ──────────────────────────────────────────────────────────────────
-app.register(registerRoutes, { prefix: '/api' });
+  await registerOpenApi(app);
+  await registerScalarDocs(app);
 
-// Health check
-app.get('/api/health', async () => ({ status: 'ok' }));
+  app.register(registerRoutes, { prefix: '/api' });
+
+  app.get('/api/health', async () => ({ status: 'ok' }));
+
+  return app;
+}

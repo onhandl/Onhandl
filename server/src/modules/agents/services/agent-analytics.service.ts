@@ -3,9 +3,14 @@ import { AgentRepository } from '../agent.repository';
 import { Purchase } from '../../../infrastructure/database/models/Purchase';
 import { Workspace } from '../../../infrastructure/database/models/Workspace';
 import { build30DayChart } from '../../../shared/utils/chart-utils';
+import { getUserPlan, assertRevenueDashboard, assertAdvancedAnalytics } from '../../../shared/utils/plan-enforcement';
 
 export const AgentAnalyticsService = {
     async getRevenueDashboard(userId: string) {
+        // ── Plan enforcement: revenue dashboard (Pro+) ────────────────────────
+        const planId = await getUserPlan(userId);
+        assertRevenueDashboard(planId);
+
         const sellerOid = new mongoose.Types.ObjectId(userId);
         const workspace = await Workspace.findOne({ ownerId: sellerOid });
         if (!workspace) return { agents: [], totalViews: 0, totalPurchases: 0, totalRevenue: 0, chartData: [] };
@@ -35,7 +40,13 @@ export const AgentAnalyticsService = {
         return { agents: agentBreakdown, totalViews, totalPurchases, totalRevenue, chartData };
     },
 
-    async getAgentStats(agentId: string) {
+    async getAgentStats(agentId: string, userId?: string) {
+        // ── Plan enforcement: advanced analytics (Pro+) ───────────────────────
+        if (userId) {
+            const planId = await getUserPlan(userId);
+            assertAdvancedAnalytics(planId);
+        }
+
         const agent = await AgentRepository.findById(agentId);
         if (!agent) throw { code: 404, message: 'Agent not found' };
 

@@ -41,7 +41,7 @@ export const readAgentRoutes: FastifyPluginAsync = async (fastify) => {
         '/agents/:id/stats',
         { onRequest: [fastify.authenticate] },
         async (request, reply) => {
-            try { return await AgentAnalyticsService.getAgentStats(request.params.id); }
+            try { return await AgentAnalyticsService.getAgentStats(request.params.id, request.user.id); }
             catch (e: any) { return reply.code(e.code || 500).send({ error: e.message }); }
         }
     );
@@ -109,18 +109,19 @@ export const updateAgentRoutes: FastifyPluginAsync = async (fastify) => {
 
     fastify.put<{ Params: { id: string }; Body: { name?: string; description?: string; persona?: string; graph?: any; identities?: any; character?: any; isDraft?: boolean; provider?: string; apiKey?: string; model?: string; agentType?: string } }>(
         '/agents/:id',
+        { onRequest: [fastify.authenticate] },
         async (request, reply) => {
             try {
-                return await updateAgent({ id: request.params.id, ...request.body, log: (msg) => request.log.error(msg) });
+                return await updateAgent({ id: request.params.id, userId: request.user.id, ...request.body, log: (msg) => request.log.error(msg) });
             } catch (err: any) {
                 return reply.code(err.code || 500).send({ error: err.message || 'Failed to update agent', details: err.details });
             }
         }
     );
 
-    fastify.delete<{ Params: { id: string } }>('/agents/:id', async (request, reply) => {
+    fastify.delete<{ Params: { id: string } }>('/agents/:id', { onRequest: [fastify.authenticate] }, async (request, reply) => {
         try {
-            await deleteAgent(request.params.id);
+            await deleteAgent(request.params.id, request.user.id);
             return { message: 'Agent and associated data deleted successfully' };
         } catch (err: any) {
             return reply.code(err.code || 500).send({ error: err.message || 'Failed to delete agent' });

@@ -18,6 +18,13 @@ interface Plan {
     nodeLimit: number;          // max connected nodes per agent (-1 = unlimited)
     canDelete: boolean;
     canReEdit: boolean;
+    templatesAccess: 'basic' | 'all';
+    canPublishMarketplace: boolean;
+    canAccessRevenueDashboard: boolean;
+    canAccessAdvancedAnalytics: boolean;
+    canUseCustomIntegrations: boolean;
+    hasSlaGuarantees: boolean;
+    welcomeTokens?: number;
     tokenRefillMonthly: number; // tokens granted each month
     features: string[];
 }
@@ -31,6 +38,13 @@ export const PLANS: Record<PlanId, Plan> = {
         nodeLimit: -1,
         canDelete: false,
         canReEdit: false,
+        templatesAccess: 'basic',
+        canPublishMarketplace: false,
+        canAccessRevenueDashboard: false,
+        canAccessAdvancedAnalytics: false,
+        canUseCustomIntegrations: false,
+        hasSlaGuarantees: false,
+        welcomeTokens: 1_000,
         tokenRefillMonthly: 500,
         features: [
             'Up to 3 agents',
@@ -49,6 +63,12 @@ export const PLANS: Record<PlanId, Plan> = {
         nodeLimit: -1,
         canDelete: true,
         canReEdit: true,
+        templatesAccess: 'all',
+        canPublishMarketplace: true,
+        canAccessRevenueDashboard: false,
+        canAccessAdvancedAnalytics: false,
+        canUseCustomIntegrations: false,
+        hasSlaGuarantees: false,
         tokenRefillMonthly: 5_000,
         features: [
             'Up to 10 agents',
@@ -68,6 +88,12 @@ export const PLANS: Record<PlanId, Plan> = {
         nodeLimit: -1,
         canDelete: true,
         canReEdit: true,
+        templatesAccess: 'all',
+        canPublishMarketplace: true,
+        canAccessRevenueDashboard: true,
+        canAccessAdvancedAnalytics: true,
+        canUseCustomIntegrations: false,
+        hasSlaGuarantees: false,
         tokenRefillMonthly: 25_000,
         features: [
             'Up to 100 agents',
@@ -77,6 +103,7 @@ export const PLANS: Record<PlanId, Plan> = {
             'Priority support',
             'Custom personas',
             'Analytics dashboard',
+            'Revenue dashboard',
             'Embed & PWA export',
         ],
     },
@@ -88,6 +115,12 @@ export const PLANS: Record<PlanId, Plan> = {
         nodeLimit: -1,
         canDelete: true,
         canReEdit: true,
+        templatesAccess: 'all',
+        canPublishMarketplace: true,
+        canAccessRevenueDashboard: true,
+        canAccessAdvancedAnalytics: true,
+        canUseCustomIntegrations: true,
+        hasSlaGuarantees: true,
         tokenRefillMonthly: 100_000,
         features: [
             'Unlimited agents',
@@ -97,7 +130,9 @@ export const PLANS: Record<PlanId, Plan> = {
             'Dedicated support',
             'White-label embeds',
             'Revenue dashboard',
-            'Custom billing',
+            'Advanced analytics',
+            'Custom integrations',
+            'SLA guarantees',
         ],
     },
     enterprise: {
@@ -108,6 +143,12 @@ export const PLANS: Record<PlanId, Plan> = {
         nodeLimit: -1,
         canDelete: true,
         canReEdit: true,
+        templatesAccess: 'all',
+        canPublishMarketplace: true,
+        canAccessRevenueDashboard: true,
+        canAccessAdvancedAnalytics: true,
+        canUseCustomIntegrations: true,
+        hasSlaGuarantees: true,
         tokenRefillMonthly: -1, // custom
         features: [
             'Unlimited agents',
@@ -128,6 +169,12 @@ export const PLANS: Record<PlanId, Plan> = {
         nodeLimit: -1,
         canDelete: true,
         canReEdit: true,
+        templatesAccess: 'all',
+        canPublishMarketplace: true,
+        canAccessRevenueDashboard: true,
+        canAccessAdvancedAnalytics: true,
+        canUseCustomIntegrations: true,
+        hasSlaGuarantees: true,
         tokenRefillMonthly: 100_000,
         features: [
             'Unlimited agents',
@@ -135,6 +182,7 @@ export const PLANS: Record<PlanId, Plan> = {
             '100,000 tokens / month',
             'Dedicated support',
             'Revenue dashboard',
+            'Custom integrations',
         ],
     },
 };
