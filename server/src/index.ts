@@ -23,6 +23,7 @@ import { userSettingsRoutes } from '../modules/userSettingsRoutes'
 import { reviewRoutes } from '../modules/reviewRoutes'
 import { creatorRoutes } from '../modules/creatorRoutes'
 import { mcpRoutes } from '../modules/mcp/routes'
+import { simulateRoutes } from '../modules/simulateRoutes'
 import { syncBlockchainToolsToDb } from '../services/ToolSyncer'
 import { ENV } from '../lib/environments'
 import { startWorkers } from '../workers/agenda'
@@ -72,6 +73,7 @@ fastify.register(userSettingsRoutes, { prefix: '/api/auth' })
 fastify.register(reviewRoutes, { prefix: '/api' })
 fastify.register(creatorRoutes, { prefix: '/api' })
 fastify.register(mcpRoutes, { prefix: '/mcp' })
+fastify.register(simulateRoutes, { prefix: '/api/simulate' })
 
 fastify.get('/api/health', async () => ({ status: 'ok' }))
 
