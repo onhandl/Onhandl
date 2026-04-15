@@ -16,3 +16,4 @@ export * from './params';
 export * from './query';
 export * from './responses';
 export * from './entities';
+export * from './user';
