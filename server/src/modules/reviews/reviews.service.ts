@@ -7,9 +7,8 @@ export const ReviewService = {
             throw Object.assign(new Error('Rating must be between 1 and 5'), { code: 400 });
         }
         const reviewerId = new mongoose.Types.ObjectId(userId);
-        const purchase = await ReviewRepository.hasPurchased(agentId, reviewerId);
-        if (!purchase) throw Object.assign(new Error('Only verified buyers can leave a review'), { code: 403 });
 
+        // Verified buyer check removed as part of payment system refactor
         const existing = await ReviewRepository.findOne({ agentId, reviewerId });
         if (existing) {
             existing.rating = rating;
@@ -42,12 +41,9 @@ export const ReviewService = {
 
     async getMyReview(userId: string, agentId: string) {
         const reviewerId = new mongoose.Types.ObjectId(userId);
-        const [review, purchase] = await Promise.all([
-            ReviewRepository.findOneLean({ agentId, reviewerId }),
-            ReviewRepository.hasPurchasedLean(agentId, reviewerId),
-        ]);
+        const review = await ReviewRepository.findOneLean({ agentId, reviewerId });
         return {
-            canReview: !!purchase,
+            canReview: true, // Everyone can review for now as per refactor
             hasReviewed: !!review,
             existingReview: review ? { rating: (review as any).rating, comment: (review as any).comment } : null,
         };

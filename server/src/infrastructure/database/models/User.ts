@@ -9,7 +9,6 @@ interface IUser extends Document {
     name?: string;
     whatsapp?: string;
     telegramUsername?: string;
-    stripeAccountId?: string;
     avatarUrl?: string;
     bio?: string;
     profileViews: number;
@@ -21,7 +20,6 @@ interface IUser extends Document {
     planBillingCycle?: BillingCycle;
     notifications?: { telegram: boolean; dailySummaries: boolean; email: boolean };
     savedPaymentMethods?: {
-        stripe?: { stripeAccountId?: string; enabled: boolean };
         crypto: Array<{ label: string; network: string; walletAddress: string; asset: string }>;
     };
     apiKeys?: {
@@ -45,10 +43,9 @@ const UserSchema: Schema = new Schema(
         name: { type: String },
         whatsapp: { type: String },
         telegramUsername: { type: String },
-        stripeAccountId: { type: String },
-        avatarUrl:       { type: String, default: '' },
-        bio:             { type: String, maxlength: 500 },
-        profileViews:    { type: Number, default: 0 },
+        avatarUrl: { type: String, default: '' },
+        bio: { type: String, maxlength: 500 },
+        profileViews: { type: Number, default: 0 },
         isEmailVerified: { type: Boolean, default: false },
         isAdmin: { type: Boolean, default: false },
         tokens: { type: Number, default: 0 },
@@ -56,26 +53,25 @@ const UserSchema: Schema = new Schema(
         planExpiry: { type: Date },
         planBillingCycle: { type: String, enum: ['monthly', 'quarterly', 'yearly'] },
         notifications: {
-            telegram:       { type: Boolean, default: false },
+            telegram: { type: Boolean, default: false },
             dailySummaries: { type: Boolean, default: false },
-            email:          { type: Boolean, default: true },
+            email: { type: Boolean, default: true },
         },
         savedPaymentMethods: {
-            stripe: { stripeAccountId: { type: String }, enabled: { type: Boolean, default: false } },
             crypto: [{
-                label:         { type: String },
-                network:       { type: String },
+                label: { type: String },
+                network: { type: String },
                 walletAddress: { type: String },
-                asset:         { type: String },
+                asset: { type: String },
             }],
         },
         apiKeys: {
-            gemini:        { type: String },
-            openai:        { type: String },
+            gemini: { type: String },
+            openai: { type: String },
             openaiBaseUrl: { type: String },
-            openaiModel:   { type: String },
+            openaiModel: { type: String },
             ollamaBaseUrl: { type: String },
-            ollamaModel:   { type: String },
+            ollamaModel: { type: String },
         },
     },
     { timestamps: true }

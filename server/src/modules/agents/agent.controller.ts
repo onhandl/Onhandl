@@ -5,7 +5,6 @@ import {
     listAgents, getAgentWithGraph, getAgentCharacter, getPlanStatus, updateAgent, deleteAgent,
 } from './agent.service';
 import { AgentCreationService } from './services/agent-creation.service';
-import { AgentAnalyticsService } from './services/agent-analytics.service';
 import { AgentRepository } from './agent.repository';
 import {
     cookieAuthSecurity, idParamSchema, agentIdParamSchema, agentSchema, standardErrorResponses,
@@ -39,31 +38,6 @@ export const readAgentRoutes: FastifyPluginAsync = async (fastify) => {
         async (request) => listAgents(request.user.id, request.query)
     );
 
-    fastify.get('/agents/revenue', {
-        onRequest: [fastify.authenticate],
-        schema: {
-            tags: ['Agents'],
-            summary: 'Get revenue dashboard',
-            description: 'Returns marketplace revenue data. **Plan restriction**: Pro plan or above required.',
-            security: [cookieAuthSecurity],
-            response: {
-                200: {
-                    description: 'Revenue dashboard',
-                    type: 'object',
-                    properties: {
-                        totalRevenue: { type: 'number' },
-                        activeSubscribers: { type: 'number' },
-                        mrr: { type: 'number' },
-                        recentTransactions: { type: 'array', items: { type: 'object', additionalProperties: true } }
-                    }
-                },
-                ...standardErrorResponses([401, 403]),
-            },
-        },
-    }, async (request, reply) => {
-        try { return await AgentAnalyticsService.getRevenueDashboard(request.user.id); }
-        catch (e: any) { return reply.code(e.code || 500).send({ error: e.message }); }
-    });
 
     fastify.get('/agents/plan-status', {
         onRequest: [fastify.authenticate],
@@ -91,32 +65,6 @@ export const readAgentRoutes: FastifyPluginAsync = async (fastify) => {
         catch (e: any) { return reply.code(e.code || 500).send({ error: e.message }); }
     });
 
-    fastify.get<{ Params: { id: string } }>('/agents/:id/stats', {
-        onRequest: [fastify.authenticate],
-        schema: {
-            tags: ['Agents'],
-            summary: 'Get agent analytics stats',
-            description: 'Returns analytics stats for a specific agent. **Plan restriction**: Pro plan or above required.',
-            security: [cookieAuthSecurity],
-            params: agentIdParamSchema(),
-            response: {
-                200: {
-                    description: 'Agent stats',
-                    type: 'object',
-                    properties: {
-                        views: { type: 'number' },
-                        executions: { type: 'number' },
-                        successRate: { type: 'number' },
-                        avgExecutionTime: { type: 'number' },
-                    }
-                },
-                ...standardErrorResponses([401, 403, 404]),
-            },
-        },
-    }, async (request, reply) => {
-        try { return await AgentAnalyticsService.getAgentStats(request.params.id, request.user.id); }
-        catch (e: any) { return reply.code(e.code || 500).send({ error: e.message }); }
-    });
 
     fastify.get<{ Params: { id: string } }>('/agents/:id', {
         onRequest: [fastify.authenticate],

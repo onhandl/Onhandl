@@ -27,14 +27,8 @@ export const ENV = {
     //  Leave blank for local dev (cookie scopes to localhost automatically).
     COOKIE_DOMAIN: process.env.COOKIE_DOMAIN || '',
 
-    // Stripe (optional for now as we are yet to integrate )
-    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || '',
-    STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || '',
-    STRIPE_CLIENT_ID: process.env.STRIPE_CLIENT_ID || '',
-    STRIPE_REDIRECT_URI:
-        process.env.STRIPE_REDIRECT_URI || 'http://localhost:3001/api/payments/stripe/callback',
     // Fiber — platform managed node (optional; agents can supply their own)
-    FIBER_NODE_URL:   process.env.FIBER_NODE_URL   || 'http://localhost:8227',
+    FIBER_NODE_URL: process.env.FIBER_NODE_URL || 'http://localhost:8227',
     FIBER_AUTH_TOKEN: process.env.FIBER_AUTH_TOKEN || '',
 };
 

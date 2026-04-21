@@ -26,12 +26,14 @@ export interface JwtAuthContext {
     userId: string;
     workspaceId?: string;
     user?: AuthenticatedUser;
+    scopes?: string[];
 }
 
 export interface TerminalAuthContext {
     type: 'terminal';
     userId: string;
     workspaceId?: string;
+    scopes?: string[];
 }
 
 export type AuthContext = JwtAuthContext | ApiKeyAuthContext | TerminalAuthContext;

@@ -1,6 +1,5 @@
 import { AgentDefinition } from '../../infrastructure/database/models/AgentDefinition';
 import { Workspace } from '../../infrastructure/database/models/Workspace';
-import { Purchase } from '../../infrastructure/database/models/Purchase';
 import { User } from '../../infrastructure/database/models/User';
 import { Review } from '../../infrastructure/database/models/Review';
 import mongoose from 'mongoose';
@@ -34,31 +33,11 @@ export const MarketplaceRepository = {
     async findById(id: string) {
         return AgentDefinition.findById(id);
     },
-    async createProxy(data: Record<string, unknown>) {
-        return AgentDefinition.create(data);
-    },
-    async incrementPurchaseCount(id: string) {
-        return AgentDefinition.updateOne({ _id: id }, { $inc: { 'marketplace.stats.purchases': 1 } });
-    },
     async findOwnerWorkspace(agentWorkspaceId: unknown, ownerId: string) {
         return Workspace.findOne({ _id: agentWorkspaceId, ownerId });
     },
     async findBuyerWorkspace(ownerId: string) {
         return Workspace.findOne({ ownerId });
-    },
-    async findExistingPurchase(agentId: unknown, buyerId: string) {
-        return Purchase.findOne({ agentId, buyerId, status: 'confirmed' });
-    },
-    async createPurchase(data: Record<string, unknown>) {
-        return Purchase.create(data);
-    },
-    async findPurchaseByStripeSession(sessionId: string) {
-        return Purchase.findOneAndUpdate({ stripeSessionId: sessionId }, { status: 'confirmed' });
-    },
-    async findUserPurchases(buyerId: string) {
-        return Purchase.find({ buyerId })
-            .populate('agentId', 'name description marketplace')
-            .sort({ createdAt: -1 });
     },
     async incrementCreatorProfileViews(creatorId: string, shouldIncrement: boolean) {
         return User.findByIdAndUpdate(
@@ -77,16 +56,15 @@ export const MarketplaceRepository = {
             .lean();
     },
     async findCreatorStats(creatorId: string) {
-        const [agents, purchases, reviews] = await Promise.all([
+        const [agents, reviews] = await Promise.all([
             AgentDefinition.find({ ownerId: creatorId }).select('name marketplace isDraft'),
-            Purchase.find({ sellerId: new mongoose.Types.ObjectId(creatorId) }),
             Review.find({
                 agentId: {
                     $in: (await AgentDefinition.find({ ownerId: creatorId }).select('_id')).map((a) => a._id),
                 },
             }).select('rating'),
         ]);
-        return { agents, purchases, reviews };
+        return { agents, reviews };
     },
     async updateCreatorProfile(creatorId: string, update: Record<string, any>) {
         return User.findByIdAndUpdate(creatorId, update, { new: true }).select(

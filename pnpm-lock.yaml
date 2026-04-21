@@ -343,6 +343,9 @@ importers:
       knip:
         specifier: ^6.4.1
         version: 6.4.1(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)
+      ts-node:
+        specifier: ^10.9.2
+        version: 10.9.2(@types/node@20.19.37)(typescript@5.9.3)
       tsx:
         specifier: ^4.7.1
         version: 4.21.0

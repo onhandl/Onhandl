@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import { Review } from '../../infrastructure/database/models/Review';
-import { Purchase } from '../../infrastructure/database/models/Purchase';
 import { AgentDefinition } from '../../infrastructure/database/models/AgentDefinition';
 
 export const ReviewRepository = {
@@ -36,11 +35,5 @@ export const ReviewRepository = {
             { _id: agentId },
             { $set: { 'marketplace.stats.rating': Math.round(rating * 10) / 10, 'marketplace.stats.reviews': count } }
         );
-    },
-    async hasPurchased(agentId: string, buyerId: mongoose.Types.ObjectId) {
-        return Purchase.findOne({ agentId, buyerId, status: 'confirmed' });
-    },
-    async hasPurchasedLean(agentId: string, buyerId: mongoose.Types.ObjectId) {
-        return Purchase.findOne({ agentId, buyerId, status: 'confirmed' }).lean();
     },
 };

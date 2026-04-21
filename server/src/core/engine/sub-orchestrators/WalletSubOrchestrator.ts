@@ -4,8 +4,12 @@
  * Acts as a specialized sub-orchestrator for financial agents.
  */
 
-import { getCapacities, formatCKB } from '../../../infrastructure/blockchain/ckb/balance';
-import { transferCKB, getAddressFromPrivateKey } from '../../../infrastructure/blockchain/ckb/transferCKB';
+import { GetBalanceTool } from '../../../infrastructure/blockchain/ckb/ckb-specific-tools/ckb_get_balance';
+import { TransferTool } from '../../../infrastructure/blockchain/ckb/ckb-specific-tools/ckb_transfer';
+import { GetAddressTool } from '../../../infrastructure/blockchain/ckb/ckb-specific-tools/ckb_get_address';
+import { ccc } from '../../../infrastructure/blockchain/ckb/ckb-specific-tools/ckb_wallet_tool';
+
+const formatCKB = (shannons: string | bigint) => ccc.fixedPointToString(shannons);
 
 export interface WalletContext {
     network: string;
@@ -71,10 +75,10 @@ export function parseWalletIntent(prompt: string): ParsedWalletIntent {
  * Execute balance check for a given address
  */
 async function executeBalanceCheck(address: string): Promise<{ address: string; balance: string }> {
-    const capacities = await getCapacities(address);
+    const result = await GetBalanceTool.execute({ address });
     return {
         address,
-        balance: `${formatCKB(capacities)} CKB`
+        balance: `${result.ckb} CKB`
     };
 }
 
@@ -87,8 +91,8 @@ async function executeTransfer(
     amount: number,
     privateKey: string
 ): Promise<{ txHash: string }> {
-    const txHash = await transferCKB(from, to, amount, privateKey);
-    return { txHash };
+    const result = await TransferTool.execute({ from, to, amount, privateKey });
+    return { txHash: result.txHash };
 }
 
 /**

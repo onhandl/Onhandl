@@ -104,10 +104,6 @@ export const MarketplaceService = {
             pricing: pricing || existing.pricing || { type: 'free', price: 0, currency: 'USD' },
             networkPricing: networkPricing ?? existing.networkPricing ?? [],
             paymentMethods: {
-                stripe: {
-                    enabled: paymentMethods?.stripe?.enabled ?? existing.paymentMethods?.stripe?.enabled ?? false,
-                    stripeAccountId: existing.paymentMethods?.stripe?.stripeAccountId || '',
-                },
                 crypto: {
                     enabled: paymentMethods?.crypto?.enabled ?? existing.paymentMethods?.crypto?.enabled ?? false,
                     walletAddress: paymentMethods?.crypto?.walletAddress || existing.paymentMethods?.crypto?.walletAddress || '',
@@ -127,84 +123,6 @@ export const MarketplaceService = {
         await agent.save();
 
         return { message: published ? 'Agent published to marketplace' : 'Agent removed from marketplace', agent };
-    },
-
-    async useFreeAgent(id: string, userId: string) {
-        const source = await MarketplaceRepository.findMarketplaceAgent(id);
-        if (!source) throw Object.assign(new Error('Agent not found in marketplace'), { code: 404 });
-
-        const mkt = source.marketplace as any;
-        if (mkt?.pricing?.type === 'paid') {
-            throw Object.assign(new Error('This is a paid agent. Complete payment to obtain a copy.'), { code: 400 });
-        }
-
-        const existing = await MarketplaceRepository.findExistingPurchase(source._id, userId);
-        if (existing) throw Object.assign(new Error('You already have a copy of this agent'), { code: 409, proxyAgentId: (existing as any).proxyAgentId });
-
-        const buyerWorkspace = await MarketplaceRepository.findBuyerWorkspace(userId);
-        if (!buyerWorkspace) throw Object.assign(new Error('Buyer workspace not found'), { code: 400 });
-
-        const proxy = await MarketplaceRepository.createProxy({
-            ownerId: userId,
-            workspaceId: buyerWorkspace._id,
-            name: `${source.name} (Copy)`,
-            description: source.description,
-            agentType: source.agentType,
-            character: source.character,
-            modelProvider: source.modelProvider,
-            modelConfig: source.modelConfig,
-            graph: source.graph,
-            blockchain: (source.blockchain || []).map((b: any) => ({
-                network: b.network,
-                rpcUrl: b.rpcUrl,
-                walletType: b.walletType,
-            })),
-            isDraft: false,
-            isActive: true,
-        });
-
-        await MarketplaceRepository.createPurchase({
-            agentId: source._id,
-            buyerId: userId,
-            sellerId: source.ownerId,
-            paymentMethod: 'stripe',
-            amount: 0,
-            currency: 'USD',
-            status: 'confirmed',
-            proxyAgentId: proxy._id,
-        });
-
-        await MarketplaceRepository.incrementPurchaseCount(String(source._id));
-
-        return { message: 'Agent copy created successfully', proxyAgent: proxy };
-    },
-
-    async initiateNetworkPurchase(id: string, userId: string, data: { network: string; txHash?: string }) {
-        const { network, txHash } = data;
-        const source = await MarketplaceRepository.findMarketplaceAgent(id);
-        if (!source) throw Object.assign(new Error('Agent not found in marketplace'), { code: 404 });
-
-        const mkt = source.marketplace as any;
-        const netPrice = (mkt?.networkPricing || []).find((p: any) => p.network === network);
-        if (!netPrice) throw Object.assign(new Error(`No pricing configured for network: ${network}`), { code: 400 });
-
-        const purchase = await MarketplaceRepository.createPurchase({
-            agentId: id, buyerId: userId, sellerId: source.ownerId,
-            paymentMethod: 'crypto', amount: netPrice.price,
-            currency: netPrice.asset, status: 'pending',
-            cryptoTxHash: txHash, network,
-        });
-
-        return {
-            purchase,
-            message: txHash
-                ? 'Transaction submitted — pending verification'
-                : 'Purchase initiated — complete payment to confirm',
-        };
-    },
-
-    async getMyPurchases(userId: string) {
-        return MarketplaceRepository.findUserPurchases(userId);
     },
 
     async getCreatorProfile(id: string, viewerId?: string) {
@@ -230,15 +148,14 @@ export const MarketplaceService = {
         const record = await MarketplaceRepository.findUserForStats(userId);
         if (!record) throw Object.assign(new Error('User not found'), { code: 404 });
 
-        const { agents, purchases, reviews } = await MarketplaceRepository.findCreatorStats(userId);
+        const { agents, reviews } = await MarketplaceRepository.findCreatorStats(userId);
 
         const publishedAgents = agents.filter(a => !a.isDraft);
         const listedAgents = agents.filter(a => (a.marketplace as any)?.published);
         const totalViews = agents.reduce((s: number, a: any) => s + (Number(a.marketplace?.stats?.views) || 0), 0);
-        const totalRevenue = purchases.reduce((s: number, p: any) => s + (p.amount || 0), 0);
-        const avgRating = reviews.length ? Math.round((reviews.reduce((s: number, r: any) => s + r.rating, 0) / reviews.length) * 10) / 10 : 0;
+        const avgRating = reviews.length ? Math.round((reviews.reduce((sLength: number, r: any) => sLength + r.rating, 0) / reviews.length) * 10) / 10 : 0;
 
-        return { profileViews: (record as any).profileViews, totalAgents: agents.length, publishedAgents: publishedAgents.length, listedAgents: listedAgents.length, totalViews, totalRevenue, totalPurchases: purchases.length, totalReviews: reviews.length, avgRating };
+        return { profileViews: (record as any).profileViews, totalAgents: agents.length, publishedAgents: publishedAgents.length, listedAgents: listedAgents.length, totalViews, totalReviews: reviews.length, avgRating };
     },
 
     async updateMyProfile(userId: string, body: any) {

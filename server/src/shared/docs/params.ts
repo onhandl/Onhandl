@@ -23,5 +23,3 @@ export const executionIdParamSchema = () => idParamSchema('Execution ID');
 /** Developer API key record id param. */
 export const keyIdParamSchema = () => idParamSchema('API key record ID');
 
-/** Purchase record id param. */
-export const purchaseIdParamSchema = () => idParamSchema('Purchase record ID');

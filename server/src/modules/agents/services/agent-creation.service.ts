@@ -2,7 +2,7 @@ import { AgentRepository } from '../agent.repository';
 import { AgentTemplateService } from '../agent-template.service';
 import { enhancePersona } from '../agent-enhancer.service';
 import { validateCharacter } from '../../../core/characters/validator';
-import { WalletService } from '../../../infrastructure/blockchain/wallet.service';
+import { generatePrivateKey, getAddress } from '../../../infrastructure/blockchain/ckb/ckb-specific-tools/ckb_wallet_tool';
 import { Workspace } from '../../../infrastructure/database/models/Workspace';
 import { User } from '../../../infrastructure/database/models/User';
 import { resolveProviderKeys } from '../../../shared/utils/provider-utils';
@@ -58,13 +58,24 @@ export const AgentCreationService = {
             isDraft: isDraft ?? true,
         };
 
+        const wallets: any[] = [];
         if (chains && chains.length > 0) {
-            const wallets: any[] = [];
             for (const chain of chains) {
-                try { wallets.push(await WalletService.generateWallet(chain) as any); } catch { log(`wallet gen failed for ${chain}`); }
+                if (chain.toLowerCase() === 'ckb') {
+                    try {
+                        const privateKey = generatePrivateKey();
+                        const address = await getAddress(privateKey);
+                        wallets.push({
+                            network: 'ckb',
+                            walletAddress: address,
+                            privateKey: privateKey,
+                            walletType: 'managed'
+                        });
+                    } catch { log(`wallet gen failed for ${chain}`); }
+                }
             }
-            if (wallets.length > 0) agentData.blockchain = wallets;
         }
+        if (wallets.length > 0) agentData.blockchain = wallets;
 
         const agent = await AgentRepository.create(agentData);
         await User.findByIdAndUpdate(userId, { $inc: { tokens: -300 } });

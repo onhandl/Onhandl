@@ -2,12 +2,15 @@ import { AgentDefinition } from '../../infrastructure/database/models/AgentDefin
 import { MemoryService } from './memory';
 import { AIFactory } from '../../infrastructure/ai/factory';
 import { AgentNode } from '../../infrastructure/database/models/AgentNode';
-import { getCapacities, formatCKB } from '../../infrastructure/blockchain/ckb/balance';
+import { GetBalanceTool } from '../../infrastructure/blockchain/ckb/ckb-specific-tools/ckb_get_balance';
+import { ccc } from '../../infrastructure/blockchain/ckb/ckb-specific-tools/ckb_wallet_tool';
 import {
     parseWalletIntent,
     handleWalletIntent,
     WalletContext
 } from './sub-orchestrators/WalletSubOrchestrator';
+
+const formatCKB = (shannons: string | bigint) => ccc.fixedPointToString(shannons);
 
 /**
  * The Routing/Orchestrator Agent
@@ -122,9 +125,8 @@ export class Orchestrator {
             for (const w of agentWallets) {
                 if (!w.walletAddress) continue;
                 try {
-                    const caps = await getCapacities(w.walletAddress);
-                    const bal = formatCKB(caps);
-                    walletContextLines.push(`- Network: ${w.network || 'CKB Testnet'} | Address: ${w.walletAddress} | Balance: ${bal} CKB`);
+                    const result = await GetBalanceTool.execute({ address: w.walletAddress });
+                    walletContextLines.push(`- Network: ${w.network || 'CKB Testnet'} | Address: ${w.walletAddress} | Balance: ${result.ckb} CKB`);
                 } catch {
                     walletContextLines.push(`- Network: ${w.network || 'CKB Testnet'} | Address: ${w.walletAddress} | Balance: (lookup failed)`);
                 }
