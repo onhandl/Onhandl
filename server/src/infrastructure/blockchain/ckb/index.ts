@@ -9,17 +9,17 @@ import {
     rpcTools,
     indexerTools,
     signatureTools,
-} from "./ckb_specific_tools";
+} from "./ckb-specific-tools";
 
 import {
     nodeAdminTools,
     channelTools,
     invoiceTools,
-} from "./ckb_fiber_tools";
+} from "./ckb-fiber-tools";
 
 // Re-export everything for a unified API
-export * from "./ckb_specific_tools";
-export * from "./ckb_fiber_tools";
+export * from "./ckb-specific-tools";
+export * from "./ckb-fiber-tools";
 
 
 export const ckbSpecificTools: BlockchainTool<any, any>[] = [
