@@ -19,7 +19,7 @@ export class ApiClient {
         this.http.interceptors.request.use((config) => {
             const session = SessionStore.load();
             if (session?.accessToken) {
-                config.headers.Authorization = `Bearer ${session.accessToken}`;
+                config.headers.set('Authorization', `Bearer ${session?.accessToken}`);
             }
             return config;
         });

@@ -15,7 +15,33 @@ export const terminalOpsRoutes: FastifyPluginAsync = async (fastify) => {
     // Apply terminal authentication to all operational routes
     fastify.addHook('onRequest', fastify.authenticateTerminal);
 
+    // GET /terminal/me - Current user profile for terminal
+    fastify.get('/me', {
+        schema: {
+            tags: ['Terminal Operations'],
+            summary: 'Get current terminal user profile',
+            description: 'Returns profile of the authenticated terminal user.',
+            response: {
+                200: {
+                    description: 'User profile',
+                    type: 'object',
+                    properties: {
+                        id: { type: 'string' },
+                        username: { type: 'string' },
+                        email: { type: 'string' },
+                        name: { type: 'string' },
+                        plan: { type: 'string' },
+                        tokens: { type: 'number' },
+                        workspaceId: { type: 'string' },
+                    },
+                },
+                ...standardErrorResponses([401, 500]),
+            },
+        },
+    }, TerminalOpsController.getMe);
+
     // GET /terminal/agents - List available agents for CLI
+
     fastify.get('/agents', {
         schema: {
             tags: ['Terminal Operations'],
@@ -106,7 +132,13 @@ export const terminalOpsRoutes: FastifyPluginAsync = async (fastify) => {
             tags: ['Terminal Operations'],
             summary: 'Chat with agent from terminal',
             description: 'Streams AI agent responses directly for CLI display.',
-            params: idParamSchema('Agent ID'),
+            params: {
+                type: 'object',
+                required: ['agentId'],
+                properties: {
+                    agentId: { type: 'string', description: 'Agent ID' },
+                },
+            },
             body: {
                 type: 'object',
                 required: ['messages'],

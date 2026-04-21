@@ -3,9 +3,30 @@ import { listAgents } from '../agents/agent.service.js';
 import { ExecutionService } from '../executions/execution.service.js';
 import { executionEmitter } from '../executions/execution.events.js';
 import { AiService } from '../ai/ai.service.js';
+import { UserService } from '../users/user.service.js';
 import { Readable } from 'stream';
 
 export const TerminalOpsController = {
+    async getMe(request: FastifyRequest, reply: FastifyReply) {
+        const userId = request.user?.id;
+        if (!userId) return reply.code(401).send({ error: 'User not identified' });
+
+        try {
+            const profile = await UserService.getProfile(userId, 'username email name plan tokens profileViews');
+            return {
+                id: userId,
+                username: (profile as any).username || null,
+                email: (profile as any).email || null,
+                name: (profile as any).name || null,
+                plan: (profile as any).plan || 'free',
+                tokens: (profile as any).tokens || 0,
+                workspaceId: request.user?.workspaceId,
+            };
+        } catch (e: any) {
+            return reply.code(e.code || 500).send({ error: e.message });
+        }
+    },
+
     async listAgents(request: FastifyRequest, reply: FastifyReply) {
         const userId = request.user?.id;
         if (!userId) return reply.code(401).send({ error: 'User not identified' });

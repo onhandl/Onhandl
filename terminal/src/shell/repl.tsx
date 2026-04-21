@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Box, Text, Newline, useInput, useApp } from 'ink';
 import TextInput from 'ink-text-input';
 import { executeCommand } from '../commands/index.js';
+import { chatMessageCommand } from '../commands/chat/index.js';
 import { TerminalSession } from '../types.js';
 
 type ChatMessage = {
@@ -63,7 +64,7 @@ export const Repl = ({ session, setSession }: { session: TerminalSession | null,
                     );
                 } else {
                     const currentHistory = [...chatHistory, { role: 'user', content: trimmed } as ChatMessage];
-                    outputNode = await executeCommand(`chat_message ${chatAgent.id}`, {
+                    outputNode = await chatMessageCommand([chatAgent.id], {
                         session,
                         setChatAgent,
                         messages: currentHistory,

@@ -15,8 +15,7 @@ export const COMMAND_REGISTRY: Record<string, (args: string[], context: any) => 
     whoami: whoamiCommand,
     agent: agentCommand,
     exec: execCommand,
-    chat: chatCommand,
-    chat_message: chatMessageCommand
+    chat: chatCommand
 };
 
 export const executeCommand = async (commandLine: string, context: any): Promise<React.ReactNode> => {

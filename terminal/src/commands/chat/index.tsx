@@ -3,30 +3,13 @@ import { Box, Text } from 'ink';
 import { apiClient } from '../../services/api.js';
 
 export const chatCommand = async (args: string[], context: any): Promise<React.ReactNode> => {
-    const agentId = args[0];
-    if (!agentId) return <Text color="red">Usage: chat &lt;agentId&gt;</Text>;
-
-    const { setChatAgent } = context;
-
-    // We try to verify the agent exists first
-    try {
-        const res = await apiClient.get(`/terminal/ops/agents`);
-        const agent = res.data.agents.find((a: any) => a.id === agentId || a.id.startsWith(agentId));
-
-        if (!agent) {
-            return <Text color="red">Agent not found: {agentId}</Text>;
-        }
-
-        setChatAgent({ id: agent.id, name: agent.name });
-        return (
-            <Box flexDirection="column" marginTop={1}>
-                <Text color="green">✔ Entered chat mode with <Text bold color="cyan">{agent.name}</Text></Text>
-                <Text color="gray">Type your message to chat, or `/exit` to return to main shell.</Text>
-            </Box>
-        );
-    } catch (err: any) {
-        return <Text color="red">Error: {err.response?.data?.error || err.message}</Text>;
-    }
+    return (
+        <Box flexDirection="column" marginTop={1}>
+            <Text color="yellow">The 'chat' command has been improved! Use the <Text bold color="cyan">agent</Text> command instead.</Text>
+            <Text>Example: <Text color="green">agent list</Text> will show your agents.</Text>
+            <Text>Example: <Text color="green">agent 1</Text> will start chatting with your first agent.</Text>
+        </Box>
+    );
 };
 
 export const chatMessageCommand = async (args: string[], context: any): Promise<React.ReactNode> => {

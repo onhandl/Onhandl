@@ -59,7 +59,6 @@ export const TerminalAuthService = {
             let plan = 'free';
             if (session.userId) {
                 try {
-                    const { UserService } = await import('../users/user.service');
                     const user = await UserService.getProfile(session.userId.toString(), 'username plan');
                     if (user) {
                         username = user.username || 'Authenticated User';
