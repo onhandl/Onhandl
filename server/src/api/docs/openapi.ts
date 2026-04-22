@@ -31,23 +31,6 @@ export async function registerOpenApi(fastify: FastifyInstance) {
                 },
             },
             security: [],
-            tags: [
-                { name: 'Auth', description: 'Registration, login, logout, and profile access' },
-                { name: 'Users', description: 'Notification preferences, API keys, payment methods' },
-                { name: 'Agents', description: 'Agent CRUD, templates, persona, graph management' },
-                { name: 'Executions', description: 'Start, run, inspect, and simulate agent executions' },
-                { name: 'Payments', description: 'Crypto payment processing' },
-                { name: 'Developer API Keys', description: 'Create and manage developer API keys for SDK access' },
-                { name: 'SDK', description: 'Programmatic agent execution via developer API keys' },
-                { name: 'AI', description: 'AI inference and generation utilities' },
-                { name: 'Bots', description: 'Bot integrations for agents' },
-                { name: 'Blog', description: 'Platform blog content' },
-                { name: 'Support', description: 'User support tickets and admin support management' },
-                { name: 'Workspaces', description: 'Workspace management and membership' },
-                { name: 'Tools', description: 'Available node tools and blockchain tools' },
-                { name: 'Admin', description: 'Admin-only management endpoints' },
-                { name: 'MCP', description: 'Model Context Protocol integration endpoints' },
-            ],
         },
     });
 }

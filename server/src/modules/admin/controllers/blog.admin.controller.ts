@@ -15,7 +15,7 @@ export function registerBlogHandlers(fastify: FastifyInstance) {
     fastify.get('/blog', {
         onRequest: [fastify.authorizeAdmin],
         schema: {
-            tags: ['Admin / Blog'],
+            tags: ['Admin'],
             summary: 'List all posts (Admin)',
             description: 'Returns all blog posts including drafts and hidden updates.',
             security: [cookieAuthSecurity],
@@ -30,7 +30,7 @@ export function registerBlogHandlers(fastify: FastifyInstance) {
     fastify.delete<{ Params: { id: string } }>('/blog/:id', {
         onRequest: [fastify.authorizeAdmin],
         schema: {
-            tags: ['Admin / Blog'],
+            tags: ['Admin'],
             summary: 'Force delete post (Admin)',
             description: 'Permanently removes any blog post. Restricted to administrators.',
             security: [cookieAuthSecurity],
@@ -55,7 +55,7 @@ export function registerBlogHandlers(fastify: FastifyInstance) {
         {
             onRequest: [fastify.authorizeAdmin],
             schema: {
-                tags: ['Admin / Blog'],
+                tags: ['Admin'],
                 summary: 'Freeze CMS publishing',
                 description: 'Prevents any new blog posts or edits globally. Used for maintenance or security incidents.',
                 security: [cookieAuthSecurity],

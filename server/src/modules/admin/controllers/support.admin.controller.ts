@@ -15,7 +15,7 @@ export function registerSupportHandlers(fastify: FastifyInstance) {
     fastify.get('/support-tickets', {
         onRequest: [fastify.authorizeAdmin],
         schema: {
-            tags: ['Admin / Support'],
+            tags: ['Admin'],
             summary: 'List all support tickets (Admin)',
             description: 'Returns a global list of all user support requests.',
             security: [cookieAuthSecurity],
@@ -32,7 +32,7 @@ export function registerSupportHandlers(fastify: FastifyInstance) {
         {
             onRequest: [fastify.authorizeAdmin],
             schema: {
-                tags: ['Admin / Support'],
+                tags: ['Admin'],
                 summary: 'Resolve support ticket',
                 description: 'Updates a ticket\'s status and internal resolution notes.',
                 security: [cookieAuthSecurity],

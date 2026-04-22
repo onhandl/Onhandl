@@ -15,7 +15,7 @@ export function registerAgentHandlers(fastify: FastifyInstance) {
     fastify.get('/agents', {
         onRequest: [fastify.authorizeAdmin],
         schema: {
-            tags: ['Admin / Agents'],
+            tags: ['Admin'],
             summary: 'List all published agents (Admin)',
             description: 'Returns a list of all agents currently published to the marketplace.',
             security: [cookieAuthSecurity],
@@ -30,7 +30,7 @@ export function registerAgentHandlers(fastify: FastifyInstance) {
     fastify.get('/drafts', {
         onRequest: [fastify.authorizeAdmin],
         schema: {
-            tags: ['Admin / Agents'],
+            tags: ['Admin'],
             summary: 'List all draft agents (Admin)',
             description: 'Returns all agents currently in draft status across all users.',
             security: [cookieAuthSecurity],
@@ -45,7 +45,7 @@ export function registerAgentHandlers(fastify: FastifyInstance) {
     fastify.get<{ Querystring: { page?: string } }>('/executions', {
         onRequest: [fastify.authorizeAdmin],
         schema: {
-            tags: ['Admin / Agents'],
+            tags: ['Admin'],
             summary: 'List global executions (Admin)',
             description: 'Returns a paginated list of all agent execution runs across the entire platform.',
             security: [cookieAuthSecurity],

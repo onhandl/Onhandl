@@ -15,7 +15,7 @@ export function registerUserHandlers(fastify: FastifyInstance) {
     fastify.get('/users', {
         onRequest: [fastify.authorizeAdmin],
         schema: {
-            tags: ['Admin / Users'],
+            tags: ['Admin'],
             summary: 'List all users (Admin)',
             description: 'Returns all registered users in the system. Restricted to administrators.',
             security: [cookieAuthSecurity],
@@ -34,7 +34,7 @@ export function registerUserHandlers(fastify: FastifyInstance) {
     fastify.delete<{ Params: { id: string } }>('/users/:id', {
         onRequest: [fastify.authorizeAdmin],
         schema: {
-            tags: ['Admin / Users'],
+            tags: ['Admin'],
             summary: 'Force delete user (Admin)',
             description: 'Permanently removes a user and all their data. Restricted to administrators.',
             security: [cookieAuthSecurity],
@@ -63,7 +63,7 @@ export function registerUserHandlers(fastify: FastifyInstance) {
         {
             onRequest: [fastify.authorizeAdmin],
             schema: {
-                tags: ['Admin / Users'],
+                tags: ['Admin'],
                 summary: 'Toggle admin status',
                 description: 'Promotes or demotes a user to/from administrator role.',
                 security: [cookieAuthSecurity],

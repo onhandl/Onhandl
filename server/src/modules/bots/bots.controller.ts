@@ -12,7 +12,7 @@ export async function botsController(fastify: FastifyInstance) {
     fastify.post<{ Body: { message: string; history?: Array<{ role: string; content: string }> } }>(
         '/chat', {
         schema: {
-            tags: ['Bots'],
+            tags: ['AI Primitives'],
             summary: 'Chat with the Onhandl Assistant',
             description: 'Sends a message to the Onhandl AI support assistant. Provide short-term history for conversational continuity.',
             body: {
@@ -60,7 +60,7 @@ export async function botsController(fastify: FastifyInstance) {
     // POST /telegram/webhook - Inbound messaging
     fastify.post<{ Body: { update_id: number; message?: any;[key: string]: any } }>('/telegram/webhook', {
         schema: {
-            tags: ['Bots'],
+            tags: ['Social Integrations'],
             summary: 'Telegram bot webhook',
             description: 'Processes real-time updates from the Telegram Bot API. Should only be called by Telegram servers.',
             response: {
@@ -86,7 +86,7 @@ export async function botsController(fastify: FastifyInstance) {
     // GET /telegram/webhook - Webhook setup check
     fastify.get('/telegram/webhook', {
         schema: {
-            tags: ['Bots'],
+            tags: ['Social Integrations'],
             summary: 'Telegram webhook verification',
             description: 'Utility route to verify our server is reachable for Telegram webhook registration.',
             response: {
@@ -99,7 +99,7 @@ export async function botsController(fastify: FastifyInstance) {
     fastify.post<{ Body: { botToken: string; chatId: string; botName?: string } }>(
         '/telegram/test-connection', {
         schema: {
-            tags: ['Bots'],
+            tags: ['Social Integrations'],
             summary: 'Test Telegram bot connection',
             description: 'Validates a user-provided bot token by attempting to send a greeting message.',
             body: {

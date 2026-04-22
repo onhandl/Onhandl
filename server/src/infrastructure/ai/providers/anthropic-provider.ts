@@ -1,4 +1,3 @@
-// infrastructure/ai/providers/anthropic-provider.ts
 import { IAIProvider, CompletionRequest, CompletionResponse } from '../types';
 import { buildSystemPrompt } from '../utils';
 import { ENV } from "../../../shared/config/environments";
@@ -164,7 +163,7 @@ export class AnthropicProvider implements IAIProvider {
                             yield chunk.delta.text;
                         }
                     } catch (e) {
-                        // Skip parse errors
+                        
                     }
                 }
             }

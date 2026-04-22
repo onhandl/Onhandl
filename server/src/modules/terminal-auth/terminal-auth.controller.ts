@@ -12,7 +12,7 @@ import {
 export async function terminalAuthController(fastify: FastifyInstance) {
 
     const startSessionSchema = {
-        tags: ['Terminal Auth'],
+        tags: ['Terminal Operations'],
         summary: 'Start a terminal login session',
         description: 'Generates a device code and a user code. The terminal CLI uses the device code to poll for status, while the user visits the login URL to approve.',
         response: {
@@ -56,7 +56,7 @@ export async function terminalAuthController(fastify: FastifyInstance) {
         '/approve',
         {
             schema: {
-                tags: ['Terminal Auth'],
+                tags: ['Terminal Operations'],
                 summary: 'Redirect to approval page',
                 description: 'Used as a convenience redirect. Takes the user directly to the frontend authorization screen with the provided userCode.',
                 querystring: {
@@ -84,7 +84,7 @@ export async function terminalAuthController(fastify: FastifyInstance) {
         '/poll',
         {
             schema: {
-                tags: ['Terminal Auth'],
+                tags: ['Terminal Operations'],
                 summary: 'Poll terminal login status',
                 description: 'The terminal CLI calls this until the user approves the session. If approved, it returns a high-entropy access token.',
                 body: {
@@ -126,7 +126,7 @@ export async function terminalAuthController(fastify: FastifyInstance) {
         '/logout',
         {
             schema: {
-                tags: ['Terminal Auth'],
+                tags: ['Terminal Operations'],
                 summary: 'Terminal logout (revoke by device code)',
                 description: 'Called by the terminal CLI to immediately terminate and delete the current session by its device code.',
                 body: {
@@ -156,7 +156,7 @@ export async function terminalAuthController(fastify: FastifyInstance) {
         {
             onRequest: [fastify.authenticate],
             schema: {
-                tags: ['Terminal Auth'],
+                tags: ['Terminal Operations'],
                 summary: 'Authorize terminal session',
                 description: 'Called by the web dashboard when the user clicks "Approve". Links the session to the user and workspace.',
                 security: [cookieAuthSecurity],
@@ -192,7 +192,7 @@ export async function terminalAuthController(fastify: FastifyInstance) {
         {
             onRequest: [fastify.authenticate],
             schema: {
-                tags: ['Terminal Auth'],
+                tags: ['Terminal Operations'],
                 summary: 'List active terminal sessions',
                 description: 'Returns all terminal sessions associated with the authenticated user for management and revocation.',
                 security: [cookieAuthSecurity],
@@ -224,7 +224,7 @@ export async function terminalAuthController(fastify: FastifyInstance) {
         {
             onRequest: [fastify.authenticate],
             schema: {
-                tags: ['Terminal Auth'],
+                tags: ['Terminal Operations'],
                 summary: 'Revoke a specific session',
                 description: 'Instantly deactivates a terminal session by its internal ID.',
                 security: [cookieAuthSecurity],
