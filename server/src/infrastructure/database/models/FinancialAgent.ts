@@ -6,8 +6,11 @@ import {
   FinancialEventType,
 } from '../../../core/financial-runtime/types';
 
-export type SupportedNetwork = 'CKB';
-export type RecipientPolicy = 'allowlist' | 'all';
+export const SUPPORTED_NETWORKS = ['CKB'] as const;
+export type SupportedNetwork = typeof SUPPORTED_NETWORKS[number];
+
+export const RECIPIENT_POLICIES = ['allowlist', 'all'] as const;
+export type RecipientPolicy = typeof RECIPIENT_POLICIES[number];
 
 export interface AgentWalletConfig {
   address: string;
@@ -60,15 +63,13 @@ export interface IFinancialAgent extends Document {
 
   networkConfigs: AgentNetworkConfig[];
 
-  // only broad global runtime rules here
   permissionConfig: {
-    allowedChains?: string[];
-    blockedChains?: string[];
+    allowedChains?: SupportedNetwork[];
+    blockedChains?: SupportedNetwork[];
     allowedActions?: Array<(typeof FINANCIAL_POLICY_ACTION_TYPES)[number]>;
     blockedActions?: Array<(typeof FINANCIAL_POLICY_ACTION_TYPES)[number]>;
   };
 
-  // fallback/global approval defaults only
   approvalConfig: {
     fallbackRequireApprovalForNewRecipients?: boolean;
     fallbackRequireApprovalForInvestments?: boolean;
@@ -114,8 +115,9 @@ const AgentNetworkConfigSchema = new Schema(
   {
     network: {
       type: String,
-      enum: ['CKB'],
+      enum: SUPPORTED_NETWORKS,
       required: true,
+      default: 'CKB',
     },
     enabled: { type: Boolean, default: true },
 
@@ -132,8 +134,8 @@ const AgentNetworkConfigSchema = new Schema(
 
     recipientPolicy: {
       type: String,
-      enum: ['allowlist', 'all'],
-      default: 'allowlist',
+      enum: RECIPIENT_POLICIES,
+      default: 'all',
       required: true,
     },
     allowedRecipients: [{ type: String }],
@@ -188,8 +190,8 @@ const FinancialAgentSchema = new Schema(
     },
 
     permissionConfig: {
-      allowedChains: [{ type: String }],
-      blockedChains: [{ type: String }],
+      allowedChains: [{ type: String, enum: SUPPORTED_NETWORKS }],
+      blockedChains: [{ type: String, enum: SUPPORTED_NETWORKS }],
       allowedActions: [{ type: String, enum: FINANCIAL_POLICY_ACTION_TYPES }],
       blockedActions: [{ type: String, enum: FINANCIAL_POLICY_ACTION_TYPES }],
     },

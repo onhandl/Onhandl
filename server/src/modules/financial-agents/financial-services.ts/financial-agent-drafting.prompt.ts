@@ -1,21 +1,10 @@
-import { AiService } from '../ai/ai.service';
-import {
-  DraftFinancialAgentInput,
-  FinancialAgentPreset,
-  FINANCIAL_AGENT_PRESETS,
-  KnownRecipientInput,
-  draftFinancialAgentInputSchema,
-} from './financial-agent-validation.service';
+import type { FinancialAgentPreset } from './financial-agent-validation.service';
 
-function buildPrompt(input: {
+export function buildFinancialAgentDraftPrompt(input: {
   prompt: string;
   preset?: FinancialAgentPreset;
-  knownRecipients?: KnownRecipientInput[];
 }) {
-  const preset =
-    input.preset && FINANCIAL_AGENT_PRESETS.includes(input.preset)
-      ? input.preset
-      : 'balanced_allocator';
+  const preset = input.preset || 'balanced_allocator';
 
   return `You are a financial agent configuration designer.
 
@@ -150,27 +139,29 @@ The JSON must follow this exact shape:
   "assumptions": ["string"]
 }
 
-Safety and quality rules:
+Critical drafting rules:
 1. Prefer "FUNDS.RECEIVED" when the user describes reacting to incoming money.
 2. Prefer "TIME.MONTH_STARTED" when the user describes monthly automation.
 3. Use "ALLOCATE_FUNDS" when the user describes splitting funds into multiple destinations or actions.
-4. Never invent wallet addresses.
-5. Never invent chains or assets unless the user clearly stated them.
-6. If recipient labels match known recipients, resolve them to the provided addresses and chains.
-7. If details are missing, keep the draft restrictive and record the missing pieces in assumptions.
-8. Limits and approval thresholds must be set per network and asset inside networkConfigs[].assetLimits[].
-9. Do not place spend thresholds or approval-above thresholds in global config.
-10. Percentages inside one ALLOCATE_FUNDS action must sum to 100.
-11. Use least privilege by default.
-12. If a network uses recipientPolicy "allowlist", allowedRecipients must contain the transfer destinations for that network.
+4. Default the network to "CKB" if the user does not specify a network.
+5. Never invent wallet addresses.
+6. If the user wants to transfer, send, split, or allocate funds to recipients, every transfer destination must be a real blockchain address supplied in the prompt.
+7. Do not use vague recipient labels like "savings", "kids", "reserve", or "operations" as runnable transfer destinations unless the prompt explicitly provides the actual address.
+8. If required recipient addresses are missing, do not fabricate them. Keep the draft restrictive and clearly list the missing destinations in "assumptions".
+9. Use least privilege by default.
+10. Limits and approval thresholds must be set per network and asset inside networkConfigs[].assetLimits[].
+11. Do not place spend thresholds or approval-above thresholds in global config.
+12. Percentages inside one ALLOCATE_FUNDS action must sum to 100.
+13. If a transfer destination is present, include it in the appropriate network allowlist when recipientPolicy is "allowlist".
+14. If no explicit recipient allowlist is needed, use recipientPolicy "all".
+15. Never invent unsupported chains, unsupported assets, or made-up protocols.
+16. If a network or asset is missing but can safely default, use CKB as the default network only. Do not invent asset symbols.
+17. Draft output should be safe to pass into create after validation. Do not output vague transfer destinations.
 
 Preset behavior:
-- conservative_treasury: tighter approvals and tighter asset/recipient permissions
+- conservative_treasury: tighter approvals, stricter boundaries, more restrictive permissions
 - balanced_allocator: normal restrictions
 - aggressive_allocator: fewer fallback approvals but still valid boundaries
-
-Known recipients:
-${JSON.stringify(input.knownRecipients || [])}
 
 Preset:
 ${preset}
@@ -178,120 +169,3 @@ ${preset}
 User request:
 ${input.prompt}`;
 }
-
-function extractBalancedJsonObjects(text: string): string[] {
-  const objects: string[] = [];
-  let depth = 0;
-  let start = -1;
-  let inString = false;
-  let escaped = false;
-
-  for (let i = 0; i < text.length; i += 1) {
-    const char = text[i];
-
-    if (inString) {
-      if (escaped) {
-        escaped = false;
-      } else if (char === '\\') {
-        escaped = true;
-      } else if (char === '"') {
-        inString = false;
-      }
-      continue;
-    }
-
-    if (char === '"') {
-      inString = true;
-      continue;
-    }
-
-    if (char === '{') {
-      if (depth === 0) start = i;
-      depth += 1;
-      continue;
-    }
-
-    if (char === '}') {
-      if (depth === 0) continue;
-      depth -= 1;
-      if (depth === 0 && start !== -1) {
-        objects.push(text.slice(start, i + 1));
-        start = -1;
-      }
-    }
-  }
-
-  return objects;
-}
-
-function collectJsonCandidates(text: string): string[] {
-  const candidates: string[] = [];
-  const trimmed = text.trim();
-
-  if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
-    candidates.push(trimmed);
-  }
-
-  const fenceRegex = /```(?:json)?\s*([\s\S]*?)```/gi;
-  let match: RegExpExecArray | null;
-  while ((match = fenceRegex.exec(text)) !== null) {
-    const body = (match[1] || '').trim();
-    if (body) candidates.push(body);
-  }
-
-  candidates.push(...extractBalancedJsonObjects(text));
-
-  return [...new Set(candidates)].sort((a, b) => b.length - a.length);
-}
-
-function parseDraftFromModelOutput(content: string): DraftFinancialAgentInput {
-  const candidates = collectJsonCandidates(content);
-
-  if (candidates.length === 0) {
-    throw { code: 400, message: 'Drafting model did not return JSON content' };
-  }
-
-  let validationError: string | undefined;
-
-  for (const candidate of candidates) {
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(candidate);
-    } catch {
-      continue;
-    }
-
-    const result = draftFinancialAgentInputSchema.safeParse(parsed);
-    if (result.success) {
-      return result.data;
-    }
-
-    if (!validationError) {
-      validationError = result.error.issues[0]?.message;
-    }
-  }
-
-  throw {
-    code: 400,
-    message: validationError || 'Drafting model returned invalid JSON',
-  };
-}
-
-export const FinancialAgentDraftingService = {
-  async draftFromPrompt(input: {
-    prompt: string;
-    preset?: FinancialAgentPreset;
-    knownRecipients?: KnownRecipientInput[];
-  }): Promise<DraftFinancialAgentInput> {
-    if (!input.prompt?.trim()) {
-      throw { code: 400, message: 'Prompt is required' };
-    }
-
-    const completion = await AiService.generateCompletion({
-      messages: [{ role: 'user', content: buildPrompt(input) }],
-      temperature: 0.1,
-    });
-
-    return parseDraftFromModelOutput(completion.content || '');
-  },
-};

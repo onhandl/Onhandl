@@ -1,95 +1,103 @@
 import mongoose from 'mongoose';
-import { z } from 'zod';
 import { FinancialAgentRepository } from '../financial-repositories/financial-agent.repository';
 import { FinancialAgentStateRepository } from '../financial-repositories/financial-agent-state.repository';
 import { FinancialPolicyRepository } from '../financial-repositories/financial-policy.repository';
 import {
-    FINANCIAL_EVENT_TYPES,
-    FinancialEventType,
-    PolicyAction,
-    PolicyCondition,
-} from '../../../core/financial-runtime/types';
+    DraftFinancialAgentInput,
+    DraftPolicyInput,
+    FinancialAgentPreset,
+    FinancialAgentValidationService,
+    KnownRecipientInput,
+    SupportedNetwork,
+} from './financial-agent-validation.service';
+import { FinancialAgentDraftingService } from './financial-agent-drafting.service';
+import { PolicyAction, PolicyCondition } from '../../../core/financial-runtime/types';
+import {
+    generatePrivateKey,
+    getAddress,
+} from '../../../infrastructure/blockchain/ckb/ckb-specific-tools/ckb_wallet_tool';
 
-interface CreateFinancialAgentInput {
+export interface CreateFinancialAgentStructuredInput {
+    mode: 'structured';
     workspaceId: string;
-    name: string;
-    description?: string;
-    subscribedEvents?: FinancialEventType[];
-    permissionConfig?: Record<string, unknown>;
-    approvalConfig?: Record<string, unknown>;
+    draft: DraftFinancialAgentInput;
 }
 
-interface AttachPolicyInput {
+export interface DraftFinancialAgentPromptInput {
+    mode: 'prompt';
     workspaceId: string;
-    agentId: string;
-    trigger: FinancialEventType;
-    conditions: PolicyCondition[];
-    actions: PolicyAction[];
-    priority?: number;
+    prompt: string;
+    preset?: FinancialAgentPreset;
+    knownRecipients?: KnownRecipientInput[];
 }
 
-const conditionSchema = z.object({
-    field: z.string().min(1),
-    op: z.enum(['eq', 'gt', 'gte', 'lt', 'lte', 'in']),
-    value: z.any(),
-});
+async function createManagedWalletForNetwork(network: SupportedNetwork) {
+    switch (network) {
+        case 'CKB': {
+            const privateKey = generatePrivateKey();
+            const address = await getAddress(privateKey);
 
-const splitFundsActionSchema = z.object({
-    type: z.literal('SPLIT_FUNDS'),
-    config: z.object({
-        reservePct: z.number().min(0).max(100),
-        investPct: z.number().min(0).max(100),
-        liquidPct: z.number().min(0).max(100),
-        asset: z.string().optional(),
-        chain: z.string().optional(),
-    }).refine((config) => (config.reservePct + config.investPct + config.liquidPct) === 100, {
-        message: 'SPLIT_FUNDS percentages must sum to 100',
-    }),
-});
-
-const transferFundsActionSchema = z.object({
-    type: z.literal('TRANSFER_FUNDS'),
-    config: z.object({
-        to: z.string().min(1),
-        amount: z.string().min(1),
-        asset: z.string().min(1),
-        chain: z.string().min(1),
-    }),
-});
-
-const investFundsActionSchema = z.object({
-    type: z.literal('INVEST_FUNDS'),
-    config: z.object({
-        strategy: z.string().min(1),
-        amount: z.string().min(1),
-        asset: z.string().min(1),
-        chain: z.string().min(1),
-    }),
-});
-
-const policySchema = z.object({
-    trigger: z.enum(FINANCIAL_EVENT_TYPES),
-    conditions: z.array(conditionSchema),
-    actions: z.array(z.union([splitFundsActionSchema, transferFundsActionSchema, investFundsActionSchema])).min(1),
-    priority: z.number().int().min(1).optional(),
-});
-
-type ParsedPolicy = z.infer<typeof policySchema>;
+            return {
+                address,
+                privateKey,
+                walletType: 'managed' as const,
+            };
+        }
+        default:
+            throw {
+                code: 400,
+                message: `Unsupported network ${network}`,
+            };
+    }
+}
 
 export const FinancialAgentService = {
-    async createAgent(input: CreateFinancialAgentInput) {
-        if (!mongoose.Types.ObjectId.isValid(input.workspaceId)) {
+    async draftFromPrompt(input: DraftFinancialAgentPromptInput) {
+        const drafted = await FinancialAgentDraftingService.draftFromPrompt({
+            prompt: input.prompt,
+            preset: input.preset,
+            knownRecipients: input.knownRecipients,
+        });
+
+        return FinancialAgentValidationService.validateDraft(drafted);
+    },
+
+    async createFromStructured(input: CreateFinancialAgentStructuredInput) {
+        const validated = FinancialAgentValidationService.validateDraft(input.draft);
+        return this.createFromValidatedDraft(input.workspaceId, validated);
+    },
+
+    async createFromValidatedDraft(workspaceId: string, draft: DraftFinancialAgentInput) {
+        if (!mongoose.Types.ObjectId.isValid(workspaceId)) {
             throw { code: 400, message: 'Invalid workspace ID' };
         }
 
+        const networkConfigs = await Promise.all(
+            draft.agent.networkConfigs.map(async (cfg) => ({
+                network: cfg.network,
+                enabled: cfg.enabled ?? true,
+                wallet: await createManagedWalletForNetwork(cfg.network),
+                allowedAssets: cfg.allowedAssets,
+                blockedAssets: cfg.blockedAssets,
+                allowedActions: cfg.allowedActions,
+                blockedActions: cfg.blockedActions,
+                recipientPolicy: cfg.recipientPolicy,
+                allowedRecipients: cfg.allowedRecipients,
+                blockedRecipients: cfg.blockedRecipients,
+                assetLimits: cfg.assetLimits,
+                metadata: {},
+            }))
+        );
+
         const agent = await FinancialAgentRepository.create({
-            workspaceId: new mongoose.Types.ObjectId(input.workspaceId),
-            name: input.name,
-            description: input.description,
+            workspaceId: new mongoose.Types.ObjectId(workspaceId),
+            name: draft.agent.name,
+            description: draft.agent.description,
             status: 'active',
-            subscribedEvents: input.subscribedEvents,
-            permissionConfig: input.permissionConfig || {},
-            approvalConfig: input.approvalConfig || {},
+            subscribedEvents: draft.agent.subscribedEvents,
+            networkConfigs,
+            permissionConfig: draft.agent.permissionConfig,
+            approvalConfig: draft.agent.approvalConfig,
         });
 
         const state = await FinancialAgentStateRepository.create({
@@ -105,7 +113,26 @@ export const FinancialAgentService = {
 
         agent.stateId = state._id as mongoose.Types.ObjectId;
         await FinancialAgentRepository.save(agent);
-        return agent;
+
+        const policies = await Promise.all(
+            draft.policies.map((policy: DraftPolicyInput) =>
+                FinancialPolicyRepository.create({
+                    agentId: agent._id,
+                    trigger: policy.trigger,
+                    conditions: policy.conditions as PolicyCondition[],
+                    actions: policy.actions as PolicyAction[],
+                    enabled: true,
+                    priority: policy.priority ?? 1,
+                })
+            )
+        );
+
+        return {
+            agent,
+            state,
+            policies,
+            assumptions: draft.assumptions,
+        };
     },
 
     async listAgents(workspaceId: string) {
@@ -115,6 +142,7 @@ export const FinancialAgentService = {
     async getAgent(workspaceId: string, id: string) {
         const agent = await FinancialAgentRepository.findByIdInWorkspace(id, workspaceId);
         if (!agent) return null;
+
         const state = await FinancialAgentStateRepository.findByAgentId(id);
         return { agent, state };
     },
@@ -125,38 +153,5 @@ export const FinancialAgentService = {
 
     async activateAgent(workspaceId: string, id: string) {
         return FinancialAgentRepository.updateStatusInWorkspace(id, workspaceId, 'active');
-    },
-
-    async attachPolicy(input: AttachPolicyInput) {
-        if (!mongoose.Types.ObjectId.isValid(input.agentId)) {
-            throw { code: 400, message: 'Invalid agent ID' };
-        }
-
-        const agent = await FinancialAgentRepository.findByIdInWorkspace(input.agentId, input.workspaceId);
-        if (!agent) {
-            throw { code: 404, message: 'Financial agent not found' };
-        }
-
-        const parsed = policySchema.safeParse({
-            trigger: input.trigger,
-            conditions: input.conditions,
-            actions: input.actions,
-            priority: input.priority,
-        });
-
-        if (!parsed.success) {
-            throw { code: 400, message: parsed.error.issues[0]?.message || 'Invalid policy payload' };
-        }
-
-        const policy: ParsedPolicy = parsed.data;
-
-        return FinancialPolicyRepository.create({
-            agentId: agent._id,
-            trigger: policy.trigger,
-            conditions: policy.conditions as PolicyCondition[],
-            actions: policy.actions,
-            enabled: true,
-            priority: policy.priority ?? 1,
-        });
     },
 };
