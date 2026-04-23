@@ -3,110 +3,155 @@ import { FinancialAgentRepository } from './financial-repositories/financial-age
 import { FinancialAgentStateRepository } from './financial-repositories/financial-agent-state.repository';
 import { FinancialPolicyRepository } from './financial-repositories/financial-policy.repository';
 import {
-    DraftFinancialAgentInput,
-    DraftPolicyInput,
-    FinancialAgentPreset,
-    FinancialAgentValidationService,
-    KnownRecipientInput,
+  DraftFinancialAgentInput,
+  DraftPolicyInput,
+  FinancialAgentPreset,
+  FinancialAgentValidationService,
+  KnownRecipientInput,
+  SupportedNetwork,
 } from './financial-agent-validation.service';
 import { FinancialAgentDraftingService } from './financial-agent-drafting.service';
 import { PolicyAction, PolicyCondition } from '../../core/financial-runtime/types';
+import {
+  generatePrivateKey,
+  getAddress,
+} from '../../infrastructure/blockchain/ckb/ckb-specific-tools/ckb_wallet_tool';
 
 export interface CreateFinancialAgentStructuredInput {
-    mode: 'structured';
-    workspaceId: string;
-    draft: DraftFinancialAgentInput;
+  mode: 'structured';
+  workspaceId: string;
+  draft: DraftFinancialAgentInput;
 }
 
-export interface CreateFinancialAgentPromptInput {
-    mode: 'prompt';
-    workspaceId: string;
-    prompt: string;
-    preset?: FinancialAgentPreset;
-    knownRecipients?: KnownRecipientInput[];
+export interface DraftFinancialAgentPromptInput {
+  mode: 'prompt';
+  workspaceId: string;
+  prompt: string;
+  preset?: FinancialAgentPreset;
+  knownRecipients?: KnownRecipientInput[];
+}
+
+async function createManagedWalletForNetwork(network: SupportedNetwork) {
+  switch (network) {
+    case 'CKB': {
+      const privateKey = generatePrivateKey();
+      const address = await getAddress(privateKey);
+
+      return {
+        address,
+        privateKey,
+        walletType: 'managed' as const,
+      };
+    }
+    default:
+      throw {
+        code: 400,
+        message: `Unsupported network ${network}`,
+      };
+  }
 }
 
 export const FinancialAgentService = {
-    async createFromPrompt(input: CreateFinancialAgentPromptInput) {
-        const draft = await FinancialAgentDraftingService.draftFromPrompt({
-            prompt: input.prompt,
-            preset: input.preset,
-            knownRecipients: input.knownRecipients,
-        });
+  async draftFromPrompt(input: DraftFinancialAgentPromptInput) {
+    const drafted = await FinancialAgentDraftingService.draftFromPrompt({
+      prompt: input.prompt,
+      preset: input.preset,
+      knownRecipients: input.knownRecipients,
+    });
 
-        const validated = FinancialAgentValidationService.validateDraft(draft);
-        return this.createFromValidatedDraft(input.workspaceId, validated);
-    },
+    return FinancialAgentValidationService.validateDraft(drafted);
+  },
 
-    async createFromStructured(input: CreateFinancialAgentStructuredInput) {
-        const validated = FinancialAgentValidationService.validateDraft(input.draft);
-        return this.createFromValidatedDraft(input.workspaceId, validated);
-    },
+  async createFromStructured(input: CreateFinancialAgentStructuredInput) {
+    const validated = FinancialAgentValidationService.validateDraft(input.draft);
+    return this.createFromValidatedDraft(input.workspaceId, validated);
+  },
 
-    async createFromValidatedDraft(workspaceId: string, draft: DraftFinancialAgentInput) {
-        if (!mongoose.Types.ObjectId.isValid(workspaceId)) {
-            throw { code: 400, message: 'Invalid workspace ID' };
-        }
+  async createFromValidatedDraft(workspaceId: string, draft: DraftFinancialAgentInput) {
+    if (!mongoose.Types.ObjectId.isValid(workspaceId)) {
+      throw { code: 400, message: 'Invalid workspace ID' };
+    }
 
-        const agent = await FinancialAgentRepository.create({
-            workspaceId: new mongoose.Types.ObjectId(workspaceId),
-            name: draft.agent.name,
-            description: draft.agent.description,
-            status: 'active',
-            subscribedEvents: draft.agent.subscribedEvents,
-            permissionConfig: draft.agent.permissionConfig,
-            approvalConfig: draft.agent.approvalConfig,
-        });
+    const networkConfigs = await Promise.all(
+      draft.agent.networkConfigs.map(async (cfg) => ({
+        network: cfg.network,
+        enabled: cfg.enabled ?? true,
+        wallet: await createManagedWalletForNetwork(cfg.network),
+        allowedAssets: cfg.allowedAssets,
+        blockedAssets: cfg.blockedAssets,
+        allowedActions: cfg.allowedActions,
+        blockedActions: cfg.blockedActions,
+        recipientPolicy: cfg.recipientPolicy,
+        allowedRecipients: cfg.allowedRecipients,
+        blockedRecipients: cfg.blockedRecipients,
+        assetLimits: cfg.assetLimits,
+        metadata: {},
+      }))
+    );
 
-        const state = await FinancialAgentStateRepository.create({
-            agentId: agent._id,
-            balances: {},
-            counters: {
-                monthlySpend: '0',
-                totalReceived: '0',
-            },
-            pendingApprovalIds: [],
-            metadata: {},
-        });
+    const agent = await FinancialAgentRepository.create({
+      workspaceId: new mongoose.Types.ObjectId(workspaceId),
+      name: draft.agent.name,
+      description: draft.agent.description,
+      status: 'active',
+      subscribedEvents: draft.agent.subscribedEvents,
+      networkConfigs,
+      permissionConfig: draft.agent.permissionConfig,
+      approvalConfig: draft.agent.approvalConfig,
+    });
 
-        agent.stateId = state._id as mongoose.Types.ObjectId;
-        await FinancialAgentRepository.save(agent);
+    const state = await FinancialAgentStateRepository.create({
+      agentId: agent._id,
+      balances: {},
+      counters: {
+        monthlySpend: '0',
+        totalReceived: '0',
+      },
+      pendingApprovalIds: [],
+      metadata: {},
+    });
 
-        const policies = await Promise.all(
-            draft.policies.map((policy: DraftPolicyInput) => FinancialPolicyRepository.create({
-                agentId: agent._id,
-                trigger: policy.trigger,
-                conditions: policy.conditions as PolicyCondition[],
-                actions: policy.actions as PolicyAction[],
-                enabled: true,
-                priority: policy.priority ?? 1,
-            }))
-        );
+    agent.stateId = state._id as mongoose.Types.ObjectId;
+    await FinancialAgentRepository.save(agent);
 
-        return {
-            agent,
-            state,
-            policies,
-            assumptions: draft.assumptions,
-        };
-    },
+    const policies = await Promise.all(
+      draft.policies.map((policy: DraftPolicyInput) =>
+        FinancialPolicyRepository.create({
+          agentId: agent._id,
+          trigger: policy.trigger,
+          conditions: policy.conditions as PolicyCondition[],
+          actions: policy.actions as PolicyAction[],
+          enabled: true,
+          priority: policy.priority ?? 1,
+        })
+      )
+    );
 
-    async listAgents(workspaceId: string) {
-        return FinancialAgentRepository.findManyByWorkspace(workspaceId);
-    },
+    return {
+      agent,
+      state,
+      policies,
+      assumptions: draft.assumptions,
+    };
+  },
 
-    async getAgent(workspaceId: string, id: string) {
-        const agent = await FinancialAgentRepository.findByIdInWorkspace(id, workspaceId);
-        if (!agent) return null;
-        const state = await FinancialAgentStateRepository.findByAgentId(id);
-        return { agent, state };
-    },
+  async listAgents(workspaceId: string) {
+    return FinancialAgentRepository.findManyByWorkspace(workspaceId);
+  },
 
-    async pauseAgent(workspaceId: string, id: string) {
-        return FinancialAgentRepository.updateStatusInWorkspace(id, workspaceId, 'paused');
-    },
+  async getAgent(workspaceId: string, id: string) {
+    const agent = await FinancialAgentRepository.findByIdInWorkspace(id, workspaceId);
+    if (!agent) return null;
 
-    async activateAgent(workspaceId: string, id: string) {
-        return FinancialAgentRepository.updateStatusInWorkspace(id, workspaceId, 'active');
-    },
+    const state = await FinancialAgentStateRepository.findByAgentId(id);
+    return { agent, state };
+  },
+
+  async pauseAgent(workspaceId: string, id: string) {
+    return FinancialAgentRepository.updateStatusInWorkspace(id, workspaceId, 'paused');
+  },
+
+  async activateAgent(workspaceId: string, id: string) {
+    return FinancialAgentRepository.updateStatusInWorkspace(id, workspaceId, 'active');
+  },
 };

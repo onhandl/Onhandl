@@ -13,7 +13,17 @@ function readString(payload: Record<string, unknown>, key: string): string | und
 
 function readNumber(payload: Record<string, unknown>, key: string): number | undefined {
     const value = payload[key];
-    return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string' && value.trim() !== '') {
+        const parsed = Number(value);
+        if (Number.isFinite(parsed)) return parsed;
+    }
+    return undefined;
+}
+
+function logRouteError(eventType: string, err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`[financial-runtime.wiring] failed to route ${eventType}: ${message}`);
 }
 
 export function createFinancialRuntimeWiring() {
@@ -37,23 +47,6 @@ export function createFinancialRuntimeWiring() {
 
         const payerAddress = readString(payload, 'payerAddress');
 
-        const paymentLinkEvent: RuntimeEvent<'PAYMENT_LINK.PAID'> = {
-            id: randomUUID(),
-            type: 'PAYMENT_LINK.PAID',
-            workspaceId,
-            source: 'payment-link-verification',
-            payload: {
-                paymentLinkId,
-                amount,
-                asset,
-                chain,
-                recipientAddress,
-                payerAddress,
-                txHash,
-            },
-            createdAt: Date.now(),
-        };
-
         const fundsReceivedEvent: RuntimeEvent<'FUNDS.RECEIVED'> = {
             id: randomUUID(),
             type: 'FUNDS.RECEIVED',
@@ -71,9 +64,9 @@ export function createFinancialRuntimeWiring() {
         };
 
         try {
-            await router.route(paymentLinkEvent);
             await router.route(fundsReceivedEvent);
-        } catch {
+        } catch (err) {
+            logRouteError('FUNDS.RECEIVED', err);
         }
     });
 
@@ -100,7 +93,8 @@ export function createFinancialRuntimeWiring() {
 
         try {
             await router.route(event);
-        } catch {
+        } catch (err) {
+            logRouteError('APPROVAL.GRANTED', err);
         }
     });
 
@@ -127,7 +121,8 @@ export function createFinancialRuntimeWiring() {
 
         try {
             await router.route(event);
-        } catch {
+        } catch (err) {
+            logRouteError('APPROVAL.REJECTED', err);
         }
     });
 

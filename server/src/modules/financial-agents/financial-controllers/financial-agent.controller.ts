@@ -1,7 +1,7 @@
 import { FastifyPluginAsync } from 'fastify';
 import {
-    CreateFinancialAgentPromptInput,
     CreateFinancialAgentStructuredInput,
+    DraftFinancialAgentPromptInput,
     FinancialAgentService,
 } from '../financial-agent.service';
 import {
@@ -16,52 +16,84 @@ import {
 
 export const financialAgentController: FastifyPluginAsync = async (fastify) => {
     fastify.post<{
-        Body: CreateFinancialAgentPromptInput | CreateFinancialAgentStructuredInput
-    }>('/financial-agents', {
+        Body: Omit<DraftFinancialAgentPromptInput, 'workspaceId'>
+    }>('/financial-agents/draft', {
         onRequest: [fastify.authenticate],
         schema: {
             tags: ['Financial Agents'],
-            summary: 'Create financial agent',
-            description: 'Creates financial agents from either a structured runtime draft or an AI prompt draft flow.',
+            summary: 'Draft financial agent from prompt',
+            description: 'Creates a validated draft configuration from natural language without persisting agent records.',
             security: [cookieAuthSecurity],
             headers: workspaceHeaderSchema,
             body: {
                 type: 'object',
-                required: ['mode'],
-                oneOf: [
-                    {
-                        type: 'object',
-                        required: ['mode', 'prompt'],
-                        properties: {
-                            mode: { type: 'string', const: 'prompt' },
-                            prompt: { type: 'string', minLength: 1 },
-                            preset: { type: 'string', enum: FINANCIAL_AGENT_PRESETS },
-                            knownRecipients: {
-                                type: 'array',
-                                items: {
-                                    type: 'object',
-                                    required: ['label', 'address', 'chain'],
-                                    properties: {
-                                        label: { type: 'string', minLength: 1 },
-                                        address: { type: 'string', minLength: 1 },
-                                        chain: { type: 'string', minLength: 1 },
-                                    },
-                                },
+                required: ['mode', 'prompt'],
+                properties: {
+                    mode: { type: 'string', const: 'prompt' },
+                    prompt: { type: 'string', minLength: 1 },
+                    preset: { type: 'string', enum: FINANCIAL_AGENT_PRESETS },
+                    knownRecipients: {
+                        type: 'array',
+                        items: {
+                            type: 'object',
+                            required: ['label', 'address', 'chain'],
+                            properties: {
+                                label: { type: 'string', minLength: 1 },
+                                address: { type: 'string', minLength: 1 },
+                                chain: { type: 'string', minLength: 1 },
                             },
                         },
                     },
-                    {
+                },
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    additionalProperties: true,
+                },
+                ...standardErrorResponses([400, 401, 500]),
+            },
+        },
+    }, async (request, reply) => {
+        try {
+            const workspaceId = request.headers['x-workspace-id'] as string;
+            if (!workspaceId) return reply.code(400).send({ error: 'Missing x-workspace-id header' });
+
+            const body = request.body;
+            const draft = await FinancialAgentService.draftFromPrompt({
+                mode: 'prompt',
+                workspaceId,
+                prompt: body.prompt,
+                preset: body.preset,
+                knownRecipients: body.knownRecipients,
+            });
+
+            return reply.code(200).send(draft);
+        } catch (err: any) {
+            return reply.code(err.code || 500).send({ error: err.message || 'Failed to draft financial agent' });
+        }
+    });
+
+    fastify.post<{
+        Body: Omit<CreateFinancialAgentStructuredInput, 'workspaceId'>
+    }>('/financial-agents', {
+        onRequest: [fastify.authenticate],
+        schema: {
+            tags: ['Financial Agents'],
+            summary: 'Create financial agent from structured draft',
+            description: 'Creates financial agents from an already-validated structured runtime draft.',
+            security: [cookieAuthSecurity],
+            headers: workspaceHeaderSchema,
+            body: {
+                type: 'object',
+                required: ['mode', 'draft'],
+                properties: {
+                    mode: { type: 'string', const: 'structured' },
+                    draft: {
                         type: 'object',
-                        required: ['mode', 'draft'],
-                        properties: {
-                            mode: { type: 'string', const: 'structured' },
-                            draft: {
-                                type: 'object',
-                                additionalProperties: true,
-                            },
-                        },
+                        additionalProperties: true,
                     },
-                ],
+                },
             },
             response: {
                 201: {
@@ -76,19 +108,7 @@ export const financialAgentController: FastifyPluginAsync = async (fastify) => {
             const workspaceId = request.headers['x-workspace-id'] as string;
             if (!workspaceId) return reply.code(400).send({ error: 'Missing x-workspace-id header' });
 
-            if (request.body.mode === 'prompt') {
-                const body = request.body as Omit<CreateFinancialAgentPromptInput, 'workspaceId'>;
-                const result = await FinancialAgentService.createFromPrompt({
-                    mode: 'prompt',
-                    workspaceId,
-                    prompt: body.prompt,
-                    preset: body.preset,
-                    knownRecipients: body.knownRecipients,
-                });
-                return reply.code(201).send(result);
-            }
-
-            const body = request.body as Omit<CreateFinancialAgentStructuredInput, 'workspaceId'>;
+            const body = request.body;
             const parsedDraft = draftFinancialAgentInputSchema.safeParse(body.draft);
             if (!parsedDraft.success) {
                 return reply.code(400).send({
