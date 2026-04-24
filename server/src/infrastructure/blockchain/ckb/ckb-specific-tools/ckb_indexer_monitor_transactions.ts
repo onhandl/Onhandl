@@ -28,9 +28,10 @@ export const MonitorTransactionsTool: BlockchainTool<MonitorTransactionsInput, a
         const currentBlock = BigInt(await cccClient.getTip());
         const fromBlock = input.fromBlock ? BigInt(input.fromBlock) : currentBlock;
 
-        const newTransactions: any[] = [];
+        console.log('[MonitorTransactionsTool] monitoring address', input.address);
+        console.log('[MonitorTransactionsTool] tip', currentBlock.toString());
 
-        // Per-poll dedup guard (txHash + ioIndex) — cross-poll dedup is done by IdempotencyService
+        const newTransactions: any[] = [];
         const seen = new Set<string>();
 
         for await (const tx of cccClient.findTransactionsByLock(
@@ -40,33 +41,45 @@ export const MonitorTransactionsTool: BlockchainTool<MonitorTransactionsInput, a
             "desc",
             input.limit ?? 50
         )) {
-            if (tx.ioType !== "output") continue;
+            console.log('[MonitorTransactionsTool] RAW TX', {
+                txHash: tx.txHash,
+                ioType: tx.ioType,
+                ioIndex: tx.ioIndex?.toString(),
+                blockNumber: tx.blockNumber?.toString(),
+            });
 
-            const key = `${tx.txHash}:${tx.ioIndex}`;
-            if (seen.has(key)) continue;
-            seen.add(key);
+            // NOTE: findTransactionsByLock does NOT return ioType/ioIndex — they come back undefined.
+            // Do NOT filter by ioType here. Process all records returned for this lock script.
+            if (seen.has(tx.txHash)) continue;
+            seen.add(tx.txHash);
 
             try {
                 const txData = await cccClient.getTransaction(tx.txHash);
-                if (!txData) continue;
+                if (!txData) {
+                    console.log('[MonitorTransactionsTool] missing txData', tx.txHash);
+                    continue;
+                }
 
-                // Use the exact output at ioIndex — not the sum of all outputs
-                const output = txData.transaction.outputs[Number(tx.ioIndex)];
-                if (!output) continue;
-
-                const amountShannons = BigInt(output.capacity);
+                // Playground-style: sum all outputs. ioIndex is unavailable from findTransactionsByLock.
+                const outputs = txData.transaction.outputs;
+                const totalAmount = outputs.reduce(
+                    (sum: bigint, output: any) => sum + output.capacity,
+                    0n
+                );
 
                 newTransactions.push({
                     txHash: tx.txHash,
-                    ioIndex: tx.ioIndex?.toString(),
                     blockNumber: tx.blockNumber?.toString() ?? null,
-                    amountCkb: (Number(amountShannons) / 1e8).toFixed(8),
-                    amountShannons: amountShannons.toString(),
+                    amountCkb: (Number(totalAmount) / 1e8).toFixed(8),
+                    amountShannons: totalAmount.toString(),
                     toAddress: input.address,
                     status: txData.status,
                 });
-            } catch {
-                continue;
+            } catch (error) {
+                console.error('[MonitorTransactionsTool] parse failed', {
+                    txHash: tx.txHash,
+                    error,
+                });
             }
         }
 

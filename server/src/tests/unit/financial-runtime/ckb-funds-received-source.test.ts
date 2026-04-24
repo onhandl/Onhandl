@@ -74,7 +74,7 @@ describe('CkbFundsReceivedSource', () => {
 
         expect(IdempotencyService.acquire).toHaveBeenCalledWith(expect.objectContaining({
             scope: 'financial-runtime:event-source',
-            key: 'FUNDS.RECEIVED:CKB:workspace_1:agent_1:0xtesttxhash:0'
+            key: 'FUNDS.RECEIVED:CKB:workspace_1:agent_1:0xtesttxhash'
         }));
 
         expect(eventBus.emit).toHaveBeenCalledWith('FUNDS.RECEIVED', expect.objectContaining({

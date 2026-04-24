@@ -65,6 +65,7 @@ export class CkbFundsReceivedSource {
         console.log('[CkbFundsReceivedSource] next cursor:', result.nextFromBlock);
 
         // Emit FUNDS.RECEIVED for every new incoming transaction
+        let emittedCount = 0;
         for (const tx of result.transactions) {
             const key = buildIdempotencyKey([
                 'FUNDS.RECEIVED',
@@ -72,7 +73,6 @@ export class CkbFundsReceivedSource {
                 String(agent.workspaceId),
                 String(agent._id),
                 tx.txHash,
-                tx.ioIndex ?? '0',
             ]);
 
             const acquired = await IdempotencyService.acquire({
@@ -112,6 +112,7 @@ export class CkbFundsReceivedSource {
                         emittedEvent: 'FUNDS.RECEIVED',
                     },
                 });
+                emittedCount++;
             } catch (error: any) {
                 await IdempotencyService.fail({
                     scope: 'financial-runtime:event-source',
@@ -137,9 +138,9 @@ export class CkbFundsReceivedSource {
 
         await FinancialAgentStateRepository.save(state);
 
-        if (result.newTransactionCount > 0) {
+        if (emittedCount > 0) {
             console.log(
-                `[CkbFundsReceivedSource] Agent ${agent._id}: emitted ${result.newTransactionCount} FUNDS.RECEIVED event(s). Next cursor: ${result.nextFromBlock}`
+                `[CkbFundsReceivedSource] Agent ${agent._id}: emitted ${emittedCount} FUNDS.RECEIVED event(s). Next cursor: ${result.nextFromBlock}`
             );
         }
     }
