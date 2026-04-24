@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ActionExecutor } from '../../../core/financial-runtime/ActionExecutor';
+import { ActionExecutor } from '../../../core/financial-runtime/ActionExecutors/CKBActionExecutor';
 import { eventBus } from '../../../infrastructure/events/eventBus';
 import type { ExecutableAction, RuntimeEvent } from '../../../core/financial-runtime/types';
 

@@ -1,6 +1,6 @@
 import { MatchedPolicy, RuntimeEvent } from './types';
 import { FinancialPolicyRepository } from '../../modules/financial-agents/financial-repositories/financial-policy.repository';
-import { ConditionEvaluator } from './ConditionEvaluator';
+import { ConditionEvaluator } from './ConditionEvaluators/ConditionEvaluator';
 
 export class PolicyEngine {
     async match(agentId: string, event: RuntimeEvent): Promise<MatchedPolicy[]> {

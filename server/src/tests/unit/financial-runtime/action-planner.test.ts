@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ActionPlanner } from '../../../core/financial-runtime/ActionPlanner';
+import { ActionPlanner } from '../../../core/financial-runtime/ActionPlanners/ActionPlanner';
 import type { PolicyAction, RuntimeEvent } from '../../../core/financial-runtime/types';
 
 describe('ActionPlanner', () => {

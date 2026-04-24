@@ -1,4 +1,4 @@
-import { ExecutableAction, PolicyAction, RuntimeEvent } from './types';
+import { ExecutableAction, PolicyAction, RuntimeEvent } from '../types';
 
 type EventPayloadLike = {
   amount?: unknown;

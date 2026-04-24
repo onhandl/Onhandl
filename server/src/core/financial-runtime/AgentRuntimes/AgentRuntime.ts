@@ -1,13 +1,13 @@
 import mongoose from 'mongoose';
-import { ApprovalEngine } from './ApprovalEngine';
-import { ActionExecutor } from './ActionExecutor';
-import { ActionPlanner } from './ActionPlanner';
-import { PolicyEngine } from './PolicyEngine';
-import { PermissionEngine } from './PermissionEngine';
-import { RuntimeEvent } from './types';
-import { FinancialAgentRepository } from '../../modules/financial-agents/financial-repositories/financial-agent.repository';
-import { FinancialEventRepository } from '../../modules/financial-agents/financial-repositories/financial-event.repository';
-import { FinancialAgentStateRepository } from '../../modules/financial-agents/financial-repositories/financial-agent-state.repository';
+import { ApprovalEngine } from '../ApprovalEngines/ApprovalEngine';
+import { ActionExecutor } from '../ActionExecutors/CKBActionExecutor';
+import { ActionPlanner } from '../ActionPlanners/ActionPlanner';
+import { PolicyEngine } from '../PolicyEngine';
+import { PermissionEngine } from '../PermissionEngines/PermissionEngine';
+import { RuntimeEvent } from '../types';
+import { FinancialAgentRepository } from '../../../modules/financial-agents/financial-repositories/financial-agent.repository';
+import { FinancialEventRepository } from '../../../modules/financial-agents/financial-repositories/financial-event.repository';
+import { FinancialAgentStateRepository } from '../../../modules/financial-agents/financial-repositories/financial-agent-state.repository';
 
 export class AgentRuntime {
     constructor(
@@ -61,7 +61,7 @@ export class AgentRuntime {
                         continue;
                     }
 
-                    await this.actionExecutor.execute(String(agent._id), action, {
+                    await this.actionExecutor.execute(agent, action, {
                         ...event,
                         id: event.id || String(persistedEvent._id),
                     });

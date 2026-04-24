@@ -1,5 +1,5 @@
-import type { IFinancialAgent } from '../../infrastructure/database/models/FinancialAgent';
-import { ExecutableAction, PermissionCheckResult } from './types';
+import type { IFinancialAgent } from '../../../infrastructure/database/models/FinancialAgent';
+import { ExecutableAction, PermissionCheckResult } from '../types';
 
 export class PermissionEngine {
   check(action: ExecutableAction, agent: IFinancialAgent): PermissionCheckResult {

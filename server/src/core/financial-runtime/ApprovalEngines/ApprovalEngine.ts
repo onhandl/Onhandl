@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import type { IFinancialAgent } from '../../infrastructure/database/models/FinancialAgent';
-import { ApprovalDecision, ExecutableAction } from './types';
-import { ApprovalRequestRepository } from '../../modules/financial-agents/financial-repositories/approval.repository';
+import type { IFinancialAgent } from '../../../infrastructure/database/models/FinancialAgent';
+import { ApprovalDecision, ExecutableAction } from '../types';
+import { ApprovalRequestRepository } from '../../../modules/financial-agents/financial-repositories/approval.repository';
 
 export class ApprovalEngine {
   async requiresApproval(

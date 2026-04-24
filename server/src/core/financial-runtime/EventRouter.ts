@@ -1,4 +1,4 @@
-import { AgentRuntime } from './AgentRuntime';
+import { AgentRuntime } from './AgentRuntimes/AgentRuntime';
 import { RuntimeEvent } from './types';
 
 export class EventRouter {

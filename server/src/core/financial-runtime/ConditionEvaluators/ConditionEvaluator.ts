@@ -1,4 +1,4 @@
-import { PolicyCondition } from './types';
+import { PolicyCondition } from '../types';
 
 export class ConditionEvaluator {
     static evaluate(conditions: PolicyCondition[], context: Record<string, unknown>): boolean {

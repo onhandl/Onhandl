@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import { eventBus } from '../../infrastructure/events/eventBus';
-import { AgentRuntime } from '../../core/financial-runtime/AgentRuntime';
+import { AgentRuntime } from '../../core/financial-runtime/AgentRuntimes/AgentRuntime';
 import { EventRouter } from '../../core/financial-runtime/EventRouter';
 import { RuntimeEvent } from '../../core/financial-runtime/types';
 
