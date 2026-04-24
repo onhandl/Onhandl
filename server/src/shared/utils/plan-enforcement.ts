@@ -15,7 +15,7 @@ export async function getUserPlan(userId: string): Promise<PlanId> {
 /**
  * Returns the full feature set for a plan.
  */
-export function getPlanFeatures(planId: PlanId) {
+function getPlanFeatures(planId: PlanId) {
     return PLANS[planId] ?? PLANS.free;
 }
 
@@ -48,7 +48,7 @@ export function assertCanReEdit(planId: PlanId) {
     }
 }
 
-export function assertTemplateAccess(planId: PlanId, templateTier: 'basic' | 'premium') {
+function assertTemplateAccess(planId: PlanId, templateTier: 'basic' | 'premium') {
     const plan = getPlanFeatures(planId);
     if (templateTier === 'premium' && plan.templatesAccess !== 'all') {
         throw planLimitError(
@@ -57,7 +57,7 @@ export function assertTemplateAccess(planId: PlanId, templateTier: 'basic' | 'pr
     }
 }
 
-export function assertAdvancedAnalytics(planId: PlanId) {
+function assertAdvancedAnalytics(planId: PlanId) {
     const plan = getPlanFeatures(planId);
     if (!plan.canAccessAdvancedAnalytics) {
         throw planLimitError(
@@ -66,7 +66,7 @@ export function assertAdvancedAnalytics(planId: PlanId) {
     }
 }
 
-export function assertCustomIntegrations(planId: PlanId) {
+function assertCustomIntegrations(planId: PlanId) {
     const plan = getPlanFeatures(planId);
     if (!plan.canUseCustomIntegrations) {
         throw planLimitError(

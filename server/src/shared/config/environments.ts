@@ -27,7 +27,7 @@ export const ENV = {
     OLLAMA_BASE_URL: process.env.OLLAMA_BASE_URL as string,
     OLLAMA_MODEL: process.env.OLLAMA_MODEL as string,
     OLLAMA_API_KEY: process.env.OLLAMA_API_KEY || "",
-    DEFAULT_AI_PROVIDER: (process.env.DEFAULT_AI_PROVIDER || 'openai') as 'ollama' | 'gemini' | 'openai' | 'anthropic',
+    DEFAULT_AI_PROVIDER: (process.env.DEFAULT_AI_PROVIDER || 'openai'),
     APP_URL: process.env.APP_URL || 'http://localhost:3000',
     API_URL: process.env.API_URL || 'http://localhost:3001/api',
 

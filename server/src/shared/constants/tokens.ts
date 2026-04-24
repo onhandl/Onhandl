@@ -211,7 +211,7 @@ const TOKEN_COSTS: Record<string, number> = {
 };
 
 /** Tokens deducted for executing a flow with N connected nodes */
-export function tokensForExecution(nodeCount: number): number {
+function tokensForExecution(nodeCount: number): number {
     return nodeCount * TOKEN_COSTS.node_execution;
 }
 
@@ -229,6 +229,6 @@ function canAffordExecution(currentTokens: number, nodeCount: number): boolean {
 }
 
 /** Returns the node limit for a plan (-1 = unlimited) */
-export function getNodeLimit(planId: PlanId): number {
+function getNodeLimit(planId: PlanId): number {
     return (PLANS[planId] ?? PLANS.free).nodeLimit;
 }

@@ -39,7 +39,7 @@ export const ckbFiberTools: BlockchainTool<any, any>[] = [
     ...invoiceTools,
 ];
 
-export const allCkbEcosystemTools = [
+const allCkbEcosystemTools = [
     ...ckbSpecificTools,
     ...ckbFiberTools
 ];

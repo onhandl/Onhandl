@@ -3,13 +3,13 @@ import { z } from "zod";
 export type GenerateBiscuitInput = z.infer<typeof GenerateBiscuitSchema>;
 export type OpenChannelInput = z.infer<typeof OpenChannelSchema>;
 export type GenerateInvoiceInput = z.infer<typeof GenerateInvoiceSchema>;
-export type ConnectPeerInput = z.infer<typeof ConnectPeerSchema>;
-export type DisconnectPeerInput = z.infer<typeof DisconnectPeerSchema>;
+type ConnectPeerInput = z.infer<typeof ConnectPeerSchema>;
+type DisconnectPeerInput = z.infer<typeof DisconnectPeerSchema>;
 export type GetPaymentInput = z.infer<typeof GetPaymentSchema>;
 export type PayInvoiceInput = z.infer<typeof PayInvoiceSchema>;
 export type DecodeInvoiceInput = z.infer<typeof DecodeInvoiceSchema>;
 export type ShutdownChannelInput = z.infer<typeof ShutdownChannelSchema>;
-export type AbandonChannelInput = z.infer<typeof AbandonChannelSchema>;
+type AbandonChannelInput = z.infer<typeof AbandonChannelSchema>;
 
 
 export const ShutdownChannelSchema = z.object({

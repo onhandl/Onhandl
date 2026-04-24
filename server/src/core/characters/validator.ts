@@ -1,7 +1,5 @@
 import Ajv from 'ajv';
 import { financialAgentSchema } from './schemas/financial';
-import { socialAgentSchema } from './schemas/social';
-import { operationalAgentSchema } from './schemas/operational';
 
 const ajv = new Ajv({ allErrors: true });
 
@@ -9,10 +7,6 @@ function getSchema(agentType: string) {
     switch (agentType) {
         case 'financial_agent':
             return financialAgentSchema;
-        case 'social_agent':
-            return socialAgentSchema;
-        case 'operational_agent':
-            return operationalAgentSchema;
         default:
             throw new Error(`Unsupported agent type: ${agentType}`);
     }

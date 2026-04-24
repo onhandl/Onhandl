@@ -10,7 +10,7 @@ function generateOtp(): string {
     return String(crypto.randomInt(100000, 999999));
 }
 
-export async function issueOtp(
+async function issueOtp(
     email: string,
     purpose: 'signup' | 'forgot_password',
     pendingData?: { username?: string; password: string; name?: string }

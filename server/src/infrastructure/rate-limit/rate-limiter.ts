@@ -3,7 +3,7 @@
  * A simple in-memory rate limiter with a pluggable interface.
  */
 
-export interface RateLimitResult {
+interface RateLimitResult {
     success: boolean;
     remaining: number;
     resetAt: number;

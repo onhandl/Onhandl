@@ -224,10 +224,39 @@ This system is designed to:
 * isolate business logic from transport
 * allow easy extension of agents, tools, and integrations
 
+## How to Add New Chain Support
+
+Adding a new chain requires tapping into the **Financial Runtime Pipeline**. The flow is: `EventSource` -> `IdempotencyService` -> `EventBus` -> `EventRouter` -> `AgentRuntime` -> `ActionExecutor`.
+
+1. **Create the Toolchain**: Place network interaction tools (e.g., transfers, indexing) inside `src/infrastructure/blockchain/[chain]/`.
+2. **Create the Event Source**:
+   - Add your watcher in `src/core/financial-runtime/EventSources/blockchain/[chain]/`.
+   - Your source MUST use `IdempotencyService` with the `financial-runtime:event-source` scope to prevent duplicate events.
+   - Emit `FUNDS.RECEIVED` payloads to the `eventBus`.
+3. **Wire the Network**:
+   - Create `src/modules/financial-agents/financial-runtimes/[chain].wiring.ts`.
+   - Add a listener for `FUNDS.RECEIVED` that checks `payload.chain === '[CHAIN]'` and passes the mapped event to the `EventRouter`.
+   - Register your wiring file inside `src/modules/financial-agents/financial-runtimes/index.ts`.
+4. **Create Action Executors**:
+   - Add executors (like transferring funds) inside `src/core/financial-runtime/ActionExecutors/blockchain/[chain]/`.
+   - Register them in the ActionRegistry.
+
+---
+
+## How to Add Chain or AI Tools
+
+Tools are stateless resources that agents or background systems invoke.
+
+1. **Create the Tool File**: Place it in `src/infrastructure/blockchain/[chain]/[chain]-specific-tools/` or `src/infrastructure/ai/[provider]/`.
+2. **Define the Schema**: Use Zod to define input parameters.
+3. **Implement the Tool Interface**: Export an object conforming to `BlockchainTool` or `AiTool` containing `name`, `description`, `schema`, and the `execute()` payload.
+4. **Register It**: Export it from the root index file of that infrastructure domain so the generic registries can loop over it.
+
 ---
 
 ## Final Rule
 
 > If you are unsure where something belongs, you are about to put it in the wrong place.
 
-Stop and think before writing code.
+
+reach out to fadhil on telegram (@mulinyaaa) or email ([mulinyafadhil@gmail.com]) for any questions

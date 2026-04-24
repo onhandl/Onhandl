@@ -2,14 +2,12 @@ import { buildApp } from './app';
 import connectDb from './infrastructure/database/connectDB';
 import { ENV } from './shared/config/environments';
 import { startWorkers } from './workers/agenda';
-import { syncBlockchainToolsToDb } from './modules/tools/tool-sync.service';
 
 const startServer = async () => {
   const app = await buildApp();
 
   try {
     await startWorkers();
-    await syncBlockchainToolsToDb();
 
     await app.listen({
       port: 3001,

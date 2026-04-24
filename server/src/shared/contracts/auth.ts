@@ -3,7 +3,7 @@ import '@fastify/jwt';
 /**
  * Authenticated user payload attached by request.jwtVerify()
  */
-export interface AuthenticatedUser {
+interface AuthenticatedUser {
     id: string;
     username?: string;
     email?: string;
@@ -21,7 +21,7 @@ export interface ApiKeyAuthContext {
     scopes: string[];
 }
 
-export interface JwtAuthContext {
+interface JwtAuthContext {
     type: 'user';
     userId: string;
     workspaceId?: string;
@@ -29,14 +29,14 @@ export interface JwtAuthContext {
     scopes?: string[];
 }
 
-export interface TerminalAuthContext {
+interface TerminalAuthContext {
     type: 'terminal';
     userId: string;
     workspaceId?: string;
     scopes?: string[];
 }
 
-export type AuthContext = JwtAuthContext | ApiKeyAuthContext | TerminalAuthContext;
+type AuthContext = JwtAuthContext | ApiKeyAuthContext | TerminalAuthContext;
 
 declare module 'fastify' {
     interface FastifyRequest {

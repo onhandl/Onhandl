@@ -12,7 +12,7 @@ export const allBlockchainTools = [...ckbSpecificTools, ...ckbFiberTools];
 /**
  * Wrapper to automatically validate inputs against a Zod schema before executing the tool.
  */
-export async function executeTool<TInput, TOutput>(
+async function executeTool<TInput, TOutput>(
     tool: BlockchainTool<TInput, TOutput>,
     rawInput: unknown
 ): Promise<TOutput> {

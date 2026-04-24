@@ -1,6 +1,6 @@
 import { Logger } from "borgen";
 
-// Implement any seeds for testing purposes but for us we just skip 
+
 function seedDatabase() {
   Logger.info({ message: "Initializing database..." });
   try {

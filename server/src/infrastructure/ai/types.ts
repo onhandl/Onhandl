@@ -15,25 +15,25 @@ export const OpenAIClient = new OpenAI({
   baseURL: ENV.OPENAI_BASE_URL, 
 });
 
-export const AnthropicClient = new Anthropic({
+const AnthropicClient = new Anthropic({
     apiKey: ENV.ANTHROPIC_API_KEY,
     baseURL: ENV.ANTHROPIC_BASE_URL,
 });
 
-export const OllamaClient = {
+const OllamaClient = {
     apiKey: ENV.OLLAMA_API_KEY,
     baseURL: ENV.OLLAMA_BASE_URL,
 };
 
 export interface CompletionRequest {
-    provider?: 'gemini' | 'openai' | 'ollama';
+    provider?: 'gemini' | 'openai' | 'ollama' | 'anthropic';
     model?: string;
     messages: CompletionMessage[];
     temperature?: number;
     maxTokens?: number;
     character?: CharacterSchema;
     apiKey?: string;
-    baseUrl?: string;  
+    baseUrl?: string;
 }
 
 export interface CompletionResponse {

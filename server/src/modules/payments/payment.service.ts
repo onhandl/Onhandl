@@ -3,6 +3,6 @@ export const CRYPTO_NETWORKS = [
     { id: 'Stellar', name: 'Stellar (XLM/USDC)' },
 ];
 
-export const PaymentService = {
+const PaymentService = {
     // Payments module is now ready for generic payment links
 };

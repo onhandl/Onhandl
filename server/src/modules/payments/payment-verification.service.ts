@@ -16,11 +16,11 @@ const verifiers = new Map<string, ChainTransactionVerifier>([
 /**
  * Register additional chain verifiers at startup (e.g. EVM, Solana).
  */
-export function registerTransactionVerifier(verifier: ChainTransactionVerifier): void {
+function registerTransactionVerifier(verifier: ChainTransactionVerifier): void {
     verifiers.set(verifier.chain.toUpperCase(), verifier);
 }
 
-export interface VerifyPaymentResult {
+interface VerifyPaymentResult {
     success: boolean;
     message: string;
     verification?: ChainVerificationResult;
@@ -82,14 +82,16 @@ export const PaymentVerificationService = {
             verificationData: verification.verificationData,
         });
 
-        // 7. Emit event
-        eventBus.emit('PAYMENT_LINK_PAID', {
+        // 7. Emit normalized runtime ingress event
+        eventBus.emit('PAYMENT_LINK.PAID', {
             paymentLinkId: id,
+            workspaceId: String(linkRecord.workspaceId),
+            amount: verification.paidAmount,
+            asset: linkRecord.asset,
             chain: verification.chain,
-            txHash: verification.txHash,
+            recipientAddress: linkRecord.recipientAddress,
             payerAddress: verification.payerAddress,
-            paidAmount: verification.paidAmount,
-            workspaceId: linkRecord.workspaceId,
+            txHash: verification.txHash,
         });
 
         return { success: true, message: 'Payment verified successfully', verification };

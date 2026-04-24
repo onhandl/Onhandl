@@ -9,7 +9,7 @@
  */
 
 /** Standard error response shape: `{ error: string }` */
-export function errorResponseSchema(description = 'Error response') {
+function errorResponseSchema(description = 'Error response') {
     return {
         description,
         type: 'object' as const,
@@ -20,7 +20,7 @@ export function errorResponseSchema(description = 'Error response') {
 }
 
 /** Adds a description to a raw response schema. Pass `null` sparingly for `additionalProperties: true`. */
-export function describedResponseSchema(
+function describedResponseSchema(
     dataSchema: Record<string, unknown> | null,
     description = 'Success response',
 ) {
@@ -35,7 +35,7 @@ export function describedResponseSchema(
 }
 
 /** Paginated list response. */
-export function paginationResponseSchema(
+function paginationResponseSchema(
     itemSchema: Record<string, unknown>,
     description = 'Paginated results',
 ) {

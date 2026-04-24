@@ -4,7 +4,7 @@ import { IPaymentLink } from '../../infrastructure/database/models/PaymentLink';
 import { eventBus } from '../../infrastructure/events/eventBus';
 import mongoose from 'mongoose';
 
-export interface CreatePaymentLinkDTO {
+interface CreatePaymentLinkDTO {
     workspaceId: string;
     agentId?: string;
     createdBy: string;

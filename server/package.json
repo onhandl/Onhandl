@@ -11,20 +11,15 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",
     "@ckb-ccc/core": "^1.12.5",
-    "@ckb-lumos/lumos": "^0.23.0",
-    "@fastify/auth": "^5.0.4",
     "@fastify/cookie": "9",
     "@fastify/cors": "9",
     "@fastify/jwt": "^6.7.1",
     "@fastify/swagger": "^8.15.0",
     "@google/genai": "^1.46.0",
     "@nervosnetwork/ckb-sdk-core": "^0.109.5",
-    "@scalar/api-reference": "^1.52.1",
-    "@scalar/express-api-reference": "^0.9.7",
     "@scalar/fastify-api-reference": "^1.52.1",
     "agenda": "^5.0.0",
     "ajv": "^8.18.0",
-    "axios": "^1.15.0",
     "bcrypt": "^6.0.0",
     "borgen": "^2.0.0",
     "dotenv": "^16.4.5",
@@ -33,7 +28,7 @@
     "mongoose": "^8.2.1",
     "nodemailer": "^8.0.4",
     "openai": "^6.32.0",
-    "stripe": "^21.0.1",
+    "vitest": "^4.1.5",
     "zod": "^3.25.76"
   },
   "devDependencies": {
@@ -41,7 +36,6 @@
     "@types/node": "^20.0.0",
     "@types/nodemailer": "^7.0.11",
     "knip": "^6.4.1",
-    "ts-node": "^10.9.2",
     "tsx": "^4.7.1",
     "typescript": "^5.0.0"
   }
