@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { apiFetch } from '@/lib/api-client';
-import { useToast } from '@/components/ui';
 import { Loader2, User, KeyRound, CreditCard, Bell, Coins, ChevronRight } from 'lucide-react';
 import { ProfileSection } from './components/profile-section';
 import { ApiKeysCard } from './components/api-keys-card';
@@ -20,15 +19,15 @@ export default function SettingsPage() {
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [tokenInfo, setTokenInfo] = useState<{ tokens: number; plan: string } | null>(null);
   const [user, setUser] = useState({ username: '', email: '', whatsapp: '', telegramUsername: '', avatarUrl: '' });
-  const { toast } = useToast();
+
 
   useEffect(() => {
     apiFetch('/auth/me').then((data: any) => {
       setUser({ username: data.username || '', email: data.email || '', whatsapp: data.whatsapp || '', telegramUsername: data.telegramUsername || '', avatarUrl: data.avatarUrl || '' });
       setTokenInfo({ tokens: data.tokens ?? 0, plan: data.plan ?? 'free' });
-    }).catch(() => toast({ title: 'Error', description: 'Failed to load profile.', variant: 'destructive' }))
+    }).catch(() => alert('Error: Failed to load profile.'))
       .finally(() => setLoading(false));
-  }, [toast]);
+  }, []);
 
   if (loading) {
     return (

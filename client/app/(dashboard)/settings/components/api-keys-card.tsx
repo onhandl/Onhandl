@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { apiFetch } from '@/lib/api-client';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, Input, Label, useToast } from '@/components/ui';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, Input, Label } from '@/components/ui';
 import { Button } from '@/components/ui/buttons/button';
 import { KeyRound, Eye, EyeOff, Save, CheckCircle2, Loader2 } from 'lucide-react';
 
@@ -14,12 +14,12 @@ interface ApiKeyField {
 }
 
 const FIELDS: ApiKeyField[] = [
-    { key: 'gemini',        label: 'Gemini API Key',       placeholder: 'AIza...' },
-    { key: 'openai',        label: 'OpenAI API Key',        placeholder: 'sk-...' },
-    { key: 'openaiBaseUrl', label: 'OpenAI Base URL',       placeholder: 'https://api.openai.com/v1', isUrl: true },
-    { key: 'openaiModel',   label: 'OpenAI Model',          placeholder: 'gpt-4o-mini', isUrl: true },
-    { key: 'ollamaBaseUrl', label: 'Ollama Base URL',       placeholder: 'http://localhost:11434', isUrl: true },
-    { key: 'ollamaModel',   label: 'Ollama Model',          placeholder: 'qwen2.5:3b', isUrl: true },
+    { key: 'gemini', label: 'Gemini API Key', placeholder: 'AIza...' },
+    { key: 'openai', label: 'OpenAI API Key', placeholder: 'sk-...' },
+    { key: 'openaiBaseUrl', label: 'OpenAI Base URL', placeholder: 'https://api.openai.com/v1', isUrl: true },
+    { key: 'openaiModel', label: 'OpenAI Model', placeholder: 'gpt-4o-mini', isUrl: true },
+    { key: 'ollamaBaseUrl', label: 'Ollama Base URL', placeholder: 'http://localhost:11434', isUrl: true },
+    { key: 'ollamaModel', label: 'Ollama Model', placeholder: 'qwen2.5:3b', isUrl: true },
 ];
 
 export function ApiKeysCard() {
@@ -28,7 +28,7 @@ export function ApiKeysCard() {
     const [serverStatus, setServerStatus] = useState<Record<string, boolean>>({});
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
-    const { toast } = useToast();
+
 
     useEffect(() => {
         apiFetch('/auth/api-keys').then((data: any) => {
@@ -36,11 +36,11 @@ export function ApiKeysCard() {
             // Pre-fill non-secret fields
             setKeys({
                 openaiBaseUrl: data.openaiBaseUrl || '',
-                openaiModel:   data.openaiModel   || '',
-                ollamaBaseUrl: data.ollamaBaseUrl  || '',
-                ollamaModel:   data.ollamaModel    || '',
+                openaiModel: data.openaiModel || '',
+                ollamaBaseUrl: data.ollamaBaseUrl || '',
+                ollamaModel: data.ollamaModel || '',
             });
-        }).catch(() => {});
+        }).catch(() => { });
     }, []);
 
     const handleSave = async () => {
@@ -54,14 +54,14 @@ export function ApiKeysCard() {
             }
             await apiFetch('/auth/api-keys', { method: 'PUT', body: JSON.stringify(payload) });
             // Also persist to localStorage for in-browser use
-            if (keys.gemini)        localStorage.setItem('gemini_api_key',   keys.gemini);
-            if (keys.openai)        localStorage.setItem('openai_api_key',    keys.openai);
-            if (keys.ollamaBaseUrl) localStorage.setItem('ollama_base_url',   keys.ollamaBaseUrl);
+            if (keys.gemini) localStorage.setItem('gemini_api_key', keys.gemini);
+            if (keys.openai) localStorage.setItem('openai_api_key', keys.openai);
+            if (keys.ollamaBaseUrl) localStorage.setItem('ollama_base_url', keys.ollamaBaseUrl);
             setSaved(true);
-            toast({ title: 'API keys saved' });
+            alert('API keys saved');
             setTimeout(() => setSaved(false), 3000);
         } catch (e: any) {
-            toast({ title: 'Failed to save API keys', description: e.message, variant: 'destructive' });
+            alert('Failed to save API keys: ' + e.message);
         } finally {
             setSaving(false);
         }
@@ -83,8 +83,8 @@ export function ApiKeysCard() {
                     {FIELDS.map(({ key, label, placeholder, isUrl }) => {
                         const hasServer = key === 'gemini' ? serverStatus.gemini
                             : key === 'openai' ? serverStatus.openai
-                            : key === 'ollamaBaseUrl' ? serverStatus.ollama
-                            : false;
+                                : key === 'ollamaBaseUrl' ? serverStatus.ollama
+                                    : false;
                         const show = !!visibility[key];
                         return (
                             <div key={key} className="space-y-1.5">
@@ -126,7 +126,7 @@ export function ApiKeysCard() {
                 <Button onClick={handleSave} disabled={saving} className="rounded-full px-6">
                     {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…</>
                         : saved ? <><CheckCircle2 className="mr-2 h-4 w-4" /> Saved!</>
-                        : <><Save className="mr-2 h-4 w-4" /> Save Keys</>}
+                            : <><Save className="mr-2 h-4 w-4" /> Save Keys</>}
                 </Button>
             </CardFooter>
         </Card>

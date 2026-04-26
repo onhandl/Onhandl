@@ -10,7 +10,7 @@ import { AuthUI, ForgotPasswordForm, OtpVerifyForm, ResetPasswordForm } from '@/
 
 type Step = 'form' | 'signup-otp' | 'forgot' | 'reset-otp' | 'reset-pw';
 
-export default function TerminalApprovePage() {
+function TerminalApprovePageContent() {
     const searchParams = useSearchParams();
     const userCode = searchParams.get('userCode');
 
@@ -320,5 +320,19 @@ export default function TerminalApprovePage() {
                 </CardFooter>
             </Card>
         </div>
+    );
+}
+
+import { Suspense } from 'react';
+
+export default function Page() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center min-h-screen bg-black text-white p-4">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        }>
+            <TerminalApprovePageContent />
+        </Suspense>
     );
 }

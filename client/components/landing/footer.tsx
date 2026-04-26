@@ -19,8 +19,6 @@ const navigation = {
           name: "Platform",
           items: [
             { name: "Dashboard", href: "/dashboard" },
-            { name: "Sandbox", href: "/sandbox" },
-            { name: "Assets", href: "/dashboard/assets" },
           ],
         },
         {

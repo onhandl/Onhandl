@@ -18,7 +18,6 @@ import {
     IconShieldLock, IconWallet, IconRocket, IconNetwork
 } from '@tabler/icons-react';
 import { financialAgentApi } from '@/api/financial-agent-api';
-import { useToast } from '@/components/ui/notifications/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/selection/select';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -48,10 +47,7 @@ export default function CreateAgentModal({ isOpen, onClose, onComplete }: Create
     const [draft, setDraft] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    const router = useRouter();
-    const { toast } = useToast();
-
-    const reset = () => {
+    const router = useRouter(); const reset = () => {
         setStep(1); setName(''); setPrompt('');
         setPreset('custom'); setNetwork('CKB');
         setDraft(null);
@@ -65,7 +61,7 @@ export default function CreateAgentModal({ isOpen, onClose, onComplete }: Create
 
     const handleDraft = async () => {
         if (!name.trim() || !prompt.trim()) {
-            toast({ title: 'Missing fields', description: 'Provide both a name and a prompt.', variant: 'destructive' });
+            alert('Missing fields: Provide both a name and a prompt.');
             return;
         }
         setIsLoading(true);
@@ -74,7 +70,7 @@ export default function CreateAgentModal({ isOpen, onClose, onComplete }: Create
             setDraft(data);
             setStep(2);
         } catch (err: any) {
-            toast({ title: 'AI Strategy Failed', description: err.message, variant: 'destructive' });
+            alert('AI Strategy Failed: ' + err.message);
         } finally {
             setIsLoading(false);
         }
@@ -84,13 +80,13 @@ export default function CreateAgentModal({ isOpen, onClose, onComplete }: Create
         setIsLoading(true);
         try {
             const agent = await financialAgentApi.createFromStructured(draft);
-            toast({ title: 'Agent Initialized', description: `${name} is now monitoring the ${network} network.` });
+            alert(`Agent Initialized: ${name} is now monitoring the ${network} network.`);
             if (onComplete) onComplete();
             onClose();
             setTimeout(reset, 300);
             router.push('/dashboard');
         } catch (err: any) {
-            toast({ title: 'Initialization failed', description: err.message, variant: 'destructive' });
+            alert('Initialization failed: ' + err.message);
         } finally {
             setIsLoading(false);
         }

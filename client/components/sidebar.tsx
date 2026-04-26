@@ -18,7 +18,6 @@ import {
   Check,
   ChevronsUpDown,
   PlusCircle,
-  Gem,
   LayoutGrid
 } from 'lucide-react';
 import {
@@ -32,7 +31,6 @@ import {
 
 const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Assets', href: '/dashboard/assets', icon: Gem },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 

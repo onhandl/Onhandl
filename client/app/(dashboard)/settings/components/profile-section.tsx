@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { apiFetch } from '@/lib/api-client';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, Input, Label, useToast } from '@/components/ui';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, Input, Label } from '@/components/ui';
 import { Button } from '@/components/ui/buttons/button';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
@@ -17,12 +17,12 @@ interface Props {
 }
 
 export function ProfileSection({ user, setUser }: Props) {
-  const [saving,          setSaving]          = useState(false);
-  const [saved,           setSaved]           = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
-  const [avatarPreview,   setAvatarPreview]   = useState<string | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,10 +31,10 @@ export function ProfileSection({ user, setUser }: Props) {
     try {
       await apiFetch('/auth/me', { method: 'POST', body: JSON.stringify(user) });
       setSaved(true);
-      toast({ title: 'Profile updated!' });
+      alert('Profile updated!');
       setTimeout(() => setSaved(false), 3000);
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message || 'Failed to update profile.', variant: 'destructive' });
+      alert('Error: ' + (err.message || 'Failed to update profile.'));
     } finally {
       setSaving(false);
     }
@@ -62,10 +62,10 @@ export function ProfileSection({ user, setUser }: Props) {
       setAvatarPreview(cloudUrl);
       await apiFetch('/auth/me', { method: 'POST', body: JSON.stringify({ avatarUrl: cloudUrl }) });
       setUser({ ...user, avatarUrl: cloudUrl });
-      toast({ title: 'Profile picture updated!' });
+      alert('Profile picture updated!');
     } catch (err: any) {
       setAvatarPreview(null);
-      toast({ title: 'Upload failed', description: err.message || 'Could not save picture.', variant: 'destructive' });
+      alert('Upload failed: ' + (err.message || 'Could not save picture.'));
     } finally {
       setAvatarUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -78,9 +78,9 @@ export function ProfileSection({ user, setUser }: Props) {
       await apiFetch('/auth/me', { method: 'POST', body: JSON.stringify({ avatarUrl: '' }) });
       setUser({ ...user, avatarUrl: '' });
       setAvatarPreview(null);
-      toast({ title: 'Profile picture removed.' });
+      alert('Profile picture removed.');
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      alert('Error: ' + err.message);
     } finally {
       setAvatarUploading(false);
     }
@@ -89,10 +89,10 @@ export function ProfileSection({ user, setUser }: Props) {
   const currentAvatar = avatarPreview || user.avatarUrl;
 
   const FIELDS = [
-    { id: 'username',  label: 'Username',          icon: User,          type: 'text',  key: 'username',         placeholder: 'Your username'  },
-    { id: 'email',     label: 'Email Address',      icon: Mail,          type: 'email', key: 'email',            placeholder: 'your@email.com' },
-    { id: 'whatsapp',  label: 'WhatsApp Number',    icon: Phone,         type: 'text',  key: 'whatsapp',         placeholder: '+1234567890'    },
-    { id: 'telegram',  label: 'Telegram Username',  icon: MessageCircle, type: 'text',  key: 'telegramUsername', placeholder: 'username'       },
+    { id: 'username', label: 'Username', icon: User, type: 'text', key: 'username', placeholder: 'Your username' },
+    { id: 'email', label: 'Email Address', icon: Mail, type: 'email', key: 'email', placeholder: 'your@email.com' },
+    { id: 'whatsapp', label: 'WhatsApp Number', icon: Phone, type: 'text', key: 'whatsapp', placeholder: '+1234567890' },
+    { id: 'telegram', label: 'Telegram Username', icon: MessageCircle, type: 'text', key: 'telegramUsername', placeholder: 'username' },
   ] as const;
 
   return (
@@ -184,8 +184,8 @@ export function ProfileSection({ user, setUser }: Props) {
       <CardFooter className="flex justify-end border-t border-border/50 pt-5 bg-muted/5">
         <Button type="submit" form="profile-form" disabled={saving} className="rounded-full px-8">
           {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…</>
-            : saved  ? <><CheckCircle2 className="mr-2 h-4 w-4" /> Saved!</>
-            : <><Save className="mr-2 h-4 w-4" /> Save Profile</>}
+            : saved ? <><CheckCircle2 className="mr-2 h-4 w-4" /> Saved!</>
+              : <><Save className="mr-2 h-4 w-4" /> Save Profile</>}
         </Button>
       </CardFooter>
     </Card>
