@@ -9,7 +9,7 @@ import { landingEase } from '@/components/landing/motion-ease';
 
 import dynamic from 'next/dynamic';
 
-const LottieAnimation = dynamic(() => import('./hero/lottie-animation'), { 
+const LottieAnimation = dynamic(() => import('./hero/lottie-animation'), {
   ssr: false,
 });
 
@@ -49,7 +49,7 @@ export const Hero: React.FC<HeroProps> = ({ handleAnchorClick }) => {
             className="flex items-center gap-2 mb-10"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-fl-accent" />
-            <span className="label-factory">Agent-Native Visual Workflow Builder</span>
+            <span className="label-factory">Agent-Native Visual Agent Builder</span>
           </motion.div>
 
           {/* Main heading */}
@@ -79,7 +79,7 @@ export const Hero: React.FC<HeroProps> = ({ handleAnchorClick }) => {
             transition={{ duration: 0.55, delay: 0.18, ease }}
             className="text-[18px] md:text-[20px] text-fl-ink-2 max-w-[540px] font-medium leading-normal mb-12"
           >
-            Onhandl is the sovereign layer for financial intent. 
+            Onhandl is the sovereign layer for financial intent.
             Prompt, validate, and deploy agents that secure your assets 24/7.
           </motion.p>
 
@@ -116,7 +116,7 @@ export const Hero: React.FC<HeroProps> = ({ handleAnchorClick }) => {
         </div>
 
         {/* Lottie Animation Side */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.2, ease }}

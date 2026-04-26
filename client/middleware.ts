@@ -7,7 +7,6 @@ export function middleware(request: NextRequest) {
         request.nextUrl.pathname.startsWith('/signin') ||
         request.nextUrl.pathname.startsWith('/signup');
     const isProtectedRoute =
-        request.nextUrl.pathname.startsWith('/sandbox') ||
         request.nextUrl.pathname.startsWith('/dashboard');
 
     if (isProtectedRoute && !token) {
@@ -28,5 +27,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/sandbox/:path*', '/dashboard/:path*', '/signin', '/signup'],
+    matcher: ['/dashboard/:path*', '/signin', '/signup'],
 };

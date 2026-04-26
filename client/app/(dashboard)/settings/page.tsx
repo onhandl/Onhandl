@@ -4,21 +4,14 @@ import { useState, useEffect } from 'react';
 import { apiFetch } from '@/lib/api-client';
 import { useToast } from '@/components/ui';
 import { Loader2, User, KeyRound, CreditCard, Bell, Coins, ChevronRight } from 'lucide-react';
-import { UpgradePricingModal } from '@/components/modals/upgrade-pricing-modal';
 import { ProfileSection } from './components/profile-section';
-import { BillingSection } from './components/billing-section';
 import { ApiKeysCard } from './components/api-keys-card';
-import { PaymentMethodsCard } from './components/payment-methods-card';
-import { NotificationsCard } from './components/notifications-card';
 
-type Section = 'profile' | 'billing' | 'api-keys' | 'payments' | 'notifications';
+type Section = 'profile' | 'api-keys';
 
 const NAV: { key: Section; label: string; icon: React.ElementType; description: string }[] = [
   { key: 'profile', label: 'Profile', icon: User, description: 'Your account info' },
-  { key: 'billing', label: 'Billing & Tokens', icon: Coins, description: 'Plan, usage & upgrade' },
   { key: 'api-keys', label: 'AI Provider Keys', icon: KeyRound, description: 'Gemini, OpenAI, Ollama' },
-  { key: 'payments', label: 'Payment Methods', icon: CreditCard, description: 'Stripe & crypto wallets' },
-  { key: 'notifications', label: 'Notifications', icon: Bell, description: 'Alerts & digests' },
 ];
 
 export default function SettingsPage() {
@@ -114,23 +107,13 @@ export default function SettingsPage() {
             {active === 'profile' && (
               <ProfileSection user={user} setUser={setUser} />
             )}
-            {active === 'billing' && (
-              <BillingSection tokenInfo={tokenInfo} onUpgrade={() => setUpgradeOpen(true)} />
-            )}
             {active === 'api-keys' && (
               <ApiKeysCard />
-            )}
-            {active === 'payments' && (
-              <PaymentMethodsCard />
-            )}
-            {active === 'notifications' && (
-              <NotificationsCard />
             )}
           </div>
         </div>
       </div>
 
-      <UpgradePricingModal isOpen={upgradeOpen} onClose={() => setUpgradeOpen(false)} currentPlan={tokenInfo?.plan} />
     </div>
   );
 }

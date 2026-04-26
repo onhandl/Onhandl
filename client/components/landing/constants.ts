@@ -4,10 +4,10 @@ import { Testimonial, PricingPlan, FaqItem } from './types';
 export const WAITLIST_TOTAL_SPOTS = 6_000;
 
 export const WAITLIST_BENEFITS = [
-  '25% lifetime discount',
-  'Exclusive beta features',
-  'Direct product team access',
-  'Shape the roadmap',
+    '25% lifetime discount',
+    'Exclusive beta features',
+    'Direct product team access',
+    'Shape the roadmap',
 ] as const;
 
 export const testimonials: Testimonial[] = [
@@ -57,7 +57,7 @@ export const pricingPlans: PricingPlan[] = [
             'Up to 3 AI agents',
             'Basic templates',
             'Community support',
-            'Marketplace browsing',
+            'Community support',
             '1,000 welcome tokens',
         ],
         ctaText: 'Get Started',
@@ -73,7 +73,6 @@ export const pricingPlans: PricingPlan[] = [
             'Delete & re-edit agents',
             'All templates',
             'Email support',
-            'Marketplace publishing',
         ],
         ctaText: 'Get Started',
     },

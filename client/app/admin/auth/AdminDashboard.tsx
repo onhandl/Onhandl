@@ -8,7 +8,7 @@ import { SupportTab } from './components/SupportTab';
 import { BlogAdminTab } from './components/BlogAdminTab';
 
 type MainTab = 'users' | 'agents' | 'support' | 'blog';
-type AgentSubTab = 'agents' | 'drafts' | 'marketplace' | 'executions';
+type AgentSubTab = 'agents' | 'drafts' | 'executions';
 
 const tabs: { id: MainTab; label: string; icon: React.ElementType }[] = [
   { id: 'users', label: 'Users', icon: Users },
@@ -17,11 +17,10 @@ const tabs: { id: MainTab; label: string; icon: React.ElementType }[] = [
   { id: 'blog', label: 'Blog', icon: FileText },
 ];
 
-export function AdminDashboard({ users, agents, drafts, marketplace, executions, tickets, allPosts, cmsSettings }: {
+export function AdminDashboard({ users, agents, drafts, executions, tickets, allPosts, cmsSettings }: {
   users: any[];
   agents: any[];
   drafts: any[];
-  marketplace: any[];
   executions: any[];
   tickets: any[];
   allPosts: any[];
@@ -78,8 +77,8 @@ export function AdminDashboard({ users, agents, drafts, marketplace, executions,
                 key={t.id}
                 onClick={() => setActiveTab(t.id)}
                 className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium border-b-2 transition-colors -mb-px ${activeTab === t.id
-                    ? 'border-primary text-primary bg-primary/5'
-                    : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-accent/30'
+                  ? 'border-primary text-primary bg-primary/5'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-accent/30'
                   }`}
               >
                 <t.icon className="w-4 h-4" />
@@ -93,7 +92,6 @@ export function AdminDashboard({ users, agents, drafts, marketplace, executions,
               <AgentsTab
                 agents={agents}
                 drafts={drafts}
-                marketplace={marketplace}
                 executions={executions}
                 activeTab={agentSubTab}
                 setActiveTab={setAgentSubTab}

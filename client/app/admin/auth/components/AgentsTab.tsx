@@ -18,7 +18,7 @@ interface Execution {
   completedAt?: string;
 }
 
-type TabKind = 'agents' | 'drafts' | 'marketplace' | 'executions';
+type TabKind = 'agents' | 'drafts' | 'executions';
 
 function AgentTable({ items, emptyMsg }: { items: Agent[]; emptyMsg: string }) {
   return (
@@ -92,20 +92,18 @@ function ExecutionTable({ items }: { items: Execution[] }) {
 }
 
 export function AgentsTab({
-  agents, drafts, marketplace, executions, activeTab, setActiveTab,
+  agents, drafts, executions, activeTab, setActiveTab,
 }: {
   agents: Agent[];
   drafts: Agent[];
-  marketplace: Agent[];
   executions: Execution[];
   activeTab: TabKind;
   setActiveTab: (t: TabKind) => void;
 }) {
   const tabs: { id: TabKind; label: string; icon: React.ElementType; count: number }[] = [
-    { id: 'agents',     label: 'Agents',      icon: Bot,      count: agents.length },
-    { id: 'drafts',     label: 'Drafts',      icon: FileText, count: drafts.length },
-    { id: 'marketplace',label: 'Marketplace', icon: Store,    count: marketplace.length },
-    { id: 'executions', label: 'Executions',  icon: Activity, count: executions.length },
+    { id: 'agents', label: 'Agents', icon: Bot, count: agents.length },
+    { id: 'drafts', label: 'Drafts', icon: FileText, count: drafts.length },
+    { id: 'executions', label: 'Executions', icon: Activity, count: executions.length },
   ];
 
   return (
@@ -115,11 +113,10 @@ export function AgentsTab({
           <button
             key={t.id}
             onClick={() => setActiveTab(t.id)}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
-              activeTab === t.id
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${activeTab === t.id
                 ? 'border-primary text-primary'
                 : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
+              }`}
           >
             <t.icon className="w-3.5 h-3.5" />
             {t.label}
@@ -127,10 +124,9 @@ export function AgentsTab({
           </button>
         ))}
       </div>
-      {activeTab === 'agents'      && <AgentTable items={agents}      emptyMsg="No agents found." />}
-      {activeTab === 'drafts'      && <AgentTable items={drafts}      emptyMsg="No drafts found." />}
-      {activeTab === 'marketplace' && <AgentTable items={marketplace} emptyMsg="No marketplace submissions." />}
-      {activeTab === 'executions'  && <ExecutionTable items={executions} />}
+      {activeTab === 'agents' && <AgentTable items={agents} emptyMsg="No agents found." />}
+      {activeTab === 'drafts' && <AgentTable items={drafts} emptyMsg="No drafts found." />}
+      {activeTab === 'executions' && <ExecutionTable items={executions} />}
     </div>
   );
 }

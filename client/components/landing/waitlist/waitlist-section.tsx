@@ -23,10 +23,10 @@ export function WaitlistSection() {
   } = useWaitlistForm();
 
   const filledPct = useMemo(
-    () => (count !== null ? Math.min((count / WAITLIST_TOTAL_SPOTS) * 100, 100) : 88),
+    () => (count?.toLocaleString() ? Math.min((count / WAITLIST_TOTAL_SPOTS) * 100, 100) : 88),
     [count],
   );
-  const displayCount = count !== null ? count.toLocaleString() : '5,287';
+  const displayCount = count?.toLocaleString() ?? '5,287';
 
   return (
     <section id="waitlist" className="bg-fl-dark">

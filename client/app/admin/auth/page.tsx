@@ -23,12 +23,11 @@ export default async function AdminAuthPage() {
   const me = await fetchJson('/auth/me', cookieHeader);
   if (!me || !me.isAdmin) redirect('/dashboard');
 
-  const [users, agents, drafts, marketplace, executions, tickets, allPosts, cmsSettings] =
+  const [users, agents, drafts, executions, tickets, allPosts, cmsSettings] =
     await Promise.all([
       fetchJson('/admin/users', cookieHeader),
       fetchJson('/admin/agents', cookieHeader),
       fetchJson('/admin/drafts', cookieHeader),
-      fetchJson('/admin/marketplace', cookieHeader),
       fetchJson('/admin/executions', cookieHeader),
       fetchJson('/admin/support-tickets', cookieHeader),
       fetchJson('/admin/blog', cookieHeader),
@@ -40,7 +39,6 @@ export default async function AdminAuthPage() {
       users={users ?? []}
       agents={agents ?? []}
       drafts={drafts ?? []}
-      marketplace={marketplace ?? []}
       executions={executions?.runs ?? []}
       tickets={tickets ?? []}
       allPosts={allPosts ?? []}

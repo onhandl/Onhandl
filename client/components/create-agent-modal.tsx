@@ -47,7 +47,7 @@ export default function CreateAgentModal({ isOpen, onClose, onComplete }: Create
     const [network, setNetwork] = useState('CKB');
     const [draft, setDraft] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
-    
+
     const router = useRouter();
     const { toast } = useToast();
 
@@ -88,7 +88,7 @@ export default function CreateAgentModal({ isOpen, onClose, onComplete }: Create
             if (onComplete) onComplete();
             onClose();
             setTimeout(reset, 300);
-            router.push(`/sandbox?agentId=${agent._id}`);
+            router.push('/dashboard');
         } catch (err: any) {
             toast({ title: 'Initialization failed', description: err.message, variant: 'destructive' });
         } finally {
@@ -100,7 +100,7 @@ export default function CreateAgentModal({ isOpen, onClose, onComplete }: Create
         <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleCancel(); }}>
             <DialogContent className="sm:max-w-[600px] bg-card/95 backdrop-blur-2xl border-border/40 shadow-2xl p-0 overflow-hidden gap-0 rounded-[2rem]">
                 <div className="h-1.5 w-full bg-gradient-to-r from-primary via-primary/50 to-violet-500" />
-                
+
                 <div className="px-8 pt-8 pb-6 border-b border-border/40 bg-muted/20">
                     <DialogHeader>
                         <div className="flex items-center justify-between">
@@ -132,7 +132,7 @@ export default function CreateAgentModal({ isOpen, onClose, onComplete }: Create
                 <div className="flex-1 overflow-y-auto px-8 py-8 min-h-[400px]">
                     <AnimatePresence mode="wait">
                         {step === 1 ? (
-                            <motion.div 
+                            <motion.div
                                 key="step1"
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
@@ -192,8 +192,8 @@ export default function CreateAgentModal({ isOpen, onClose, onComplete }: Create
                                                 onClick={() => setPreset(p.id)}
                                                 className={cn(
                                                     "p-4 rounded-2xl border text-left transition-all duration-300",
-                                                    preset === p.id 
-                                                        ? "bg-primary/5 border-primary shadow-xl shadow-primary/5 ring-1 ring-primary/20" 
+                                                    preset === p.id
+                                                        ? "bg-primary/5 border-primary shadow-xl shadow-primary/5 ring-1 ring-primary/20"
                                                         : "bg-muted/10 border-border/40 hover:border-primary/20 group"
                                                 )}
                                             >
@@ -209,7 +209,7 @@ export default function CreateAgentModal({ isOpen, onClose, onComplete }: Create
                                 </div>
                             </motion.div>
                         ) : (
-                            <motion.div 
+                            <motion.div
                                 key="step2"
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
@@ -233,7 +233,7 @@ export default function CreateAgentModal({ isOpen, onClose, onComplete }: Create
                                             <IconShieldLock size={12} /> SECURED
                                         </span>
                                     </div>
-                                    
+
                                     <div className="grid grid-cols-1 gap-2">
                                         {draft?.networkConfigs?.[0]?.assetLimits?.map((limit: any, i: number) => (
                                             <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-muted/20 border border-border/40 shadow-sm">
@@ -273,14 +273,14 @@ export default function CreateAgentModal({ isOpen, onClose, onComplete }: Create
                 </div>
 
                 <div className="px-8 py-6 border-t border-border/40 bg-muted/10 flex items-center justify-between">
-                    <Button 
-                        variant="ghost" 
-                        onClick={() => step === 1 ? handleCancel() : setStep(1)} 
+                    <Button
+                        variant="ghost"
+                        onClick={() => step === 1 ? handleCancel() : setStep(1)}
                         className="h-12 px-6 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-muted"
                     >
                         {step === 1 ? 'Discard' : 'Back'}
                     </Button>
-                    
+
                     <Button
                         onClick={step === 1 ? handleDraft : handleCreate}
                         disabled={isLoading}

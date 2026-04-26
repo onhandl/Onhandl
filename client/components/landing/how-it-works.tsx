@@ -11,22 +11,14 @@ const ease = landingEase;
 const steps = [
     {
         number: '01',
-        icon: BookOpen,
-        title: 'Choose a template or start from scratch',
+        icon: Workflow,
+        title: 'Design your agent with drag-and-drop',
         description:
-            'Pick from our library of industry-specific AI agent templates, or open a blank canvas and build exactly what you need.',
-        bullets: ['Industry-specific templates', 'Customisable starting points', 'Blank canvas for full control'],
+            'Connect triggers, actions, and conditions visually. Our smart connector UI makes even complex logic feel simple.',
+        bullets: ['Visual agent builder', 'Pre-built components', 'Smart logic connectors'],
     },
     {
         number: '02',
-        icon: Workflow,
-        title: 'Design your workflow with drag-and-drop',
-        description:
-            'Connect triggers, actions, and conditions visually. Our smart connector UI makes even complex logic feel simple.',
-        bullets: ['Visual flow builder', 'Pre-built components', 'Smart logic connectors'],
-    },
-    {
-        number: '03',
         icon: Rocket,
         title: 'Test, deploy, and monitor your agent',
         description:

@@ -2,8 +2,8 @@
 
 import React from 'react';
 import Link from "next/link";
-import { 
-  Mail, X, Instagram, Facebook as FacebookIcon, 
+import {
+  Mail, X, Instagram, Facebook as FacebookIcon,
   Linkedin, Youtube, Heart, Zap
 } from "lucide-react";
 import ThemeToggle from "@/components/ui/footer";
@@ -20,7 +20,6 @@ const navigation = {
           items: [
             { name: "Dashboard", href: "/dashboard" },
             { name: "Sandbox", href: "/sandbox" },
-            { name: "Marketplace", href: "/marketplace" },
             { name: "Assets", href: "/dashboard/assets" },
           ],
         },
@@ -82,9 +81,9 @@ const navigation = {
 const Underline = `hover:-translate-y-1 border border-dotted border-border rounded-xl p-2.5 transition-transform flex items-center justify-center bg-card/50`;
 
 const LogoMark: React.FC = () => (
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden className="text-fl-accent">
-        <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93 4.93 19.07" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-    </svg>
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden className="text-fl-accent">
+    <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93 4.93 19.07" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+  </svg>
 );
 
 export const Footer: React.FC = () => {
@@ -97,9 +96,9 @@ export const Footer: React.FC = () => {
           </div>
         </Link>
         <p className="bg-transparent text-center text-xs leading-5 text-fl-ink-2 md:text-left max-w-3xl">
-          Onhandl is the autonomous sovereign layer for financial intent. We empower builders to deploy agents that manage, 
-          secure, and move assets with precision and trust. Built for the future of on-chain operations, 
-          Onhandl provides the infrastructure for seamless, secure, and automated financial workflows.
+          Onhandl is the autonomous sovereign layer for financial intent. We empower builders to deploy agents that manage,
+          secure, and move assets with precision and trust. Built for the future of on-chain operations,
+          Onhandl provides the infrastructure for seamless, secure, and automated financial agents.
           Your assets, your logic, our security.
         </p>
       </div>

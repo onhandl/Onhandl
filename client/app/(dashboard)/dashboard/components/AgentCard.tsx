@@ -13,12 +13,11 @@ const ease = [0.16, 1, 0.3, 1] as [number, number, number, number];
 
 interface AgentCardProps {
     agent: any;
-    onEdit: (a: any) => void;
     onControlChange?: (id: string, newStatus: string) => void;
     index: number;
 }
 
-export function AgentCard({ agent, onEdit, onControlChange, index }: AgentCardProps) {
+export function AgentCard({ agent, onControlChange, index }: AgentCardProps) {
     const isActive = agent.status === 'active';
     const network = agent.networkConfigs?.[0]?.network || 'CKB';
     const address = agent.networkConfigs?.[0]?.wallet?.address;
@@ -42,14 +41,13 @@ export function AgentCard({ agent, onEdit, onControlChange, index }: AgentCardPr
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: index * 0.06, ease }}
-            onClick={() => onEdit(agent)}
-            className="group relative flex flex-col rounded-3xl border border-border/40 bg-card/40 backdrop-blur-sm hover:border-primary/40 hover:bg-card/60 transition-all duration-500 overflow-hidden cursor-pointer shadow-sm hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1"
+            className="group relative flex flex-col rounded-3xl border border-border/40 bg-card/40 backdrop-blur-sm hover:border-primary/40 hover:bg-card/60 transition-all duration-500 overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1"
         >
             {/* Status gradient line */}
             <div className={cn(
                 "h-1.5 w-full bg-gradient-to-r transition-all duration-500",
-                isActive 
-                    ? "from-emerald-500/80 via-emerald-400/40 to-transparent" 
+                isActive
+                    ? "from-emerald-500/80 via-emerald-400/40 to-transparent"
                     : "from-amber-500/80 via-amber-400/40 to-transparent"
             )} />
 
@@ -83,8 +81,8 @@ export function AgentCard({ agent, onEdit, onControlChange, index }: AgentCardPr
                             onClick={handleToggleStatus}
                             className={cn(
                                 "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95",
-                                isActive 
-                                    ? "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20" 
+                                isActive
+                                    ? "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20"
                                     : "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20"
                             )}
                             title={isActive ? 'Pause Agent' : 'Activate Agent'}
@@ -126,14 +124,6 @@ export function AgentCard({ agent, onEdit, onControlChange, index }: AgentCardPr
                         <IconClock size={14} />
                         {new Date(agent.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </div>
-                    <Link 
-                        href={`/sandbox?agentId=${agent._id}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="flex items-center gap-1.5 text-xs font-black text-primary group-hover:gap-3 transition-all duration-300 hover:text-primary/80"
-                    >
-                        OPEN STUDIO
-                        <IconArrowRight size={14} />
-                    </Link>
                 </div>
             </div>
 

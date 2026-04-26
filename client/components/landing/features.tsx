@@ -9,19 +9,27 @@ import { landingEase } from '@/components/landing/motion-ease';
 const ease = landingEase;
 
 const features = [
-    { icon: MousePointerClick, label: '01', title: 'Drag-and-Drop Workflow',
-      description: 'Build complex AI pipelines visually. Connect nodes, define logic, and watch agents come alive — no engineering background needed.',
-      size: 'large' },
-    { icon: Plug,          label: '02', title: '100+ Integrations',
-      description: 'Slack, Salesforce, Google Workspace, Zapier, and more. Connect everything seamlessly.', size: 'normal' },
-    { icon: LayoutTemplate, label: '03', title: 'Template Library',
-      description: 'Hit the ground running with pre-built agent templates for every use case.', size: 'normal' },
-    { icon: Zap,           label: '04', title: 'Real-time Testing',
-      description: 'Iterate instantly. Debug, tweak, and validate your agent before pushing to production.', size: 'normal' },
-    { icon: ShieldCheck,   label: '05', title: 'Enterprise Security',
-      description: 'End-to-end encryption, RBAC, SOC 2 compliance, and audit logs out of the box.', size: 'normal' },
-    { icon: BarChart3,     label: '06', title: 'Deep Analytics',
-      description: 'Track every execution. Understand performance trends and optimize automatically.', size: 'normal' },
+    {
+        icon: MousePointerClick, label: '01', title: 'Drag-and-Drop Agent Builder',
+        description: 'Build complex AI agents visually. Define logic, and watch agents come alive — no engineering background needed.',
+        size: 'large'
+    },
+    {
+        icon: Plug, label: '02', title: '100+ Integrations',
+        description: 'Slack, Salesforce, Google Workspace, Zapier, and more. Connect everything seamlessly.', size: 'normal'
+    },
+    {
+        icon: Zap, label: '04', title: 'Real-time Testing',
+        description: 'Iterate instantly. Debug, tweak, and validate your agent before pushing to production.', size: 'normal'
+    },
+    {
+        icon: ShieldCheck, label: '05', title: 'Enterprise Security',
+        description: 'End-to-end encryption, RBAC, SOC 2 compliance, and audit logs out of the box.', size: 'normal'
+    },
+    {
+        icon: BarChart3, label: '06', title: 'Deep Analytics',
+        description: 'Track every execution. Understand performance trends and optimize automatically.', size: 'normal'
+    },
 ];
 
 export const Features: React.FC = () => {

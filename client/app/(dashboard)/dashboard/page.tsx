@@ -2,16 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { apiFetch } from '@/lib/api-client';
 import { financialAgentApi } from '@/api/financial-agent-api';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
 import CreateAgentModal from '@/components/create-agent-modal';
-import EditAgentModal from '@/components/edit-agent-modal';
-import { UpgradePricingModal } from '@/components/modals/upgrade-pricing-modal';
 import { Button } from '@/components/ui/buttons/button';
 import { AgentCard } from './components/AgentCard';
 import {
-  Plus, Coins, Sparkles, Crown, Info, ArrowRight,
+  Plus, Sparkles, Info, ArrowRight,
   LayoutGrid, List, Search, RefreshCw
 } from 'lucide-react';
 import { IconCpu, IconChartBar, IconShieldCheck, IconWallet } from "@tabler/icons-react";
@@ -19,24 +16,6 @@ import { cn } from '@/lib/utils';
 
 const ease = [0.16, 1, 0.3, 1] as [number, number, number, number];
 
-const planMeta: Record<string, { label: string; color: string; gradient: string }> = {
-  free:       { label: 'Free',       color: 'text-muted-foreground', gradient: 'from-muted/20 to-muted/5' },
-  starter:    { label: 'Starter',    color: 'text-emerald-500',      gradient: 'from-emerald-500/10 to-emerald-500/5' },
-  pro:        { label: 'Pro',        color: 'text-primary',          gradient: 'from-primary/10 to-primary/5' },
-  max:        { label: 'Max',        color: 'text-violet-500',       gradient: 'from-violet-500/10 to-violet-500/5' },
-  enterprise: { label: 'Enterprise', color: 'text-amber-500',        gradient: 'from-amber-500/10 to-amber-500/5' },
-  unlimited:  { label: 'Unlimited',  color: 'text-violet-500',       gradient: 'from-violet-500/10 to-violet-500/5' },
-};
-
-function PlanBadge({ plan }: { plan: string }) {
-  const meta = planMeta[plan] ?? planMeta.free;
-  return (
-    <span className={cn("inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider border px-3 py-1 rounded-full bg-background/50 backdrop-blur-sm shadow-sm", meta.color.replace('text-', 'border-').replace('500', '500/30'), meta.color)}>
-      <Sparkles className="w-3 h-3" />
-      {meta.label}
-    </span>
-  );
-}
 
 function StatCard({
   icon: Icon,
@@ -90,10 +69,6 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingAgent, setEditingAgent] = useState<any>(null);
-  const [userPlan, setUserPlan] = useState<{ plan: string; tokens: number } | null>(null);
-  const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   const refreshAgents = async () => {
@@ -102,9 +77,6 @@ export default function DashboardPage() {
     try {
       const agList = await financialAgentApi.listAgents();
       setAgents(agList);
-      
-      const profile = await apiFetch('/auth/me');
-      setUserPlan({ plan: profile.plan ?? 'free', tokens: profile.tokens ?? 0 });
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -119,7 +91,7 @@ export default function DashboardPage() {
   const handleEditSuccess = (updated: any) =>
     setAgents((prev) => prev.map((a) => (a._id === updated._id ? updated : a)));
 
-  const filteredAgents = agents.filter(a => 
+  const filteredAgents = agents.filter(a =>
     a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     a.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -169,15 +141,6 @@ export default function DashboardPage() {
             transition={{ duration: 0.5, ease }}
             className="flex flex-wrap items-center gap-4"
           >
-            <div className="hidden sm:flex flex-col items-end gap-1">
-              {userPlan && <PlanBadge plan={userPlan.plan} />}
-              {userPlan && (
-                <div className="text-[10px] font-bold text-amber-500 flex items-center gap-1">
-                  <Coins className="w-3 h-3" />
-                  {userPlan.tokens.toLocaleString()} CREDITS
-                </div>
-              )}
-            </div>
 
             <div className="flex items-center gap-2">
               <Button
@@ -189,16 +152,6 @@ export default function DashboardPage() {
               >
                 <RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />
               </Button>
-              {userPlan && ['free', 'starter'].includes(userPlan.plan) && (
-                <Button
-                  onClick={() => setUpgradeOpen(true)}
-                  variant="outline"
-                  className="hidden sm:flex items-center gap-2 rounded-xl border-amber-500/30 text-amber-500 hover:bg-amber-500/5 font-bold text-xs uppercase tracking-wider"
-                >
-                  <Crown className="w-3.5 h-3.5" />
-                  Upgrade
-                </Button>
-              )}
               <Button
                 onClick={() => setIsCreateModalOpen(true)}
                 className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-primary/20"
@@ -210,59 +163,33 @@ export default function DashboardPage() {
           </motion.div>
         </div>
 
-        {userPlan?.plan === 'free' && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="mb-8 p-1 rounded-2xl bg-gradient-to-r from-primary/20 via-border/50 to-violet-500/20"
-          >
-            <div className="bg-card/80 backdrop-blur-xl rounded-xl px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                  <Info className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-foreground">You're on the Explorer Tier</h4>
-                  <p className="text-xs text-muted-foreground">Unlock advanced financial presets and multi-chain support with Pro.</p>
-                </div>
-              </div>
-              <button 
-                onClick={() => setUpgradeOpen(true)}
-                className="text-xs font-bold text-primary hover:underline flex items-center gap-1 uppercase tracking-widest"
-              >
-                Learn More <ArrowRight className="w-3 h-3" />
-              </button>
-            </div>
-          </motion.div>
-        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
           <StatCard icon={IconCpu} label="Total Agents" value={String(agents.length)} color="primary" delay={0.1} />
           <StatCard icon={IconShieldCheck} label="Secured Agents" value={String(activeAgents)} color="emerald" delay={0.2} />
-          <StatCard 
-            icon={IconWallet} 
-            label="Total Assets" 
-            value={totalAssets > 0 ? `${totalAssets.toLocaleString()} CKB` : '0.00'} 
-            sub="CKB Network" 
-            color="violet" 
-            delay={0.3} 
+          <StatCard
+            icon={IconWallet}
+            label="Total Assets"
+            value={totalAssets > 0 ? `${totalAssets.toLocaleString()} CKB` : '0.00'}
+            sub="CKB Network"
+            color="violet"
+            delay={0.3}
           />
-          <StatCard 
-            icon={IconChartBar} 
-            label="Policy Hits" 
-            value={String(totalPolicyHits)} 
-            sub="Last 24h" 
-            color="amber" 
-            delay={0.4} 
+          <StatCard
+            icon={IconChartBar}
+            label="Policy Hits"
+            value={String(totalPolicyHits)}
+            sub="Last 24h"
+            color="amber"
+            delay={0.4}
           />
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
           <div className="relative w-full sm:w-96 group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-            <input 
-              type="text" 
+            <input
+              type="text"
               placeholder="Search by name or policy..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -282,7 +209,7 @@ export default function DashboardPage() {
 
         <AnimatePresence mode="wait">
           {loading ? (
-            <motion.div 
+            <motion.div
               key="loading"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -296,14 +223,14 @@ export default function DashboardPage() {
               <p className="text-sm font-medium text-muted-foreground animate-pulse uppercase tracking-widest">Synchronizing Studio...</p>
             </motion.div>
           ) : filteredAgents.length === 0 ? (
-            <motion.div 
+            <motion.div
               key="empty"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="text-center py-24 rounded-3xl border border-dashed border-border/60 bg-muted/5 relative overflow-hidden"
             >
-               <div className="absolute inset-0 bg-gradient-to-b from-transparent to-primary/5 opacity-50" />
-               <div className="relative z-10">
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-primary/5 opacity-50" />
+              <div className="relative z-10">
                 <div className="w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center mx-auto mb-6 text-primary">
                   <IconCpu className="w-8 h-8" />
                 </div>
@@ -311,7 +238,7 @@ export default function DashboardPage() {
                 <p className="text-muted-foreground mb-8 max-w-sm mx-auto text-sm">
                   Your workspace is ready for its first autonomous financial agent. Start with a simple prompt.
                 </p>
-                <Button 
+                <Button
                   onClick={() => setIsCreateModalOpen(true)}
                   className="rounded-xl bg-primary px-8 font-bold text-sm tracking-wide shadow-xl shadow-primary/20"
                 >
@@ -320,7 +247,7 @@ export default function DashboardPage() {
               </div>
             </motion.div>
           ) : (
-            <motion.div 
+            <motion.div
               key="grid"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -331,7 +258,6 @@ export default function DashboardPage() {
                   key={agent._id}
                   agent={agent}
                   index={i}
-                  onEdit={(a) => { setEditingAgent(a); setIsEditModalOpen(true); }}
                   onControlChange={(id, status) => setAgents(prev => prev.map(a => a._id === id ? { ...a, status } : a))}
                 />
               ))}
@@ -347,24 +273,13 @@ export default function DashboardPage() {
         )}
       </div>
 
-      <CreateAgentModal 
-        isOpen={isCreateModalOpen} 
-        onClose={() => setIsCreateModalOpen(false)} 
+      <CreateAgentModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
         onComplete={() => refreshAgents()}
       />
-      
-      <EditAgentModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        agent={editingAgent}
-        onSuccess={handleEditSuccess}
-      />
 
-      <UpgradePricingModal
-        isOpen={upgradeOpen}
-        onClose={() => setUpgradeOpen(false)}
-        currentPlan={userPlan?.plan}
-      />
+
     </div>
   );
 }

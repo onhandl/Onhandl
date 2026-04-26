@@ -6,17 +6,17 @@ import { apiFetch } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 import {
   Home, LayoutDashboard, Box, Settings,
-  Store, TrendingUp, ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight,
   LogOut, Menu, User, Headphones, Shield,
 } from 'lucide-react';
 import { Button } from '@/components/ui/buttons/button';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/overlays/sheet';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
-import { 
-  Building, 
-  Check, 
-  ChevronsUpDown, 
+import {
+  Building,
+  Check,
+  ChevronsUpDown,
   PlusCircle,
   Gem,
   LayoutGrid
@@ -33,8 +33,6 @@ import {
 const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Assets', href: '/dashboard/assets', icon: Gem },
-  { name: 'Sandbox', href: '/sandbox', icon: Box },
-  { name: 'Marketplace', href: '/marketplace', icon: Store },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 

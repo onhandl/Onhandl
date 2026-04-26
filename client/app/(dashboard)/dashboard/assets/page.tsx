@@ -4,17 +4,17 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
 import { financialAgentApi } from '@/api/financial-agent-api';
-import { 
-  IconWallet, 
-  IconHistory, 
-  IconChartPie, 
-  IconArrowUpRight, 
+import {
+  IconWallet,
+  IconHistory,
+  IconChartPie,
+  IconArrowUpRight,
   IconArrowDownLeft,
   IconCoins,
   IconLoader2,
   IconRefresh
 } from '@tabler/icons-react';
-import { 
+import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts';
@@ -36,8 +36,7 @@ export default function AssetsPage() {
       try {
         const [agentsData, eventsData] = await Promise.all([
           financialAgentApi.listAgents(),
-          // We need to add this to financial-agent-api.ts on client side
-          (financialAgentApi as any).getWorkspaceEvents ? (financialAgentApi as any).getWorkspaceEvents() : Promise.resolve([])
+          financialAgentApi.getWorkspaceEvents()
         ]);
         setAgents(agentsData);
         setEvents(eventsData);
@@ -82,7 +81,7 @@ export default function AssetsPage() {
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Assets & Treasury</h1>
           <p className="text-muted-foreground mt-1">Manage global liquidity and track treasury growth across all agents.</p>
         </div>
-        <button 
+        <button
           onClick={() => window.location.reload()}
           className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-xl text-sm font-semibold hover:bg-primary/20 transition-all w-fit"
         >
@@ -93,13 +92,13 @@ export default function AssetsPage() {
       {/* Main Stats Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Total Wealth Card */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="lg:col-span-2 glass-card rounded-3xl p-8 relative overflow-hidden group border-primary/20"
         >
           <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-all duration-500" />
-          
+
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
@@ -107,7 +106,7 @@ export default function AssetsPage() {
               </div>
               <span className="text-sm font-bold uppercase tracking-widest text-primary/80">Total Liquidity</span>
             </div>
-            
+
             <div className="flex items-baseline gap-3 mb-2">
               <span className="text-6xl font-black tracking-tighter">{totalBalance.toLocaleString()}</span>
               <span className="text-2xl font-bold text-muted-foreground">CKB</span>
@@ -122,8 +121,8 @@ export default function AssetsPage() {
                 <AreaChart data={Array.from({ length: 7 }).map((_, i) => ({ val: Math.random() * totalBalance }))}>
                   <defs>
                     <linearGradient id="colorVal" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <Area type="monotone" dataKey="val" stroke="var(--primary)" fillOpacity={1} fill="url(#colorVal)" strokeWidth={3} />
@@ -134,7 +133,7 @@ export default function AssetsPage() {
         </motion.div>
 
         {/* Distribution Card */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
@@ -181,7 +180,7 @@ export default function AssetsPage() {
       {/* Agents Breakdown & History Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Agent Balances */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           className="glass-card rounded-3xl p-8 border-border/40"
@@ -213,7 +212,7 @@ export default function AssetsPage() {
         </motion.div>
 
         {/* Transaction History */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           className="glass-card rounded-3xl p-8 border-border/40"

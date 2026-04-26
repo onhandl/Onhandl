@@ -7,7 +7,7 @@ import { ContainerTextFlip } from '@/components/ui/overlays/container-text-flip'
 import { cn } from '@/lib/utils';
 
 export function ContainerTextFlipHeading() {
-  const words = ['Anyone', 'Everyone', 'Anything'];
+  const words = ['Wallets', 'Money', 'Funds', 'Accounts', 'Payments'];
   return (
     <motion.span
       initial={{ opacity: 0 }}
@@ -18,7 +18,11 @@ export function ContainerTextFlipHeading() {
       layout
     >
       <span className="inline-block">
-        <ContainerTextFlip words={words} />
+        <ContainerTextFlip 
+          words={words} 
+          className="text-[#e0692e]" 
+          
+        />
       </span>
     </motion.span>
   );

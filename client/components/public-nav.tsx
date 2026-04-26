@@ -8,9 +8,7 @@ import { cn } from '@/lib/utils';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '') + '/api';
 
-const navLinks = [
-  { label: 'Marketplace', href: '/marketplace' },
-  { label: 'Community', href: '/community' },
+const navLinks: { label: string; href: string }[] = [
 ];
 
 export function PublicNav() {
@@ -37,8 +35,8 @@ export function PublicNav() {
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       className={`fixed top-4 left-4 right-4 z-50 rounded-2xl transition-all duration-300 ${scrolled
-          ? 'bg-background/80 backdrop-blur-xl border border-border/60 shadow-xl shadow-black/10'
-          : 'bg-background/60 backdrop-blur-md border border-border/40'
+        ? 'bg-background/80 backdrop-blur-xl border border-border/60 shadow-xl shadow-black/10'
+        : 'bg-background/60 backdrop-blur-md border border-border/40'
         }`}
     >
       <div className="max-w-7xl mx-auto px-5 py-3 flex justify-between items-center">
