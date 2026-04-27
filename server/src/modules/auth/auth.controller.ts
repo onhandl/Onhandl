@@ -10,14 +10,10 @@ import {
     standardErrorResponses,
     authErrorResponses,
     resourceErrorResponses,
-    userSchema,
     userProfileSchema,
     authUserSchema,
 } from '../../shared/docs';
 
-/**
- * setAuthCookie: Helper to issue a signed JWT in a secure HTTP-only cookie.
- */
 function setAuthCookie(fastify: any, reply: any, userId: string, username: string, isAdmin = false) {
     const token = fastify.jwt.sign({ id: userId, username, isAdmin });
     const isProd = process.env.NODE_ENV === 'production';
@@ -32,9 +28,21 @@ function setAuthCookie(fastify: any, reply: any, userId: string, username: strin
     return reply.setCookie('auth_token', token, cookieOptions);
 }
 
-/**
- * authController: Endpoints for user registration, login, and profile management.
- */
+function toSafeUserProfile(record: any) {
+    const tg = record?.telegram;
+    return {
+        ...record,
+        telegram: tg ? {
+            linked: true,
+            username: tg.username,
+            firstName: tg.firstName,
+            lastName: tg.lastName,
+            linkedAt: tg.linkedAt,
+            lastAuthAt: tg.lastAuthAt,
+        } : { linked: false },
+    };
+}
+
 export async function authController(fastify: FastifyInstance) {
     fastify.post<{ Body: { username?: string; email?: string; password?: string; name?: string } }>(
         '/register',
@@ -68,14 +76,10 @@ export async function authController(fastify: FastifyInstance) {
         },
         async (request, reply) => {
             const { username, email, password, name } = request.body;
-
-            if (!password || !email || !username) {
-                return reply.code(400).send({ error: 'Username, email and password are required' });
-            }
+            if (!password || !email || !username) return reply.code(400).send({ error: 'Username, email and password are required' });
 
             try {
                 await registerUser({ username, email, password, name });
-
                 return reply.code(200).send({
                     requiresVerification: true,
                     message: 'A verification code has been sent to your email. Enter it to complete registration.',
@@ -120,9 +124,7 @@ export async function authController(fastify: FastifyInstance) {
 
             try {
                 const user = await verifyEmailOtp(email, code);
-
                 setAuthCookie(fastify, reply, String(user._id), user.username ?? '', user.isAdmin);
-
                 return reply.code(201).send({
                     success: true,
                     user: {
@@ -171,9 +173,7 @@ export async function authController(fastify: FastifyInstance) {
 
             try {
                 const user = await loginUser(username, password);
-
                 setAuthCookie(fastify, reply, String(user._id), user.username ?? '', user.isAdmin);
-
                 return reply.send({
                     success: true,
                     user: {
@@ -207,17 +207,15 @@ export async function authController(fastify: FastifyInstance) {
                 },
             },
         },
-        async (_request, reply) => {
-            return reply
-                .setCookie('auth_token', '', {
-                    path: '/',
-                    httpOnly: true,
-                    sameSite: 'lax',
-                    secure: process.env.NODE_ENV === 'production',
-                    expires: new Date(0),
-                })
-                .send({ success: true, message: 'Logged out successfully' });
-        }
+        async (_request, reply) => reply
+            .setCookie('auth_token', '', {
+                path: '/',
+                httpOnly: true,
+                sameSite: 'lax',
+                secure: process.env.NODE_ENV === 'production',
+                expires: new Date(0),
+            })
+            .send({ success: true, message: 'Logged out successfully' })
     );
 
     fastify.post<{ Body: { email: string } }>(
@@ -230,17 +228,13 @@ export async function authController(fastify: FastifyInstance) {
                 body: {
                     type: 'object',
                     required: ['email'],
-                    properties: {
-                        email: { type: 'string', format: 'email' },
-                    },
+                    properties: { email: { type: 'string', format: 'email' } },
                 },
                 response: {
                     200: {
                         description: 'Reset code sent (silently ignored if not registered)',
                         type: 'object',
-                        properties: {
-                            message: { type: 'string' },
-                        },
+                        properties: { message: { type: 'string' } },
                     },
                     ...standardErrorResponses([400]),
                 },
@@ -250,9 +244,7 @@ export async function authController(fastify: FastifyInstance) {
             const { email } = request.body;
             if (!email) return reply.code(400).send({ error: 'Email is required' });
             await sendForgotPasswordOtp(email);
-            return reply.send({
-                message: 'If that email is registered, a reset code has been sent.',
-            });
+            return reply.send({ message: 'If that email is registered, a reset code has been sent.' });
         }
     );
 
@@ -287,9 +279,7 @@ export async function authController(fastify: FastifyInstance) {
         },
         async (request, reply) => {
             const { email, code, newPassword } = request.body;
-            if (!email || !code || !newPassword) {
-                return reply.code(400).send({ error: 'Email, code, and newPassword are required' });
-            }
+            if (!email || !code || !newPassword) return reply.code(400).send({ error: 'Email, code, and newPassword are required' });
 
             try {
                 await resetPassword(email, code, newPassword);
@@ -299,8 +289,6 @@ export async function authController(fastify: FastifyInstance) {
             }
         }
     );
-
-    // ── Profile /me ─────────────────────────────────────────────────────────────
 
     fastify.get(
         '/me',
@@ -319,12 +307,11 @@ export async function authController(fastify: FastifyInstance) {
         },
         async (request, reply) => {
             try {
-                return reply.send(
-                    await UserService.getProfile(
-                        request.user.id,
-                        'username email name whatsapp telegramUsername avatarUrl bio tokens plan planExpiry notifications savedPaymentMethods apiKeys profileViews isAdmin createdAt updatedAt'
-                    )
+                const user = await UserService.getProfile(
+                    request.user.id,
+                    'username email name whatsapp telegram avatarUrl bio tokens plan planExpiry notifications savedPaymentMethods apiKeys profileViews isAdmin createdAt updatedAt'
                 );
+                return reply.send(toSafeUserProfile(user));
             } catch (e: any) {
                 return reply.code(e.code || 404).send({ error: e.message });
             }
@@ -344,9 +331,7 @@ export async function authController(fastify: FastifyInstance) {
                     200: {
                         description: 'Avatar URL',
                         type: 'object',
-                        properties: {
-                            avatarUrl: { type: 'string' },
-                        },
+                        properties: { avatarUrl: { type: 'string' } },
                     },
                     ...resourceErrorResponses(),
                 },
@@ -361,7 +346,7 @@ export async function authController(fastify: FastifyInstance) {
         }
     );
 
-    fastify.post<{ Body: { username?: string; email?: string; whatsapp?: string; telegramUsername?: string; avatarUrl?: string } }>(
+    fastify.post<{ Body: { username?: string; email?: string; whatsapp?: string; avatarUrl?: string } }>(
         '/me',
         {
             onRequest: [fastify.authenticate],
@@ -376,7 +361,6 @@ export async function authController(fastify: FastifyInstance) {
                         username: { type: 'string' },
                         email: { type: 'string', format: 'email' },
                         whatsapp: { type: 'string' },
-                        telegramUsername: { type: 'string' },
                         avatarUrl: { type: 'string' },
                     },
                 },
@@ -388,7 +372,8 @@ export async function authController(fastify: FastifyInstance) {
         },
         async (request, reply) => {
             try {
-                return reply.send(await UserService.updateProfile(request.user.id, request.body));
+                const updated = await UserService.updateProfile(request.user.id, request.body);
+                return reply.send(toSafeUserProfile(updated));
             } catch (e: any) {
                 return reply.code(e.code || 404).send({ error: e.message });
             }

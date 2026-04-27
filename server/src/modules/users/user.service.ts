@@ -71,12 +71,11 @@ export const UserService = {
         return { avatarUrl: (record as any).avatarUrl || null, name: (record as any).name || (record as any).username || null };
     },
 
-    async updateProfile(userId: string, updates: { username?: string; email?: string; whatsapp?: string; telegramUsername?: string; avatarUrl?: string }) {
+    async updateProfile(userId: string, updates: { username?: string; email?: string; whatsapp?: string; avatarUrl?: string }) {
         const $set: Record<string, string> = {};
         if (updates.username) $set.username = updates.username;
         if (updates.email) $set.email = updates.email;
         if (updates.whatsapp !== undefined) $set.whatsapp = updates.whatsapp;
-        if (updates.telegramUsername !== undefined) $set.telegramUsername = updates.telegramUsername;
         if (updates.avatarUrl !== undefined) $set.avatarUrl = updates.avatarUrl;
         const record = await UserRepository.findByIdAndUpdate(userId, { $set }, { new: true });
         if (!record) throw Object.assign(new Error('User not found'), { code: 404 });

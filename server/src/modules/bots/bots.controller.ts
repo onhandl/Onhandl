@@ -1,14 +1,9 @@
 import { FastifyInstance } from 'fastify';
 import { standardErrorResponses } from '../../shared/docs';
 import { chatWithBot, ChatHistoryItem } from './bot.service';
-import { telegramService, TelegramService } from '../../infrastructure/messaging/telegram.service';
+import { TelegramTransport } from '../../infrastructure/messaging/telegram/telegram.login';
 
-/**
- * BotsController: Public assistance and multi-platform bot integration endpoints.
- */
 export async function botsController(fastify: FastifyInstance) {
-
-    // POST /chat - Main AI Assistant interaction
     fastify.post<{ Body: { message: string; history?: Array<{ role: string; content: string }> } }>(
         '/chat', {
         schema: {
@@ -57,45 +52,6 @@ export async function botsController(fastify: FastifyInstance) {
         }
     );
 
-    // POST /telegram/webhook - Inbound messaging
-    fastify.post<{ Body: { update_id: number; message?: any;[key: string]: any } }>('/telegram/webhook', {
-        schema: {
-            tags: ['Social Integrations'],
-            summary: 'Telegram bot webhook',
-            description: 'Processes real-time updates from the Telegram Bot API. Should only be called by Telegram servers.',
-            response: {
-                200: {
-                    description: 'Update acknowledged',
-                    type: 'object',
-                    properties: { status: { type: 'string' } },
-                },
-                ...standardErrorResponses([400, 500]),
-            },
-        },
-    }, async (request, reply) => {
-        try {
-            const processedUpdate = telegramService.processUpdate(request.body as any);
-            if (!processedUpdate) return reply.code(400).send({ error: 'Invalid update' });
-            return reply.send({ status: 'ok' });
-        } catch (error) {
-            console.error(error);
-            return reply.code(500).send({ error: 'Internal server error' });
-        }
-    });
-
-    // GET /telegram/webhook - Webhook setup check
-    fastify.get('/telegram/webhook', {
-        schema: {
-            tags: ['Social Integrations'],
-            summary: 'Telegram webhook verification',
-            description: 'Utility route to verify our server is reachable for Telegram webhook registration.',
-            response: {
-                200: { description: 'Server reachable', type: 'string' },
-            },
-        },
-    }, async (_request, reply) => reply.send('Verification endpoint operational'));
-
-    // POST /telegram/test-connection - User-facing verification
     fastify.post<{ Body: { botToken: string; chatId: string; botName?: string } }>(
         '/telegram/test-connection', {
         schema: {
@@ -128,8 +84,8 @@ export async function botsController(fastify: FastifyInstance) {
             const { botToken, chatId, botName } = request.body;
             if (!botToken || !chatId) return reply.code(400).send({ error: 'Bot Token and Chat ID are required' });
             try {
-                const tempService = new TelegramService(botToken);
-                const result = await tempService.sendMessage(chatId, `🔄 *Test Connection*\n\nThis is a test message from your ${botName || 'Trading Bot'}. If you see this, the connection is working!`, { parse_mode: 'Markdown' });
+                const tempTransport = new TelegramTransport(botToken);
+                const result = await tempTransport.sendMessage(chatId, `🔄 *Test Connection*\n\nThis is a test message from your ${botName || 'Trading Bot'}. If you see this, the connection is working!`, { parse_mode: 'Markdown' });
                 if (result && result.ok) return { success: true, message: 'Connection successful! Test message sent to Telegram.' };
                 throw new Error(result.description || 'Failed to send message');
             } catch (error: any) { return reply.code(400).send({ error: `Connection failed: ${error.message}` }); }

@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import { User } from '../../infrastructure/database/models/User';
 import { Workspace } from '../../infrastructure/database/models/Workspace';
 import { Otp } from '../../infrastructure/database/models/Otp';
-import { sendOtpEmail } from '../../infrastructure/messaging/email.service';
+import { sendOtpEmail } from '../../infrastructure/messaging/email/email.service';
 import { WELCOME_TOKENS } from '../../shared/constants/tokens';
 
 function generateOtp(): string {

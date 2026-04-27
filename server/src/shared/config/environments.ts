@@ -39,9 +39,17 @@ export const ENV = {
     // Fiber — platform managed node (optional; agents can supply their own)
     FIBER_NODE_URL: process.env.FIBER_NODE_URL || 'http://localhost:8227',
     FIBER_AUTH_TOKEN: process.env.FIBER_AUTH_TOKEN || '',
+
+    //Social Services
+    TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
+    TELEGRAM_WEBHOOK_DOMAIN: process.env.TELEGRAM_WEBHOOK_DOMAIN || '',
+    TELEGRAM_WEBHOOK_PATH: process.env.TELEGRAM_WEBHOOK_PATH || '/telegram/webhook',
+    TELEGRAM_WEBHOOK_PORT: Number(process.env.TELEGRAM_WEBHOOK_PORT || 3001),
+    TELEGRAM_WEBHOOK_SECRET: process.env.TELEGRAM_WEBHOOK_SECRET || '',
+    
 };
 
-const REQUIRED_ENV = ['MONGO_URI', 'JWT_SECRET'];
+const REQUIRED_ENV = ['MONGO_URI', 'JWT_SECRET', 'TELEGRAM_BOT_TOKEN'];
 
 for (const key of REQUIRED_ENV) {
     if (!ENV[key as keyof typeof ENV]) {
@@ -54,5 +62,5 @@ if (NODE_ENV !== 'production') {
     console.warn('⚠️  CORS disabled — Development mode (all origins allowed)');
 }
 
-console.log(`[ENV] NODE_ENV=${NODE_ENV} | Allowed origins: ${ENV.ALLOWED_ORIGINS.join(', ')}`);
-console.log(`[ENV] MONGO_URI: ${ENV.MONGO_URI.replace(/:([^@]+)@/, ':****@')}`); // Masking password
+//console.log(`[ENV] NODE_ENV=${NODE_ENV} | Allowed origins: ${ENV.ALLOWED_ORIGINS.join(', ')}`);
+//console.log(`[ENV] MONGO_URI: ${ENV.MONGO_URI.replace(/:([^@]+)@/, ':****@')}`); // Masking password

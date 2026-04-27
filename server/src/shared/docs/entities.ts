@@ -133,7 +133,17 @@ export const userProfileSchema = {
     properties: {
         ...userSchema.properties,
         whatsapp: { type: 'string' as const },
-        telegramUsername: { type: 'string' as const },
+        telegram: {
+            type: 'object' as const,
+            properties: {
+                linked: { type: 'boolean' as const },
+                username: { type: 'string' as const },
+                firstName: { type: 'string' as const },
+                lastName: { type: 'string' as const },
+                linkedAt: { type: 'string' as const, format: 'date-time' },
+                lastAuthAt: { type: 'string' as const, format: 'date-time' },
+            },
+        },
         bio: { type: 'string' as const },
         planExpiry: { type: 'string' as const, format: 'date-time' },
         notifications: notificationSettingsSchema,
