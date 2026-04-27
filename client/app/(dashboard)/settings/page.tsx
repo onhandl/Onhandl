@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/api-client';
 import { Loader2, User, KeyRound, CreditCard, Bell, Coins, ChevronRight, MessageCircle } from 'lucide-react';
@@ -17,7 +17,7 @@ const NAV: { key: Section; label: string; icon: React.ElementType; description: 
   { key: 'integrations', label: 'Integrations', icon: MessageCircle, description: 'Telegram, WhatsApp, etc.' },
 ];
 
-export default function SettingsPage() {
+function SettingsPageContent() {
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState<Section>('profile');
   const [upgradeOpen, setUpgradeOpen] = useState(false);
@@ -130,5 +130,17 @@ export default function SettingsPage() {
       </div>
 
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-[70vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    }>
+      <SettingsPageContent />
+    </Suspense>
   );
 }

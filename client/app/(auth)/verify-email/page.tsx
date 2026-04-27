@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { authApi } from '@/api';
@@ -18,7 +18,7 @@ interface VerifyEmailProps {
     isModal?: boolean;
 }
 
-export default function VerifyEmail({ onSuccess, initialEmail, isModal }: VerifyEmailProps = {}) {
+export function VerifyEmailContent({ onSuccess, initialEmail, isModal }: VerifyEmailProps = {}) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [loading, setLoading] = useState(false);
@@ -143,5 +143,17 @@ export default function VerifyEmail({ onSuccess, initialEmail, isModal }: Verify
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function VerifyEmail(props: VerifyEmailProps) {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-muted/30">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+        }>
+            <VerifyEmailContent {...props} />
+        </Suspense>
     );
 }
