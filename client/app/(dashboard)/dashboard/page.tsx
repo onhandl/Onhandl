@@ -219,12 +219,6 @@ export default function DashboardPage() {
                   <Plus className="h-4 w-4" />
                   Quick Draft
                 </Button>
-                <Button asChild variant="outline" className="inline-flex items-center gap-2 rounded-xl border-border/50 bg-card/70 backdrop-blur-sm">
-                  <Link href="/bot">
-                    Start with Assistant
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
               </div>
             </div>
           </motion.div>

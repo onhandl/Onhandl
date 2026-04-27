@@ -26,7 +26,6 @@ import {
 const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Assets', href: '/dashboard/assets', icon: Box },
-  { name: 'AI Assistant', href: '/bot', icon: LayoutGrid },
   { name: 'Support', href: '/support', icon: Headphones },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
