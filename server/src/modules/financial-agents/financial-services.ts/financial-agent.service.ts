@@ -101,7 +101,8 @@ export const FinancialAgentService = {
 
         const state = await FinancialAgentStateRepository.create({
             agentId: agent._id,
-            balances: {},
+            workspaceId: new mongoose.Types.ObjectId(workspaceId),
+            balances: [],
             counters: {
                 monthlySpend: '0',
                 totalReceived: '0',

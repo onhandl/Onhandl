@@ -8,6 +8,7 @@ import { RuntimeEvent } from './types';
 import { FinancialAgentRepository } from '../../modules/financial-agents/financial-repositories/financial-agent.repository';
 import { FinancialEventRepository } from '../../modules/financial-agents/financial-repositories/financial-event.repository';
 import { FinancialAgentStateRepository } from '../../modules/financial-agents/financial-repositories/financial-agent-state.repository';
+import { syncAgentBalances } from './AgentBalances';
 
 export class AgentRuntime {
     constructor(
@@ -69,10 +70,29 @@ export class AgentRuntime {
                 }
             }
 
-            await FinancialAgentStateRepository.upsertByAgentId(String(agent._id), {
-                lastEventAt: new Date(event.createdAt || Date.now()),
-                ...(executedActions > 0 ? { lastExecutionAt: new Date() } : {}),
-            });
+            await FinancialAgentStateRepository.upsertByAgentId(
+                String(agent._id),
+                {
+                    lastEventAt: new Date(event.createdAt || Date.now()),
+                    ...(executedActions > 0 ? { lastExecutionAt: new Date() } : {}),
+                },
+                // Provide required fields only when the document is newly created
+                {
+                    workspaceId: agent.workspaceId,
+                    balances: [],
+                    counters: { monthlySpend: '0', totalReceived: '0' },
+                    pendingApprovalIds: [],
+                    metadata: {},
+                } as any,
+            );
+
+            // Proactively refresh balances when funds arrive so the cached
+            // state is immediately up-to-date for subsequent policies / UI.
+            if (event.type === 'FUNDS.RECEIVED') {
+                syncAgentBalances(String(agent._id)).catch((err) =>
+                    console.error(`[AgentRuntime] balance sync failed for agent ${agent._id}:`, err)
+                );
+            }
         }
     }
 }

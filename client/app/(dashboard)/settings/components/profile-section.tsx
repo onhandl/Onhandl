@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { authApi } from '@/api';
+import { apiFetch } from '@/lib/api-client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, Input, Label } from '@/components/ui';
 import { Button } from '@/components/ui/buttons/button';
 import {
@@ -30,7 +30,7 @@ export function ProfileSection({ user, setUser }: Props) {
     setSaving(true);
     setSaved(false);
     try {
-      await authApi.updateMe(user);
+      await apiFetch('/auth/me', { method: 'POST', body: JSON.stringify(user) });
       setSaved(true);
       toast.success('Profile updated');
       setTimeout(() => setSaved(false), 3000);
@@ -63,7 +63,7 @@ export function ProfileSection({ user, setUser }: Props) {
     try {
       const cloudUrl = await uploadToCloudinary(file);
       setAvatarPreview(cloudUrl);
-
+      await apiFetch('/auth/me', { method: 'POST', body: JSON.stringify({ avatarUrl: cloudUrl }) });
       setUser({ ...user, avatarUrl: cloudUrl });
       toast.success('Profile picture updated');
     } catch (err: any) {
@@ -80,7 +80,7 @@ export function ProfileSection({ user, setUser }: Props) {
   const confirmRemoveAvatar = async () => {
     setAvatarUploading(true);
     try {
-      await authApi.updateMe({ avatarUrl: '' });
+      await apiFetch('/auth/me', { method: 'POST', body: JSON.stringify({ avatarUrl: '' }) });
       setUser({ ...user, avatarUrl: '' });
       setAvatarPreview(null);
       toast.success('Profile picture removed');

@@ -12,8 +12,10 @@ import rateLimitPlugin from './api/plugins/rate-limit.plugin';
 
 import { registerOpenApi } from './api/docs/openapi';
 import { registerScalarDocs } from './api/docs/scalar.controller';
+import { bootstrapAgentBalances } from './core/financial-runtime/AgentBalances/bootstrap';
 
 export async function buildApp() {
+  bootstrapAgentBalances();
   const app = Fastify({ logger: true });
 
   app.register(cors, {

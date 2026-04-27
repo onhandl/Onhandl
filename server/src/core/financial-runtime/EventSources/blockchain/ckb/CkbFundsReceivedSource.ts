@@ -36,13 +36,22 @@ export class CkbFundsReceivedSource {
         const walletAddress = ckbConfig.wallet.address;
         if (!walletAddress) return;
 
-        // Load agent state — skip if none exists yet
-        const state = await FinancialAgentStateRepository.findByAgentId(String(agent._id));
+        // Load agent state — create a minimal one if none exists yet
+        let state = await FinancialAgentStateRepository.findByAgentId(String(agent._id));
         if (!state) {
-            console.warn(
-                `[CkbFundsReceivedSource] No state found for agent ${agent._id}. Skipping.`
-            );
-            return;
+            if (!agent.workspaceId) {
+                console.warn(`[CkbFundsReceivedSource] Skipping agent ${agent._id}: missing workspaceId and no state exists to recover it.`);
+                return;
+            }
+            state = await FinancialAgentStateRepository.create({
+                agentId: agent._id,
+                workspaceId: agent.workspaceId,
+                balances: [],
+                counters: { monthlySpend: '0', totalReceived: '0' },
+                pendingApprovalIds: [],
+                metadata: {},
+            });
+            console.log(`[CkbFundsReceivedSource] Created initial state for agent ${agent._id}`);
         }
 
         // Read persisted cursor (undefined on first run — tool will use current chain tip)

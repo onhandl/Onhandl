@@ -3,6 +3,8 @@
 import { AssistantChat } from './components/AssistantChat';
 import { Bot } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export default function BotPage() {
     return (
         <div className="flex flex-col h-[calc(100vh-56px)] max-w-3xl mx-auto px-4 py-6">

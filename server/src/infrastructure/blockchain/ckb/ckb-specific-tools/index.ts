@@ -33,6 +33,7 @@ export * from "./ckb_generate_wallet";
 export * from "./ckb_get_address";
 
 export const getBalanceTools = [GetBalanceTool];
+
 export const transferTools = [TransferTool];
 export const txBuilderTools = [BuildTransferTxTool];
 export const rpcTools = [

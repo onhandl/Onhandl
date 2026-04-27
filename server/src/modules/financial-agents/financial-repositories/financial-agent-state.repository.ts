@@ -15,12 +15,20 @@ export const FinancialAgentStateRepository = {
         return state.save();
     },
 
-    async upsertByAgentId(agentId: string, update: Partial<IFinancialAgentState>) {
+    async upsertByAgentId(
+        agentId: string,
+        update: Partial<IFinancialAgentState>,
+        setOnInsert?: Partial<IFinancialAgentState>,
+    ) {
         if (!mongoose.Types.ObjectId.isValid(agentId)) return null;
+        const op: Record<string, unknown> = { $set: update };
+        if (setOnInsert && Object.keys(setOnInsert).length > 0) {
+            op.$setOnInsert = setOnInsert;
+        }
         return FinancialAgentState.findOneAndUpdate(
             { agentId },
-            { $set: update },
-            { upsert: true, new: true }
+            op,
+            { upsert: true, new: true, runValidators: true },
         );
     },
 };

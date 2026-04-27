@@ -4,6 +4,7 @@ import {
     DraftFinancialAgentPromptInput,
     FinancialAgentService,
 } from '../financial-services.ts/financial-agent.service';
+import { getAgentBalanceSummary } from '../../../core/financial-runtime/AgentBalances';
 import { FinancialEventRepository } from '../financial-repositories/financial-event.repository';
 import {
     cookieAuthSecurity,
@@ -59,8 +60,10 @@ export const financialAgentController: FastifyPluginAsync = async (fastify) => {
                 additionalProperties: false,
                 properties: {
                     mode: { type: 'string', const: 'prompt' },
-                    name: { type: 'string', minLength: 1, 
-                        description: 'Name of the financial agent' },
+                    name: {
+                        type: 'string', minLength: 1,
+                        description: 'Name of the financial agent'
+                    },
                     prompt: {
                         type: 'string',
                         minLength: 1,
@@ -484,6 +487,70 @@ export const financialAgentController: FastifyPluginAsync = async (fastify) => {
         }
 
         return updated;
+    });
+
+    fastify.get<{ Params: { id: string } }>('/financial-agents/:id/balance', {
+        onRequest: [fastify.authenticate],
+        schema: {
+            tags: ['Financial Agents'],
+            summary: 'Get agent balance summary',
+            description: 'Returns fresh or cached balance summary for the agent across all supported networks.',
+            security: [cookieAuthSecurity],
+            headers: workspaceHeaderSchema,
+            params: {
+                type: 'object',
+                required: ['id'],
+                properties: {
+                    id: { type: 'string', description: 'Financial Agent ID' },
+                },
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    description: 'Aggregated balance summary',
+                    properties: {
+                        agentId: { type: 'string' },
+                        assets: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    asset: { type: 'string' },
+                                    amount: { type: 'string' },
+                                    usdValue: { type: 'string' },
+                                },
+                            },
+                        },
+                        totals: {
+                            type: 'object',
+                            properties: {
+                                usd: { type: 'string' },
+                                native: { type: 'string' },
+                            },
+                        },
+                        lastSyncedAt: { type: 'string', format: 'date-time' },
+                    },
+                },
+                ...standardErrorResponses([400, 401, 404, 500]),
+            },
+        },
+    }, async (request, reply) => {
+        const workspaceId = request.headers['x-workspace-id'] as string;
+        if (!workspaceId) {
+            return reply.code(400).send({ error: 'Missing x-workspace-id header' });
+        }
+
+        const agent = await FinancialAgentService.getAgent(workspaceId, request.params.id);
+        if (!agent) {
+            return reply.code(404).send({ error: 'Financial agent not found' });
+        }
+
+        try {
+            const summary = await getAgentBalanceSummary(request.params.id, workspaceId);
+            return reply.code(200).send(summary);
+        } catch (err: any) {
+            return reply.code(500).send({ error: err.message || 'Failed to fetch balance summary' });
+        }
     });
 
     fastify.get('/financial-agents/events', {

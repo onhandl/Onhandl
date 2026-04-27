@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { financialAgentApi } from '@/api';
+import { financialAgentApi } from '@/api/financial.api';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
 import { useUXMode } from '@/contexts/UXModeContext';
 import CreateAgentModal from '@/components/create-agent-modal';
@@ -19,7 +19,6 @@ import { cn } from '@/lib/utils';
 const ease = [0.16, 1, 0.3, 1] as [number, number, number, number];
 
 type ViewMode = 'grid' | 'list';
-
 
 function StatCard({
   icon: Icon,
@@ -116,7 +115,7 @@ export default function DashboardPage() {
   const activeAgents = agents.filter(a => a.status === 'active').length;
 
   const totalAssets = agents.reduce((acc, a) => {
-    const bal = a.stateId?.balances?.CKB || '0';
+    const bal = a.stateId?.totalNativeAmount || '0';
     return acc + parseFloat(bal);
   }, 0);
 
@@ -431,8 +430,6 @@ export default function DashboardPage() {
         onClose={() => setIsCreateModalOpen(false)}
         onComplete={() => refreshAgents()}
       />
-
-
     </div>
   );
 }

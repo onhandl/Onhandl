@@ -4,7 +4,7 @@ import { ccc, cccClient } from "./ckb_wallet_tool";
 import { GetBalanceSchema } from "./ckb_contracts_tool";
 
 //Helper function to get balance
-async function getBalance(address: string): Promise<string> {
+export async function getBalance(address: string): Promise<string> {
     try {
         const { script: lock } = await ccc.Address.fromString(address, cccClient);
         let total = ccc.Zero;

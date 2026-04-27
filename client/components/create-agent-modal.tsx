@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
     Dialog,
     DialogContent,
@@ -14,20 +15,19 @@ import { Input } from '@/components/ui/forms/input';
 import { Label } from '@/components/ui/forms/label';
 import { Textarea } from '@/components/ui/forms/textarea';
 import {
-    IconCheck,
-    IconCpu,
-    IconLoader2,
-    IconRocket,
-    IconShieldLock,
-    IconWallet,
-    IconWand,
-} from '@tabler/icons-react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { FinancialAgentPreset, financialAgentApi } from '@/api';
-import { cn } from '@/lib/utils';
+    Cpu as IconCpu,
+    Wand2 as IconWand,
+    ShieldCheck as IconShieldLock,
+    Wallet as IconWallet,
+    Rocket as IconRocket,
+    Loader2 as IconLoader2,
+    Check as IconCheck,
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { financialAgentApi, FinancialAgentPreset } from '@/api/financial.api';
 import { useUXMode } from '@/contexts/UXModeContext';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
-import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 interface CreateAgentModalProps {
     isOpen: boolean;
@@ -201,7 +201,7 @@ export default function CreateAgentModal({ isOpen, onClose, onComplete, initialP
                                     </div>
                                     <div className="relative z-10">
                                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-3">Generated Summary</p>
-                                        <p className="text-sm font-bold leading-relaxed text-foreground/80 italic">"{draft?.description}"</p>
+                                        <p className="text-sm font-bold leading-relaxed text-foreground/80 italic">"{draft?.agent?.description}"</p>
                                     </div>
                                 </div>
 
@@ -215,7 +215,7 @@ export default function CreateAgentModal({ isOpen, onClose, onComplete, initialP
                                         </div>
 
                                         <div className="grid grid-cols-1 gap-2">
-                                            {draft?.networkConfigs?.[0]?.assetLimits?.map((limit: any, i: number) => (
+                                            {draft?.agent?.networkConfigs?.[0]?.assetLimits?.map((limit: any, i: number) => (
                                                 <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-card/70 border border-border/50 shadow-sm backdrop-blur-sm">
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-8 h-8 rounded-xl bg-background/70 flex items-center justify-center text-primary border border-border/50">
