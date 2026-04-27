@@ -3,34 +3,23 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-    X, ArrowRight, ArrowLeft, Cpu, Sparkles, Loader2, UserPlus, LogIn,
-    Check, Wand2, Bot
-} from 'lucide-react';
+import { X, ArrowRight, ArrowLeft, Cpu, Wand2, Bot, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { authApi } from '@/api';
 import { financialAgentApi } from '@/api/financial.api';
 import { cn } from '@/lib/utils';
+import SignUp from '@/app/(auth)/signup/page';
+import SignIn from '@/app/(auth)/signin/page';
 
 const DRAFT_KEY = 'onhandl_agent_draft';
 
 type Step = 'name' | 'description' | 'auth' | 'creating';
-type AuthMode = 'signup' | 'signin';
 
 interface Draft { name: string; description: string; }
 
-function saveDraft(draft: Draft) {
-    try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft)); } catch { }
-}
-function loadDraft(): Draft | null {
-    try {
-        const raw = sessionStorage.getItem(DRAFT_KEY);
-        return raw ? JSON.parse(raw) : null;
-    } catch { return null; }
-}
-function clearDraft() {
-    try { sessionStorage.removeItem(DRAFT_KEY); } catch { }
-}
+function saveDraft(d: Draft) { try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(d)); } catch { } }
+function loadDraft(): Draft | null { try { const r = sessionStorage.getItem(DRAFT_KEY); return r ? JSON.parse(r) : null; } catch { return null; } }
+function clearDraft() { try { sessionStorage.removeItem(DRAFT_KEY); } catch { } }
 
 interface AgentBuilderModalProps {
     isOpen: boolean;
@@ -39,27 +28,19 @@ interface AgentBuilderModalProps {
 
 const ease = [0.16, 1, 0.3, 1] as [number, number, number, number];
 
-const steps: Step[] = ['name', 'description', 'auth', 'creating'];
-const stepLabels = ['Name', 'Describe', 'Sign Up', 'Launch'];
-
 export function AgentBuilderModal({ isOpen, onClose }: AgentBuilderModalProps) {
     const router = useRouter();
     const [step, setStep] = useState<Step>('name');
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
-    const [authMode, setAuthMode] = useState<AuthMode>('signup');
-    const [authForm, setAuthForm] = useState({ username: '', email: '', password: '' });
-    const [isLoading, setIsLoading] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isCheckingAuth, setIsCheckingAuth] = useState(false);
+    const [isFlipped, setIsFlipped] = useState(false);
 
-    // Check auth on open
     useEffect(() => {
         if (!isOpen) return;
         const restored = loadDraft();
-        if (restored) {
-            setName(restored.name || '');
-            setDescription(restored.description || '');
-        }
+        if (restored) { setName(restored.name || ''); setDescription(restored.description || ''); }
         authApi.getMe().then(() => setIsAuthenticated(true)).catch(() => setIsAuthenticated(false));
     }, [isOpen]);
 
@@ -68,8 +49,6 @@ export function AgentBuilderModal({ isOpen, onClose }: AgentBuilderModalProps) {
         setStep('name');
         setName('');
         setDescription('');
-        setAuthForm({ username: '', email: '', password: '' });
-        setIsLoading(false);
         onClose();
     }, [onClose]);
 
@@ -78,23 +57,26 @@ export function AgentBuilderModal({ isOpen, onClose }: AgentBuilderModalProps) {
         setStep('description');
     };
 
-    const handleDescriptionNext = () => {
+    const handleDescriptionNext = async () => {
         if (!description.trim()) { toast.error('Please describe what your agent should do.'); return; }
-        const draft: Draft = { name, description };
-        saveDraft(draft);
-        if (isAuthenticated) {
-            createAgent(draft);
-        } else {
+        saveDraft({ name, description });
+        setIsCheckingAuth(true);
+        try {
+            await authApi.getMe();
+            setIsAuthenticated(true);
+            await createAgent({ name, description });
+        } catch {
             setStep('auth');
+        } finally {
+            setIsCheckingAuth(false);
         }
     };
 
     const createAgent = async (draft: Draft) => {
         setStep('creating');
-        setIsLoading(true);
         try {
-            await financialAgentApi.draftFromPrompt(draft.name, draft.description, 'balanced_allocator')
-                .then((data: any) => financialAgentApi.createFromStructured(data));
+            const data = await financialAgentApi.draftFromPrompt(draft.name, draft.description, 'balanced_allocator');
+            await financialAgentApi.createFromStructured(data);
             clearDraft();
             toast.success(`${draft.name} is ready!`, { description: 'Your agent has been deployed.' });
             onClose();
@@ -102,44 +84,8 @@ export function AgentBuilderModal({ isOpen, onClose }: AgentBuilderModalProps) {
         } catch (err: any) {
             toast.error('Agent creation failed', { description: err.message });
             setStep('description');
-        } finally {
-            setIsLoading(false);
         }
     };
-
-    const handleSignup = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-        try {
-            await authApi.register({ username: authForm.username, email: authForm.email, password: authForm.password });
-            toast.success('Account created!', { description: 'Please verify your email to continue.' });
-            // Save draft and redirect to verify-email, then dashboard will resume
-            router.push(`/verify-email?email=${encodeURIComponent(authForm.email)}&resume=agent`);
-            onClose();
-        } catch (err: any) {
-            toast.error('Sign up failed', { description: err.message });
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleSignin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-        try {
-            await authApi.login({ email: authForm.email, password: authForm.password });
-            setIsAuthenticated(true);
-            toast.success('Signed in!');
-            const draft: Draft = { name, description };
-            createAgent(draft);
-        } catch (err: any) {
-            toast.error('Sign in failed', { description: err.message });
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const currentStepIndex = steps.indexOf(step);
 
     if (!isOpen) return null;
 
@@ -152,227 +98,249 @@ export function AgentBuilderModal({ isOpen, onClose }: AgentBuilderModalProps) {
                     exit={{ opacity: 0 }}
                     className="fixed inset-0 z-[200] flex items-center justify-center p-4"
                 >
-                    {/* Backdrop */}
+                    {/* Blurred backdrop */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                        className="absolute inset-0 bg-black/70 backdrop-blur-md"
                         onClick={handleClose}
                     />
 
-                    {/* Modal */}
+                    {/* Modal shell */}
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.94, y: 24 }}
+                        initial={{ opacity: 0, scale: 0.93, y: 28 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.94, y: 24 }}
+                        exit={{ opacity: 0, scale: 0.93, y: 28 }}
                         transition={{ duration: 0.45, ease }}
-                        className="relative w-full max-w-lg rounded-3xl border border-border/50 bg-background shadow-2xl overflow-hidden"
+                        className="relative w-full max-w-xl rounded-[2rem] border border-white/10 bg-[#0f0f11] shadow-[0_32px_80px_rgba(0,0,0,0.6)] overflow-hidden"
                     >
-                        {/* Header */}
-                        <div className="px-8 pt-8 pb-6 border-b border-border/40">
-                            <div className="flex items-center justify-between mb-5">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/25">
-                                        <Bot className="w-5 h-5 text-white" />
-                                    </div>
-                                    <div>
-                                        <h2 className="text-base font-black tracking-tight">
-                                            {step === 'name' && 'Name Your Agent'}
-                                            {step === 'description' && 'Describe Its Mission'}
-                                            {step === 'auth' && 'Sign Up to Continue'}
-                                            {step === 'creating' && 'Launching Agent…'}
-                                        </h2>
-                                        <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">
-                                            {step === 'creating' ? 'Deploying to Financial Studio' : 'Agent Builder'}
-                                        </p>
-                                    </div>
-                                </div>
-                                <button onClick={handleClose} className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
-                                    <X size={18} />
-                                </button>
-                            </div>
+                        <AnimatePresence mode="wait">
 
-                            {/* Progress */}
-                            {step !== 'creating' && (
-                                <div className="flex items-center gap-2">
-                                    {stepLabels.slice(0, isAuthenticated ? 3 : 4).map((label, i) => {
-                                        const effectiveIndex = isAuthenticated && i >= 2 ? i + 1 : i;
-                                        const isDone = effectiveIndex < currentStepIndex;
-                                        const isActive = effectiveIndex === currentStepIndex;
-                                        return (
-                                            <div key={label} className="flex items-center gap-2">
-                                                <div className={cn(
-                                                    'flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-all',
-                                                    isActive ? 'text-primary' : isDone ? 'text-emerald-500' : 'text-muted-foreground/40'
-                                                )}>
-                                                    <div className={cn(
-                                                        'w-5 h-5 rounded-full flex items-center justify-center border text-[9px] font-black transition-all',
-                                                        isActive ? 'border-primary bg-primary/10 text-primary' :
-                                                            isDone ? 'border-emerald-500 bg-emerald-500 text-white' :
-                                                                'border-border text-muted-foreground/40'
-                                                    )}>
-                                                        {isDone ? <Check size={10} /> : i + 1}
-                                                    </div>
-                                                    {label}
-                                                </div>
-                                                {i < (isAuthenticated ? 2 : 3) && (
-                                                    <div className={cn('h-px w-6 rounded', isDone ? 'bg-emerald-500' : 'bg-border/60')} />
-                                                )}
+                            {/* ═══════════════════ STEP: NAME ═══════════════════ */}
+                            {step === 'name' && (
+                                <motion.div key="name" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} transition={{ duration: 0.3, ease }}>
+                                    {/* Gradient top bar */}
+                                    <div className="h-1 w-full bg-gradient-to-r from-primary via-violet-500 to-rose-500" />
+
+                                    <div className="p-8">
+                                        {/* Close */}
+                                        <button onClick={handleClose} className="absolute top-5 right-5 p-2 rounded-xl text-white/30 hover:text-white hover:bg-white/10 transition-all">
+                                            <X size={18} />
+                                        </button>
+
+                                        {/* Icon + Label */}
+                                        <div className="flex items-center gap-3 mb-8">
+                                            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center shadow-lg shadow-primary/30">
+                                                <Bot className="w-5 h-5 text-white" />
                                             </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-primary/70">Step 1 of 2</p>
+                                                <h2 className="text-lg font-black tracking-tight text-white">Name Your Agent</h2>
+                                            </div>
+                                        </div>
 
-                        {/* Body */}
-                        <div className="px-8 py-8 min-h-[260px] bg-background/60">
-                            <AnimatePresence mode="wait">
-
-                                {/* STEP 1: NAME */}
-                                {step === 'name' && (
-                                    <motion.div key="name" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.25, ease }} className="space-y-6">
-                                        <p className="text-sm text-muted-foreground font-medium">
-                                            Give your agent an identity — a name it will be recognized by inside your studio.
+                                        <p className="text-sm text-white/50 font-medium mb-6 leading-relaxed">
+                                            Give your agent an identity — a name it will carry inside your Financial Studio.
                                         </p>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Agent Name</label>
+
+                                        <div className="space-y-2 mb-6">
+                                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Agent Name</label>
                                             <input
                                                 autoFocus
                                                 value={name}
                                                 onChange={e => setName(e.target.value)}
                                                 onKeyDown={e => e.key === 'Enter' && handleNameNext()}
                                                 placeholder="e.g. Treasury Sentinel"
-                                                className="w-full h-12 px-4 rounded-2xl bg-card border border-border/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 text-sm font-bold transition-all"
+                                                className="w-full h-13 px-5 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-white placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 text-sm font-bold transition-all"
                                             />
                                         </div>
+
                                         <button
                                             onClick={handleNameNext}
-                                            className="w-full h-12 rounded-2xl bg-primary text-white font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-primary/90 transition-all shadow-xl shadow-primary/20"
+                                            className="w-full h-12 rounded-2xl bg-gradient-to-r from-primary to-violet-600 text-white font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-xl shadow-primary/30"
                                         >
-                                            Next <ArrowRight size={16} />
+                                            Continue <ArrowRight size={16} />
                                         </button>
-                                    </motion.div>
-                                )}
+                                    </div>
+                                </motion.div>
+                            )}
 
-                                {/* STEP 2: DESCRIPTION */}
-                                {step === 'description' && (
-                                    <motion.div key="desc" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.25, ease }} className="space-y-6">
-                                        <p className="text-sm text-muted-foreground font-medium">
-                                            Describe what <span className="font-bold text-foreground">{name}</span> should do — in plain language. Onhandl will convert it into a policy.
+                            {/* ═══════════════════ STEP: DESCRIPTION ═══════════════════ */}
+                            {step === 'description' && (
+                                <motion.div key="desc" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} transition={{ duration: 0.3, ease }}>
+                                    <div className="h-1 w-full bg-gradient-to-r from-primary via-violet-500 to-rose-500" />
+
+                                    <div className="p-8">
+                                        <button onClick={handleClose} className="absolute top-5 right-5 p-2 rounded-xl text-white/30 hover:text-white hover:bg-white/10 transition-all">
+                                            <X size={18} />
+                                        </button>
+
+                                        <div className="flex items-center gap-3 mb-8">
+                                            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-violet-500 to-rose-500 flex items-center justify-center shadow-lg shadow-violet-500/30">
+                                                <Wand2 className="w-5 h-5 text-white" />
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-violet-400/70">Step 2 of 2</p>
+                                                <h2 className="text-lg font-black tracking-tight text-white">Define the Mission</h2>
+                                            </div>
+                                        </div>
+
+                                        {/* Draft preview chip */}
+                                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-5">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                                            <span className="text-[11px] font-black text-primary tracking-wider">{name}</span>
+                                        </div>
+
+                                        <p className="text-sm text-white/50 font-medium mb-6 leading-relaxed">
+                                            Describe what <span className="font-bold text-white/80">{name}</span> should do in plain language. Onhandl converts it into a live financial policy.
                                         </p>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Mission Description</label>
+
+                                        <div className="space-y-2 mb-6">
+                                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Mission</label>
                                             <textarea
                                                 autoFocus
                                                 value={description}
                                                 onChange={e => setDescription(e.target.value)}
-                                                placeholder="e.g. Save 30% of all incoming CKB and send the rest to my main wallet…"
-                                                className="w-full min-h-[130px] p-4 rounded-2xl bg-card border border-border/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 text-sm font-medium resize-none transition-all leading-relaxed"
+                                                placeholder="e.g. Save 30% of incoming CKB and forward the rest to my cold wallet…"
+                                                className="w-full min-h-[120px] px-5 py-4 rounded-2xl bg-white/5 border border-white/10 text-white placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500/40 text-sm font-medium resize-none transition-all leading-relaxed"
                                             />
                                         </div>
+
                                         <div className="flex gap-3">
-                                            <button onClick={() => setStep('name')} className="h-12 px-5 rounded-2xl border border-border/60 text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all flex items-center gap-2">
-                                                <ArrowLeft size={16} /> Back
+                                            <button onClick={() => setStep('name')} className="h-12 px-5 rounded-2xl border border-white/10 text-sm font-bold text-white/40 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2">
+                                                <ArrowLeft size={16} />
                                             </button>
                                             <button
                                                 onClick={handleDescriptionNext}
-                                                className="flex-1 h-12 rounded-2xl bg-primary text-white font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-primary/90 transition-all shadow-xl shadow-primary/20"
+                                                disabled={isCheckingAuth}
+                                                className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-violet-600 to-rose-500 text-white font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-50 transition-all shadow-xl shadow-violet-500/20"
                                             >
-                                                {isAuthenticated ? <><Wand2 size={16} /> Create Agent</> : <> Continue <ArrowRight size={16} /></>}
+                                                {isCheckingAuth
+                                                    ? <><span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Checking…</>
+                                                    : <><Wand2 size={15} /> Create Agent</>}
                                             </button>
                                         </div>
-                                    </motion.div>
-                                )}
+                                    </div>
+                                </motion.div>
+                            )}
 
-                                {/* STEP 3: AUTH */}
-                                {step === 'auth' && (
-                                    <motion.div key="auth" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.25, ease }} className="space-y-5">
-                                        <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20 flex items-start gap-3">
-                                            <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 mt-0.5">
-                                                <Sparkles size={16} />
+                            {/* ═══════════════════ STEP: AUTH ═══════════════════ */}
+                            {step === 'auth' && (
+                                <motion.div key="auth" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} transition={{ duration: 0.3, ease }}>
+                                    <div className="h-1 w-full bg-gradient-to-r from-rose-500 via-primary to-violet-500" />
+
+                                    {/* Close */}
+                                    <button onClick={handleClose} className="absolute top-5 right-5 z-10 p-2 rounded-xl text-white/30 hover:text-white hover:bg-white/10 transition-all">
+                                        <X size={18} />
+                                    </button>
+
+                                    {/* Draft context banner */}
+                                    <div className="px-6 pt-6 pb-4">
+                                        <div className="flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-r from-primary/10 to-violet-500/10 border border-primary/20">
+                                            <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+                                                <Sparkles size={16} className="text-primary" />
                                             </div>
-                                            <div>
-                                                <p className="text-xs font-black text-foreground uppercase tracking-widest">Draft Saved</p>
-                                                <p className="text-[11px] font-medium text-muted-foreground mt-0.5">
-                                                    Your agent <span className="font-bold text-primary">"{name}"</span> will be created immediately after you sign in or sign up.
+                                            <div className="min-w-0">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-primary/80">Draft Ready</p>
+                                                <p className="text-xs font-semibold text-white/60 truncate">
+                                                    <span className="font-black text-white">{name}</span> will be created right after you sign in.
                                                 </p>
                                             </div>
                                         </div>
+                                    </div>
 
-                                        {/* Auth mode toggle */}
-                                        <div className="flex items-center gap-1 p-1 rounded-xl border border-border/60 bg-muted/20">
-                                            {(['signup', 'signin'] as AuthMode[]).map(mode => (
-                                                <button key={mode} onClick={() => setAuthMode(mode)}
-                                                    className={cn('flex-1 h-9 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all',
-                                                        authMode === mode ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
-                                                    )}>
-                                                    {mode === 'signup' ? 'Sign Up' : 'Sign In'}
-                                                </button>
-                                            ))}
+                                    {/* Sign Up / Sign In pill toggle */}
+                                    <div className="px-6 pb-3">
+                                        <div className="flex p-1 gap-1 rounded-2xl bg-white/5 border border-white/10">
+                                            <button
+                                                onClick={() => setIsFlipped(false)}
+                                                className={cn(
+                                                    'flex-1 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all',
+                                                    !isFlipped
+                                                        ? 'bg-gradient-to-r from-primary to-violet-600 text-white shadow-lg shadow-primary/20'
+                                                        : 'text-white/40 hover:text-white/70'
+                                                )}
+                                            >
+                                                Create Account
+                                            </button>
+                                            <button
+                                                onClick={() => setIsFlipped(true)}
+                                                className={cn(
+                                                    'flex-1 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all',
+                                                    isFlipped
+                                                        ? 'bg-gradient-to-r from-violet-600 to-rose-500 text-white shadow-lg shadow-violet-500/20'
+                                                        : 'text-white/40 hover:text-white/70'
+                                                )}
+                                            >
+                                                Sign In
+                                            </button>
                                         </div>
+                                    </div>
 
-                                        <form onSubmit={authMode === 'signup' ? handleSignup : handleSignin} className="space-y-3">
-                                            {authMode === 'signup' && (
-                                                <input
-                                                    required
-                                                    placeholder="Username"
-                                                    value={authForm.username}
-                                                    onChange={e => setAuthForm({ ...authForm, username: e.target.value })}
-                                                    className="w-full h-11 px-4 rounded-2xl bg-card border border-border/50 focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm font-medium transition-all"
-                                                />
-                                            )}
-                                            <input
-                                                required
-                                                type="email"
-                                                placeholder="Email address"
-                                                value={authForm.email}
-                                                onChange={e => setAuthForm({ ...authForm, email: e.target.value })}
-                                                className="w-full h-11 px-4 rounded-2xl bg-card border border-border/50 focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm font-medium transition-all"
-                                            />
-                                            <input
-                                                required
-                                                type="password"
-                                                placeholder="Password"
-                                                value={authForm.password}
-                                                onChange={e => setAuthForm({ ...authForm, password: e.target.value })}
-                                                className="w-full h-11 px-4 rounded-2xl bg-card border border-border/50 focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm font-medium transition-all"
-                                            />
-                                            <div className="flex gap-3 pt-1">
-                                                <button type="button" onClick={() => setStep('description')} className="h-11 px-5 rounded-2xl border border-border/60 text-sm font-bold text-muted-foreground hover:bg-muted/50 transition-all flex items-center gap-2">
-                                                    <ArrowLeft size={16} /> Back
-                                                </button>
-                                                <button type="submit" disabled={isLoading}
-                                                    className="flex-1 h-11 rounded-2xl bg-primary text-white font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-primary/90 disabled:opacity-50 transition-all shadow-xl shadow-primary/20"
-                                                >
-                                                    {isLoading ? <Loader2 size={18} className="animate-spin" /> :
-                                                        authMode === 'signup' ? <><UserPlus size={16} /> Sign Up & Create</> : <><LogIn size={16} /> Sign In & Create</>}
-                                                </button>
+                                    {/* Flip card — each face clips the full-page component */}
+                                    <div className="overflow-hidden" style={{ perspective: '1400px', height: '440px' }}>
+                                        <motion.div
+                                            animate={{ rotateY: isFlipped ? 180 : 0 }}
+                                            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                                            style={{ transformStyle: 'preserve-3d', height: '100%', position: 'relative' }}
+                                        >
+                                            {/* FRONT — SignUp */}
+                                            <div
+                                                className="absolute inset-0 overflow-auto"
+                                                style={{ backfaceVisibility: 'hidden' }}
+                                            >
+                                                <SignUp />
                                             </div>
-                                        </form>
-                                    </motion.div>
-                                )}
 
-                                {/* STEP: CREATING */}
-                                {step === 'creating' && (
-                                    <motion.div key="creating" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center py-8 gap-5">
-                                        <div className="relative w-16 h-16">
-                                            <div className="w-16 h-16 rounded-full border-2 border-primary/20" />
-                                            <div className="absolute inset-0 w-16 h-16 rounded-full border-t-2 border-primary animate-spin" />
-                                            <div className="absolute inset-0 flex items-center justify-center">
-                                                <Cpu size={24} className="text-primary" />
+                                            {/* BACK — SignIn */}
+                                            <div
+                                                className="absolute inset-0 overflow-auto"
+                                                style={{
+                                                    backfaceVisibility: 'hidden',
+                                                    transform: 'rotateY(180deg)',
+                                                }}
+                                            >
+                                                <SignIn />
                                             </div>
-                                        </div>
-                                        <div className="text-center">
-                                            <p className="font-black text-base uppercase tracking-widest text-foreground">Building {name}</p>
-                                            <p className="text-sm text-muted-foreground mt-1">Generating policies and deploying…</p>
-                                        </div>
-                                    </motion.div>
-                                )}
+                                        </motion.div>
+                                    </div>
+                                </motion.div>
+                            )}
 
-                            </AnimatePresence>
-                        </div>
+                            {/* ═══════════════════ STEP: CREATING ═══════════════════ */}
+                            {step === 'creating' && (
+                                <motion.div key="creating" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4, ease }}
+                                    className="flex flex-col items-center justify-center py-20 gap-6 px-8"
+                                >
+                                    {/* Animated ring */}
+                                    <div className="relative w-20 h-20">
+                                        <div className="w-20 h-20 rounded-full border-2 border-white/10" />
+                                        <div className="absolute inset-0 rounded-full border-t-2 border-primary animate-spin" />
+                                        <div className="absolute inset-0 rounded-full border-t-2 border-violet-400 animate-spin [animation-duration:1.8s] opacity-50" />
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <Cpu size={26} className="text-primary" />
+                                        </div>
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="font-black text-lg uppercase tracking-widest text-white">{name}</p>
+                                        <p className="text-sm text-white/40 mt-1 font-medium">Generating policies · Deploying agent…</p>
+                                    </div>
+
+                                    {/* Animated dots */}
+                                    <div className="flex gap-1.5">
+                                        {[0, 0.15, 0.3].map((delay, i) => (
+                                            <motion.div key={i}
+                                                animate={{ opacity: [0.2, 1, 0.2] }}
+                                                transition={{ duration: 1.2, repeat: Infinity, delay }}
+                                                className="w-1.5 h-1.5 rounded-full bg-primary"
+                                            />
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            )}
+
+                        </AnimatePresence>
                     </motion.div>
                 </motion.div>
             )}
