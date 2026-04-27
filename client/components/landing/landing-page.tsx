@@ -18,11 +18,13 @@ import { Partners } from '@/components/landing/partners';
 import { Pricing } from '@/components/landing/pricing';
 import { Testimonials } from '@/components/landing/testimonials';
 import { Waitlist } from '@/components/landing/waitlist';
+import { AgentBuilderModal } from '@/components/agent-builder/AgentBuilderModal';
 
 export function LandingPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [openFaqItem, setOpenFaqItem] = useState<number | null>(null);
+  const [isBuilderOpen, setIsBuilderOpen] = useState(false);
 
   useAosInit();
   const { visible: backToTopVisible, scrollToTop } = useBackToTop(300);
@@ -37,7 +39,7 @@ export function LandingPage() {
       />
 
       <main>
-        <Hero handleAnchorClick={handleAnchorClick} />
+        <Hero handleAnchorClick={handleAnchorClick} onStartBuilder={() => setIsBuilderOpen(true)} />
         <Partners />
         <Features />
         <HowItWorks />
@@ -54,6 +56,8 @@ export function LandingPage() {
       <Footer />
 
       <BackToTopButton visible={backToTopVisible} onClick={scrollToTop} />
+
+      <AgentBuilderModal isOpen={isBuilderOpen} onClose={() => setIsBuilderOpen(false)} />
     </div>
   );
 }
