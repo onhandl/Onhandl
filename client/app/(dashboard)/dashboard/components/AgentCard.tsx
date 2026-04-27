@@ -115,62 +115,41 @@ export function AgentCard({ agent, onControlChange, index, compact = false }: Ag
                     {agent.description || 'Ensuring financial integrity and autonomous decision making on the network.'}
                 </p>
 
-                {compact ? (
-                    <div className="pt-5 border-t border-border/40 flex items-center justify-between">
-                        <span className={cn(
-                            "inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest border",
-                            isActive
-                                ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600"
-                                : "border-amber-500/20 bg-amber-500/10 text-amber-600"
-                        )}>
-                            <span className={cn("h-2 w-2 rounded-full", isActive ? "bg-emerald-500" : "bg-amber-500")} />
-                            {isActive ? 'Active' : 'Paused'}
-                        </span>
-                        <Link
-                            href="/bot"
-                            className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-black uppercase tracking-widest text-primary-foreground transition-all hover:bg-primary/90"
-                        >
-                            Open Chat
-                            <IconArrowRight size={14} />
-                        </Link>
-                    </div>
-                ) : (
-                    <>
-                        {/* Metadata tokens */}
-                        <div className="flex flex-wrap gap-2 mb-6">
-                            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/30 border border-border/40 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                                <IconNetwork size={12} />
-                                {network}
-                            </div>
-                            {agent.subscribedEvents?.length > 0 && (
-                                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/30 border border-border/40 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                                    <IconShieldLock size={12} />
-                                    {agent.subscribedEvents.length} Policies
-                                </div>
-                            )}
-                            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-black text-primary uppercase tracking-widest shadow-sm">
-                                <IconWallet size={12} />
-                                {isLoadingBalance ? '...' : (balance?.totals?.native || '0.00')} {network}
-                            </div>
+                <>
+                    {/* Metadata tokens */}
+                    <div className="flex flex-wrap gap-2 mb-6">
+                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/30 border border-border/40 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                            <IconNetwork size={12} />
+                            {network}
                         </div>
-
-                        {/* Address Pill (if available) */}
-                        {address && (
-                            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/5 border border-primary/10 text-[11px] font-mono text-primary/70 mb-6 truncate">
-                                <IconDatabase size={14} className="shrink-0" />
-                                {address}
+                        {agent.subscribedEvents?.length > 0 && (
+                            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/30 border border-border/40 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                                <IconShieldLock size={12} />
+                                {agent.subscribedEvents.length} Policies
                             </div>
                         )}
-
-                        {/* Footer */}
-                        <div className="pt-5 border-t border-border/40 flex items-center justify-between">
-                            <div className="flex items-center gap-2 text-[11px] font-bold text-muted-foreground/50 uppercase tracking-widest">
-                                <IconClock size={14} />
-                                {new Date(agent.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                            </div>
+                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-black text-primary uppercase tracking-widest shadow-sm">
+                            <IconWallet size={12} />
+                            {isLoadingBalance ? '...' : (balance?.totals?.native || '0.00')} {network}
                         </div>
-                    </>
-                )}
+                    </div>
+
+                    {/* Address Pill (if available) */}
+                    {address && (
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/5 border border-primary/10 text-[11px] font-mono text-primary/70 mb-6 truncate">
+                            <IconDatabase size={14} className="shrink-0" />
+                            {address}
+                        </div>
+                    )}
+
+                    {/* Footer */}
+                    <div className="pt-5 border-t border-border/40 flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-[11px] font-bold text-muted-foreground/50 uppercase tracking-widest">
+                            <IconClock size={14} />
+                            {new Date(agent.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </div>
+                    </div>
+                </>
             </div>
 
             {/* Premium hover highlight */}

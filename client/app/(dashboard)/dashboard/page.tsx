@@ -182,68 +182,33 @@ export default function DashboardPage() {
                 className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-primary/20"
               >
                 <Plus className="w-4 h-4" />
-                {isLite ? 'QUICK DRAFT' : 'NEW AGENT'}
+                NEW AGENT
               </Button>
             </div>
           </motion.div>
         </div>
 
 
-        {isLite ? (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4, ease }}
-            className="mb-10 rounded-3xl border border-border/50 bg-background/85 p-6 shadow-xl shadow-black/5 backdrop-blur-2xl"
-          >
-            <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
-                  <Sparkles className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Status Overview</p>
-                  <h2 className="text-xl font-black tracking-tight">
-                    {agents.length === 0 ? 'No agents yet' : `${activeAgents} of ${agents.length} agents active`}
-                  </h2>
-                  <p className="mt-1 text-sm font-medium text-muted-foreground">
-                    Create or adjust agents using plain language.
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <Button
-                  onClick={() => setIsCreateModalOpen(true)}
-                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 font-bold text-primary-foreground shadow-xl shadow-primary/20"
-                >
-                  <Plus className="h-4 w-4" />
-                  Quick Draft
-                </Button>
-              </div>
-            </div>
-          </motion.div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-            <StatCard icon={IconCpu} label="Total Agents" value={String(agents.length)} color="primary" delay={0.1} />
-            <StatCard icon={IconShieldCheck} label="Secured Agents" value={String(activeAgents)} color="emerald" delay={0.2} />
-            <StatCard
-              icon={IconWallet}
-              label="Total Assets"
-              value={totalAssets > 0 ? `${totalAssets.toLocaleString()} CKB` : '0.00'}
-              sub="CKB Network"
-              color="violet"
-              delay={0.3}
-            />
-            <StatCard
-              icon={IconChartBar}
-              label="Policy Hits"
-              value={String(totalPolicyHits)}
-              sub="Last 24h"
-              color="amber"
-              delay={0.4}
-            />
-          </div>
-        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+          <StatCard icon={IconCpu} label="Total Agents" value={String(agents.length)} color="primary" delay={0.1} />
+          <StatCard icon={IconShieldCheck} label="Active Agents" value={String(activeAgents)} color="emerald" delay={0.2} />
+          <StatCard
+            icon={IconWallet}
+            label="Total Assets"
+            value={totalAssets > 0 ? `${totalAssets.toLocaleString()} CKB` : '0.00'}
+            sub="CKB Network"
+            color="violet"
+            delay={0.3}
+          />
+          <StatCard
+            icon={IconChartBar}
+            label="Policy Hits"
+            value={String(totalPolicyHits)}
+            sub="Last 24h"
+            color="amber"
+            delay={0.4}
+          />
+        </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
           <div className="relative w-full sm:w-96 group">

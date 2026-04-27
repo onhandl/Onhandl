@@ -98,8 +98,6 @@ export function ProfileSection({ user, setUser }: Props) {
   const FIELDS = [
     { id: 'username', label: 'Username', icon: User, type: 'text', key: 'username', placeholder: 'Your username' },
     { id: 'email', label: 'Email Address', icon: Mail, type: 'email', key: 'email', placeholder: 'your@email.com' },
-    { id: 'whatsapp', label: 'WhatsApp Number', icon: Phone, type: 'text', key: 'whatsapp', placeholder: '+1234567890' },
-    { id: 'telegram', label: 'Telegram Username', icon: MessageCircle, type: 'text', key: 'telegramUsername', placeholder: 'username' },
   ] as const;
 
   return (
