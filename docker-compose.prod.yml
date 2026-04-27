@@ -19,6 +19,7 @@ services:
     restart: unless-stopped
     expose:
       - '3001'
+      - '3002'
     env_file:
       - server/.env
     environment:
@@ -28,8 +29,11 @@ services:
       API_URL: https://api.onhandl.com/api
       STRIPE_REDIRECT_URI: https://api.onhandl.com/api/payments/stripe/callback
       COOKIE_DOMAIN: .onhandl.com
+      TELEGRAM_WEBHOOK_DOMAIN: api.onhandl.com
+      TELEGRAM_WEBHOOK_PORT: 3002
+      TELEGRAM_WEBHOOK_PATH: /telegram/webhook
     healthcheck:
-      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3001/api/health >/dev/null || exit 1']
+      test: [ 'CMD-SHELL', 'wget -qO- http://127.0.0.1:3001/api/health >/dev/null || exit 1' ]
       interval: 15s
       timeout: 10s
       retries: 10
@@ -46,7 +50,7 @@ services:
     expose:
       - '3000'
     healthcheck:
-      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3000/api/health >/dev/null || exit 1']
+      test: [ 'CMD-SHELL', 'wget -qO- http://127.0.0.1:3000/api/health >/dev/null || exit 1' ]
       interval: 15s
       timeout: 10s
       retries: 10
