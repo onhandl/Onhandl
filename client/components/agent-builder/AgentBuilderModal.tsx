@@ -3,17 +3,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ArrowRight, ArrowLeft, Cpu, Wand2, Bot, Sparkles } from 'lucide-react';
+import { X, ArrowRight, ArrowLeft, Cpu, Wand2, Bot, Sparkles, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { authApi } from '@/api';
 import { financialAgentApi } from '@/api/financial.api';
 import { cn } from '@/lib/utils';
 import SignUp from '@/app/(auth)/signup/page';
 import SignIn from '@/app/(auth)/signin/page';
+import VerifyEmail from '@/app/(auth)/verify-email/page';
 
 const DRAFT_KEY = 'onhandl_agent_draft';
 
-type Step = 'name' | 'description' | 'auth' | 'creating';
+type Step = 'name' | 'description' | 'auth' | 'verify_otp' | 'creating';
 
 interface Draft { name: string; description: string; }
 
@@ -33,6 +34,7 @@ export function AgentBuilderModal({ isOpen, onClose }: AgentBuilderModalProps) {
     const [step, setStep] = useState<Step>('name');
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
+    const [signupEmail, setSignupEmail] = useState('');
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isCheckingAuth, setIsCheckingAuth] = useState(false);
     const [isFlipped, setIsFlipped] = useState(false);
@@ -49,6 +51,7 @@ export function AgentBuilderModal({ isOpen, onClose }: AgentBuilderModalProps) {
         setStep('name');
         setName('');
         setDescription('');
+        setSignupEmail('');
         onClose();
     }, [onClose]);
 
@@ -70,6 +73,16 @@ export function AgentBuilderModal({ isOpen, onClose }: AgentBuilderModalProps) {
         } finally {
             setIsCheckingAuth(false);
         }
+    };
+
+    const handleAuthSuccess = async () => {
+        setIsAuthenticated(true);
+        await createAgent({ name, description });
+    };
+
+    const handleSignUpSuccess = (email: string) => {
+        setSignupEmail(email);
+        setStep('verify_otp');
     };
 
     const createAgent = async (draft: Draft) => {
@@ -260,7 +273,7 @@ export function AgentBuilderModal({ isOpen, onClose }: AgentBuilderModalProps) {
                                                 style={{ backfaceVisibility: 'hidden' }}
                                             >
                                                 <div className="scale-95 origin-top pt-2">
-                                                    <SignUp />
+                                                    <SignUp onSuccess={handleSignUpSuccess} />
                                                 </div>
                                             </div>
 
@@ -273,10 +286,35 @@ export function AgentBuilderModal({ isOpen, onClose }: AgentBuilderModalProps) {
                                                 }}
                                             >
                                                 <div className="scale-95 origin-top pt-2">
-                                                    <SignIn />
+                                                    <SignIn onSuccess={handleAuthSuccess} />
                                                 </div>
                                             </div>
                                         </motion.div>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {/* ═══════════════════ STEP: VERIFY OTP ═══════════════════ */}
+                            {step === 'verify_otp' && (
+                                <motion.div key="verify" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3, ease }}>
+                                    <div className="pt-6 px-6 flex items-center justify-between">
+                                        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#e0692e]/10 border border-[#e0692e]/20 text-[#e0692e]">
+                                            <ShieldCheck size={16} />
+                                            <span className="text-xs font-bold uppercase tracking-wider">Verification Required</span>
+                                        </div>
+                                        <button onClick={handleClose} className="p-2 rounded-xl text-[#020202]/40 hover:text-[#020202] hover:bg-[#020202]/5 transition-all">
+                                            <X size={20} />
+                                        </button>
+                                    </div>
+
+                                    <div className="overflow-y-auto bg-[#eeeeee] max-h-[520px]">
+                                        <div className="pt-2 pb-6">
+                                            <VerifyEmail
+                                                isModal
+                                                initialEmail={signupEmail}
+                                                onSuccess={handleAuthSuccess}
+                                            />
+                                        </div>
                                     </div>
                                 </motion.div>
                             )}

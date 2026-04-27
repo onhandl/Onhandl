@@ -12,7 +12,11 @@ import { toast } from 'sonner';
 
 export const dynamic = 'force-dynamic';
 
-export default function SignIn() {
+interface SignInProps {
+    onSuccess?: () => void;
+}
+
+export default function SignIn({ onSuccess }: SignInProps = {}) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [form, setForm] = useState({ identifier: '', password: '' });
@@ -21,9 +25,13 @@ export default function SignIn() {
         e.preventDefault();
         setLoading(true);
         try {
-            await authApi.login(form);
+            await authApi.login({ username: form.identifier, password: form.password });
             toast.success('Welcome back!');
-            router.push('/dashboard');
+            if (onSuccess) {
+                onSuccess();
+            } else {
+                router.push('/dashboard');
+            }
         } catch (error: any) {
             toast.error('Login failed', { description: error.message });
         } finally {

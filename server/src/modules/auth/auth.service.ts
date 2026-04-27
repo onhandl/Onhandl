@@ -113,3 +113,10 @@ export async function resetPassword(email: string, code: string, newPassword: st
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await User.updateOne({ email }, { password: hashedPassword });
 }
+
+export async function resendVerificationOtp(email: string) {
+    const lastOtp = await Otp.findOne({ email, purpose: 'signup', used: false }).sort({ createdAt: -1 });
+    if (!lastOtp) throw { code: 400, message: 'No pending verification found for this email' };
+
+    await issueOtp(email, 'signup', lastOtp.pendingData);
+}

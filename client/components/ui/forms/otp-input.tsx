@@ -64,8 +64,10 @@ export function OtpInput({
 
     const handlePaste = (e: React.ClipboardEvent) => {
         e.preventDefault();
-        const data = e.clipboardData.getData("text").slice(0, length);
-        if (!/^\d+$/.test(data)) return;
+        const rawData = e.clipboardData.getData("text").trim();
+        // Extract only the first 'length' digits, ignoring separators
+        const data = rawData.replace(/\D/g, "").slice(0, length);
+        if (!data) return;
 
         const newOtp = [...otp];
         data.split("").forEach((char, i) => {
@@ -84,7 +86,7 @@ export function OtpInput({
             {otp.map((digit, index) => (
                 <input
                     key={index}
-                    ref={(el) => (inputs.current[index] = el)}
+                    ref={(el) => { inputs.current[index] = el; }}
                     type="text"
                     inputMode="numeric"
                     maxLength={1}

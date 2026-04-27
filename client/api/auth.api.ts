@@ -19,6 +19,12 @@ export const authApi = {
             body: JSON.stringify(payload),
         });
     },
+    resendVerification: async (email: string) => {
+        return apiFetch('/auth/resend-verification', {
+            method: 'POST',
+            body: JSON.stringify({ email }),
+        });
+    },
     forgotPassword: async (payload: any) => {
         return apiFetch('/auth/forgot-password', {
             method: 'POST',

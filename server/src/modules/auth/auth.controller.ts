@@ -4,6 +4,7 @@ import { UserService } from '../users/user.service';
 import {
     registerUser, verifyEmailOtp, loginUser,
     sendForgotPasswordOtp, resetPassword,
+    resendVerificationOtp,
 } from './auth.service';
 import {
     cookieAuthSecurity,
@@ -133,6 +134,44 @@ export async function authController(fastify: FastifyInstance) {
                         email: user.email,
                     },
                 });
+            } catch (e: any) {
+                return reply.code(e.code || 500).send({ error: e.message });
+            }
+        }
+    );
+
+    fastify.post<{ Body: { email: string } }>(
+        '/resend-verification',
+        {
+            schema: {
+                tags: ['Auth'],
+                summary: 'Resend verification OTP',
+                description: 'Resends the signup verification code to the user email.',
+                body: {
+                    type: 'object',
+                    required: ['email'],
+                    properties: { email: { type: 'string', format: 'email' } },
+                },
+                response: {
+                    200: {
+                        description: 'OTP resent',
+                        type: 'object',
+                        properties: {
+                            success: { type: 'boolean' },
+                            message: { type: 'string' },
+                        },
+                    },
+                    ...standardErrorResponses([400, 500]),
+                },
+            },
+        },
+        async (request, reply) => {
+            const { email } = request.body;
+            if (!email) return reply.code(400).send({ error: 'Email is required' });
+
+            try {
+                await resendVerificationOtp(email);
+                return reply.send({ success: true, message: 'Verification code has been resent.' });
             } catch (e: any) {
                 return reply.code(e.code || 500).send({ error: e.message });
             }

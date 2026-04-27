@@ -93,6 +93,42 @@ export default function DashboardPage() {
     refreshAgents();
   }, [activeWorkspace]);
 
+  // Handle auto-resumption of agent drafts from landing page
+  useEffect(() => {
+    if (!activeWorkspace || loading) return;
+
+    const DRAFT_KEY = 'onhandl_agent_draft';
+    const checkDraft = async () => {
+      try {
+        const raw = sessionStorage.getItem(DRAFT_KEY);
+        if (!raw) return;
+
+        const draft = JSON.parse(raw);
+        if (draft.name && draft.description) {
+          // Clear it first to prevent double-creation
+          sessionStorage.removeItem(DRAFT_KEY);
+
+          import('sonner').then(({ toast }) => {
+            toast.loading(`Resuming creation of ${draft.name}...`);
+            financialAgentApi.draftFromPrompt(draft.name, draft.description, 'balanced_allocator')
+              .then(data => financialAgentApi.createFromStructured(data))
+              .then(() => {
+                toast.success(`${draft.name} deployed!`, { description: 'Draft resume successful.' });
+                refreshAgents();
+              })
+              .catch(err => {
+                toast.error('Failed to resume draft agent', { description: err.message });
+              });
+          });
+        }
+      } catch (err) {
+        console.error('Draft resumption error:', err);
+      }
+    };
+
+    checkDraft();
+  }, [activeWorkspace, loading]);
+
   const filteredAgents = agents.filter((agent) => {
     const query = searchQuery.trim().toLowerCase();
     if (!query) return true;
