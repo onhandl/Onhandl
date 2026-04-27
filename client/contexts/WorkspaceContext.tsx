@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { apiFetch } from '@/lib/api-client';
+import { workspaceApi } from '@/api';
 
 interface Workspace {
   _id: string;
@@ -32,7 +32,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await apiFetch('/workspaces/workspaces');
+      const data = await workspaceApi.getWorkspaces();
       setWorkspaces(data);
 
       const savedId = localStorage.getItem('active_workspace_id');
@@ -64,10 +64,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   }, [workspaces]);
 
   const createWorkspace = useCallback(async (name: string) => {
-    const workspace = await apiFetch('/workspaces/workspaces', {
-      method: 'POST',
-      body: JSON.stringify({ name }),
-    });
+    const workspace = await workspaceApi.createWorkspace({ name });
 
     setWorkspaces((prev) => {
       const exists = prev.some((ws) => ws._id === workspace._id);

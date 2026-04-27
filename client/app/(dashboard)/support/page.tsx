@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Headphones, Plus, X, Loader2, MessageSquare, Clock, CheckCircle, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/buttons/button';
-import { apiFetch } from '@/lib/api-client';
+import { supportApi } from '@/api';
 
 interface Ticket {
   _id: string;
@@ -14,10 +14,10 @@ interface Ticket {
 }
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
-  open:        { label: 'Open',        color: 'text-yellow-400 bg-yellow-400/10', icon: Clock },
-  in_progress: { label: 'In Progress', color: 'text-blue-400 bg-blue-400/10',    icon: MessageSquare },
-  resolved:    { label: 'Resolved',    color: 'text-emerald-400 bg-emerald-400/10', icon: CheckCircle },
-  closed:      { label: 'Closed',      color: 'text-muted-foreground bg-accent/60', icon: X },
+  open: { label: 'Open', color: 'text-yellow-400 bg-yellow-400/10', icon: Clock },
+  in_progress: { label: 'In Progress', color: 'text-blue-400 bg-blue-400/10', icon: MessageSquare },
+  resolved: { label: 'Resolved', color: 'text-emerald-400 bg-emerald-400/10', icon: CheckCircle },
+  closed: { label: 'Closed', color: 'text-muted-foreground bg-accent/60', icon: X },
 };
 
 const PAGE_SIZE = 5;
@@ -33,10 +33,7 @@ function NewTicketForm({ onCreated }: { onCreated: (t: Ticket) => void }) {
     if (!subject.trim() || !message.trim()) { setError('Subject and message are required.'); return; }
     setSaving(true); setError('');
     try {
-      const data = await apiFetch('/support/tickets', {
-        method: 'POST',
-        body: JSON.stringify({ subject, message }),
-      });
+      const data = await supportApi.createTicket({ subject, message });
       onCreated(data);
       setSubject(''); setMessage(''); setOpen(false);
     } catch (err: any) {
@@ -145,9 +142,9 @@ export default function SupportPage() {
   const [page, setPage] = useState(1);
 
   useEffect(() => {
-    apiFetch('/support/support')
+    supportApi.getTickets()
       .then(setTickets)
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
   }, []);
 
@@ -209,11 +206,10 @@ export default function SupportPage() {
                   <button
                     key={p}
                     onClick={() => setPage(p)}
-                    className={`w-8 h-8 flex items-center justify-center rounded-lg text-xs font-semibold transition-colors ${
-                      p === page
+                    className={`w-8 h-8 flex items-center justify-center rounded-lg text-xs font-semibold transition-colors ${p === page
                         ? 'bg-primary text-primary-foreground'
                         : 'border border-border/60 text-muted-foreground hover:text-foreground hover:bg-accent/40'
-                    }`}
+                      }`}
                   >
                     {p}
                   </button>

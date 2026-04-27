@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { apiFetch } from '@/lib/api-client';
+import { authApi } from '@/api';
 import { AuthUI, OtpVerifyForm } from '@/components/ui/auth-fuse';
 
 type Step = 'form' | 'otp';
@@ -18,10 +18,7 @@ export default function SignupPage() {
         setError('');
         setLoading(true);
         try {
-            await apiFetch('/auth/login', {
-                method: 'POST',
-                body: JSON.stringify({ username, password }),
-            });
+            await authApi.login({ username, password });
             router.push('/dashboard');
         } catch (err: any) {
             setError(err.message);
@@ -34,10 +31,7 @@ export default function SignupPage() {
         setError('');
         setLoading(true);
         try {
-            const res = await apiFetch('/auth/register', {
-                method: 'POST',
-                body: JSON.stringify({ username, email, password }),
-            });
+            const res = await authApi.register({ username, email, password });
             if (res.requiresVerification) {
                 setPendingEmail(email);
                 setStep('otp');
@@ -55,10 +49,7 @@ export default function SignupPage() {
         setError('');
         setLoading(true);
         try {
-            await apiFetch('/auth/verify-email', {
-                method: 'POST',
-                body: JSON.stringify({ email: pendingEmail, code }),
-            });
+            await authApi.verifyEmail({ email: pendingEmail, code });
             router.push('/dashboard');
         } catch (err: any) {
             setError(err.message);

@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { apiFetch } from '@/lib/api-client';
+import { adminApi } from '@/api';
 import { Trash2, Shield, ShieldOff, User } from 'lucide-react';
 import { Button } from '@/components/ui/buttons/button';
 
@@ -22,17 +22,14 @@ export function UsersTab({ users: initial }: { users: UserRow[] }) {
   const deleteUser = async (id: string) => {
     if (!confirm('Delete this user permanently?')) return;
     setLoading(id);
-    await apiFetch(`/admin/users/${id}`, { method: 'DELETE' });
+    await adminApi.deleteUser(id);
     setUsers(u => u.filter(x => x._id !== id));
     setLoading(null);
   };
 
   const toggleAdmin = async (user: UserRow) => {
     setLoading(user._id);
-    const data = await apiFetch(`/admin/users/${user._id}/admin`, {
-      method: 'PATCH',
-      body: JSON.stringify({ isAdmin: !user.isAdmin }),
-    });
+    const data = await adminApi.toggleAdminStatus(user._id, !user.isAdmin);
     setUsers(u => u.map(x => x._id === user._id ? { ...x, isAdmin: data.isAdmin } : x));
     setLoading(null);
   };

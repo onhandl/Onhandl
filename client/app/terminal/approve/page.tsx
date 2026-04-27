@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { apiFetch } from '@/api/api-client';
+import { authApi, workspaceApi, terminalApi } from '@/api';
 import { Button } from '@/components/ui/buttons/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/data-display/card';
 import { Loader2 } from 'lucide-react';
@@ -33,9 +33,9 @@ function TerminalApprovePageContent() {
     useEffect(() => {
         const init = async () => {
             try {
-                const userData = await apiFetch('/auth/me');
+                const userData = await authApi.getMe();
                 setUser(userData);
-                const workspacesData = await apiFetch('/workspaces/workspaces');
+                const workspacesData = await workspaceApi.getWorkspaces();
                 setWorkspaces(workspacesData);
             } catch (err) {
                 setUser(null);
@@ -48,9 +48,9 @@ function TerminalApprovePageContent() {
 
     const initUser = async () => {
         try {
-            const userData = await apiFetch('/auth/me');
+            const userData = await authApi.getMe();
             setUser(userData);
-            const workspacesData = await apiFetch('/workspaces/workspaces');
+            const workspacesData = await workspaceApi.getWorkspaces();
             setWorkspaces(workspacesData);
         } catch (err) {
             setUser(null);
@@ -61,10 +61,7 @@ function TerminalApprovePageContent() {
         clearAuthError();
         setAuthLoading(true);
         try {
-            await apiFetch('/auth/login', {
-                method: 'POST',
-                body: JSON.stringify({ username, password }),
-            });
+            await authApi.login({ username, password });
             await initUser();
         } catch (err: any) {
             setAuthError(err.message);
@@ -77,10 +74,7 @@ function TerminalApprovePageContent() {
         clearAuthError();
         setAuthLoading(true);
         try {
-            const res = await apiFetch('/auth/register', {
-                method: 'POST',
-                body: JSON.stringify({ username, email, password }),
-            });
+            const res = await authApi.register({ username, email, password });
             if (res.requiresVerification) {
                 setPendingEmail(email);
                 setStep('signup-otp');
@@ -98,10 +92,7 @@ function TerminalApprovePageContent() {
         clearAuthError();
         setAuthLoading(true);
         try {
-            await apiFetch('/auth/forgot-password', {
-                method: 'POST',
-                body: JSON.stringify({ email }),
-            });
+            await authApi.forgotPassword({ email });
             setPendingEmail(email);
             setStep('reset-otp');
         } catch (err: any) {
@@ -121,10 +112,7 @@ function TerminalApprovePageContent() {
         clearAuthError();
         setAuthLoading(true);
         try {
-            await apiFetch('/auth/reset-password', {
-                method: 'POST',
-                body: JSON.stringify({ email: pendingEmail, code: resetCode, newPassword }),
-            });
+            await authApi.resetPassword({ email: pendingEmail, code: resetCode, newPassword });
             setStep('form');
             setAuthError('');
         } catch (err: any) {
@@ -162,10 +150,7 @@ function TerminalApprovePageContent() {
                                 clearAuthError();
                                 setAuthLoading(true);
                                 try {
-                                    await apiFetch('/auth/verify-email', {
-                                        method: 'POST',
-                                        body: JSON.stringify({ email: pendingEmail, code }),
-                                    });
+                                    await authApi.verifyEmail({ email: pendingEmail, code });
                                     await initUser();
                                 } catch (err: any) {
                                     setAuthError(err.message);
@@ -247,12 +232,9 @@ function TerminalApprovePageContent() {
         setStatus('loading');
 
         try {
-            await apiFetch('/terminal/auth/approve', {
-                method: 'POST',
-                body: JSON.stringify({
-                    userCode,
-                    workspaceId: workspaces[0]?._id
-                })
+            await terminalApi.approve({
+                userCode,
+                workspaceId: workspaces[0]?._id
             });
             setStatus('success');
         } catch (error: any) {

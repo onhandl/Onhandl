@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { apiFetch } from '@/lib/api-client';
+import { authApi } from '@/api';
 import { Loader2, User, KeyRound, CreditCard, Bell, Coins, ChevronRight } from 'lucide-react';
 import { ProfileSection } from './components/profile-section';
 import { ApiKeysCard } from './components/api-keys-card';
@@ -23,7 +23,7 @@ export default function SettingsPage() {
 
 
   useEffect(() => {
-    apiFetch('/auth/me').then((data: any) => {
+    authApi.getMe().then((data: any) => {
       setUser({ username: data.username || '', email: data.email || '', whatsapp: data.whatsapp || '', telegramUsername: data.telegramUsername || '', avatarUrl: data.avatarUrl || '' });
       setTokenInfo({ tokens: data.tokens ?? 0, plan: data.plan ?? 'free' });
     }).catch(() => toast.error('Failed to load profile'))

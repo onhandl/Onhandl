@@ -23,7 +23,7 @@ import {
     IconWand,
 } from '@tabler/icons-react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { FinancialAgentPreset, financialAgentApi } from '@/api/financial-agent-api';
+import { FinancialAgentPreset, financialAgentApi } from '@/api';
 import { cn } from '@/lib/utils';
 import { useUXMode } from '@/contexts/UXModeContext';
 import { useWorkspace } from '@/contexts/WorkspaceContext';

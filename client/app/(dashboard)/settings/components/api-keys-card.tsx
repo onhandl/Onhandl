@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { apiFetch } from '@/lib/api-client';
+import { usersApi } from '@/api';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, Input, Label } from '@/components/ui';
 import { Button } from '@/components/ui/buttons/button';
 import { KeyRound, Eye, EyeOff, Save, CheckCircle2, Loader2 } from 'lucide-react';
@@ -32,7 +32,7 @@ export function ApiKeysCard() {
 
 
     useEffect(() => {
-        apiFetch('/users/api-keys').then((data: any) => {
+        usersApi.getApiKeys().then((data: any) => {
             setServerStatus({ gemini: data.hasGemini, openai: data.hasOpenai, ollama: data.hasOllama });
             // Pre-fill non-secret fields
             setKeys({
@@ -53,7 +53,7 @@ export function ApiKeysCard() {
             for (const { key } of FIELDS) {
                 if (keys[key] !== undefined && keys[key] !== '') payload[key] = keys[key];
             }
-            await apiFetch('/users/api-keys', { method: 'PUT', body: JSON.stringify(payload) });
+            await usersApi.updateApiKeys(payload);
             // Also persist to localStorage for in-browser use
             if (keys.gemini) localStorage.setItem('gemini_api_key', keys.gemini);
             if (keys.openai) localStorage.setItem('openai_api_key', keys.openai);

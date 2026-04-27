@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { financialAgentApi } from '@/api/financial-agent-api';
+import { financialAgentApi } from '@/api';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
 import { useUXMode } from '@/contexts/UXModeContext';
 import CreateAgentModal from '@/components/create-agent-modal';

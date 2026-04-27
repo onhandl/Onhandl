@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { apiFetch } from '@/lib/api-client';
+import { adminApi } from '@/api';
 import { MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/buttons/button';
 
@@ -16,10 +16,10 @@ interface Ticket {
 }
 
 const statusColors: Record<string, string> = {
-  open:        'text-yellow-400 bg-yellow-400/10',
+  open: 'text-yellow-400 bg-yellow-400/10',
   in_progress: 'text-blue-400 bg-blue-400/10',
-  resolved:    'text-emerald-400 bg-emerald-400/10',
-  closed:      'text-muted-foreground bg-accent/60',
+  resolved: 'text-emerald-400 bg-emerald-400/10',
+  closed: 'text-muted-foreground bg-accent/60',
 };
 
 export function SupportTab({ tickets: initial }: { tickets: Ticket[] }) {
@@ -30,10 +30,7 @@ export function SupportTab({ tickets: initial }: { tickets: Ticket[] }) {
 
   const updateTicket = async (id: string, status: string, adminNotes: string) => {
     setSaving(true);
-    const data = await apiFetch(`/admin/support-tickets/${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ status, adminNotes }),
-    });
+    const data = await adminApi.updateSupportTicket(id, { status, adminNotes });
     setTickets(t => t.map(x => x._id === id ? data : x));
     setSelected(data);
     setSaving(false);
@@ -50,11 +47,10 @@ export function SupportTab({ tickets: initial }: { tickets: Ticket[] }) {
           <button
             key={t._id}
             onClick={() => { setSelected(t); setNotes(t.adminNotes ?? ''); }}
-            className={`w-full text-left p-3 rounded-lg border transition-colors ${
-              selected?._id === t._id
+            className={`w-full text-left p-3 rounded-lg border transition-colors ${selected?._id === t._id
                 ? 'border-primary bg-primary/5'
                 : 'border-border/60 hover:border-border hover:bg-accent/20'
-            }`}
+              }`}
           >
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">

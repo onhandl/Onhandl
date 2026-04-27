@@ -9,6 +9,19 @@ interface IUser extends Document {
     name?: string;
     whatsapp?: string;
     telegramUsername?: string;
+    telegram?: {
+        userId?: string;
+        chatId?: string;
+        username?: string;
+        firstName?: string;
+        lastName?: string;
+        linkedAt?: Date;
+        lastAuthAt?: Date;
+        permissions?: {
+            notifications: boolean;
+            write: boolean;
+        };
+    };
     avatarUrl?: string;
     bio?: string;
     profileViews: number;
@@ -43,6 +56,19 @@ const UserSchema: Schema = new Schema(
         name: { type: String },
         whatsapp: { type: String },
         telegramUsername: { type: String },
+        telegram: {
+            userId: { type: String },
+            chatId: { type: String },
+            username: { type: String },
+            firstName: { type: String },
+            lastName: { type: String },
+            linkedAt: { type: Date },
+            lastAuthAt: { type: Date },
+            permissions: {
+                notifications: { type: Boolean, default: false },
+                write: { type: Boolean, default: false },
+            },
+        },
         avatarUrl: { type: String, default: '' },
         bio: { type: String, maxlength: 500 },
         profileViews: { type: Number, default: 0 },
@@ -77,5 +103,7 @@ const UserSchema: Schema = new Schema(
     },
     { timestamps: true }
 );
+
+UserSchema.index({ 'telegram.userId': 1 }, { unique: true, sparse: true });
 
 export const User = mongoose.model<IUser>('User', UserSchema);

@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { apiFetch } from '@/lib/api-client';
+import { adminApi } from '@/api';
 import { Trash2, Snowflake, Play, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/buttons/button';
 
@@ -34,18 +34,15 @@ export function BlogAdminTab({
   const deletePost = async (id: string) => {
     if (!confirm('Delete this blog post permanently?')) return;
     setLoading(id);
-    await apiFetch(`/admin/blog/${id}`, { method: 'DELETE' });
+    await adminApi.deleteBlogPost(id);
     setPosts(p => p.filter(x => x._id !== id));
     setLoading(null);
   };
 
   const toggleFreeze = async () => {
     setToggling(true);
-    const res = await apiFetch('/admin/blog/freeze', {
-      method: 'POST',
-      body: JSON.stringify({ frozen: !cms.cmsFrozen, reason: freezeReason }),
-    });
-    const data = await res.json();
+    const data = await adminApi.toggleCmsFreeze({ frozen: !cms.cmsFrozen, reason: freezeReason });
+    setCms({ cmsFrozen: data.cmsFrozen, reason: data.reason });
     setCms({ cmsFrozen: data.cmsFrozen, reason: data.reason });
     setToggling(false);
   };
@@ -53,9 +50,8 @@ export function BlogAdminTab({
   return (
     <div className="space-y-6">
       {/* CMS Freeze control */}
-      <div className={`rounded-lg border p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between ${
-        cms.cmsFrozen ? 'border-blue-500/40 bg-blue-500/5' : 'border-border/60'
-      }`}>
+      <div className={`rounded-lg border p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between ${cms.cmsFrozen ? 'border-blue-500/40 bg-blue-500/5' : 'border-border/60'
+        }`}>
         <div className="flex items-center gap-3">
           <Snowflake className={`w-5 h-5 ${cms.cmsFrozen ? 'text-blue-400' : 'text-muted-foreground'}`} />
           <div>

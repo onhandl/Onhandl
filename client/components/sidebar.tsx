@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { apiFetch } from '@/lib/api-client';
+import { authApi } from '@/api';
 import { cn } from '@/lib/utils';
 import {
   Home, LayoutDashboard, Box, Settings,
@@ -205,7 +205,7 @@ const SidebarContent = ({
           )}
           title={collapsed ? 'Logout' : undefined}
           onClick={async () => {
-            try { await apiFetch('/auth/logout', { method: 'POST', body: JSON.stringify({}) }); } finally { router.replace('/signin'); }
+            try { await authApi.logout(); } finally { router.replace('/signin'); }
           }}
         >
           <LogOut className="w-[17px] h-[17px] shrink-0" />
@@ -315,7 +315,7 @@ const Sidebar = () => {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    apiFetch('/auth/me')
+    authApi.getMe()
       .then((data: any) => {
         setAvatarUrl(data.avatarUrl || null);
         setUserName(data.name || data.username || null);

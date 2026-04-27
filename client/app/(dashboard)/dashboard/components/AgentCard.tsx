@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { financialAgentApi } from '@/api/financial-agent-api';
+import { financialAgentApi } from '@/api';
 import {
     IconDots, IconArrowRight, IconClock, IconActivity, IconPlayerPause, IconPlayerPlay,
     IconShieldLock, IconDatabase, IconNetwork
@@ -118,35 +118,35 @@ export function AgentCard({ agent, onControlChange, index, compact = false }: Ag
                     </div>
                 ) : (
                     <>
-                {/* Metadata tokens */}
-                <div className="flex flex-wrap gap-2 mb-6">
-                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/30 border border-border/40 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                        <IconNetwork size={12} />
-                        {network}
-                    </div>
-                    {agent.subscribedEvents?.length > 0 && (
-                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/30 border border-border/40 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                            <IconShieldLock size={12} />
-                            {agent.subscribedEvents.length} Policies
+                        {/* Metadata tokens */}
+                        <div className="flex flex-wrap gap-2 mb-6">
+                            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/30 border border-border/40 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                                <IconNetwork size={12} />
+                                {network}
+                            </div>
+                            {agent.subscribedEvents?.length > 0 && (
+                                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/30 border border-border/40 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                                    <IconShieldLock size={12} />
+                                    {agent.subscribedEvents.length} Policies
+                                </div>
+                            )}
                         </div>
-                    )}
-                </div>
 
-                {/* Address Pill (if available) */}
-                {address && (
-                    <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/5 border border-primary/10 text-[11px] font-mono text-primary/70 mb-6 truncate">
-                        <IconDatabase size={14} className="shrink-0" />
-                        {address}
-                    </div>
-                )}
+                        {/* Address Pill (if available) */}
+                        {address && (
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/5 border border-primary/10 text-[11px] font-mono text-primary/70 mb-6 truncate">
+                                <IconDatabase size={14} className="shrink-0" />
+                                {address}
+                            </div>
+                        )}
 
-                {/* Footer */}
-                <div className="pt-5 border-t border-border/40 flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-[11px] font-bold text-muted-foreground/50 uppercase tracking-widest">
-                        <IconClock size={14} />
-                        {new Date(agent.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    </div>
-                </div>
+                        {/* Footer */}
+                        <div className="pt-5 border-t border-border/40 flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-[11px] font-bold text-muted-foreground/50 uppercase tracking-widest">
+                                <IconClock size={14} />
+                                {new Date(agent.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </div>
+                        </div>
                     </>
                 )}
             </div>

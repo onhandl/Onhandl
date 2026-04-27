@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
-import { financialAgentApi } from '@/api/financial-agent-api';
+import { financialAgentApi } from '@/api';
 import {
   IconWallet,
   IconHistory,

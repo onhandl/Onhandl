@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { Send, Trash2, Zap, Sparkles, Bot } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { apiFetch } from '@/lib/api-client';
+import { botsApi } from '@/api';
 import CreateAgentModal from '@/components/create-agent-modal';
 
 type Message = { id: string; content: string; role: 'user' | 'assistant' };
@@ -37,7 +37,7 @@ export function AssistantChat() {
         setLoading(true);
 
         try {
-            const data = await apiFetch('/bots/chat', { method: 'POST', body: JSON.stringify({ message: trimmed, history }) });
+            const data = await botsApi.chat({ message: trimmed, history });
             setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), content: data.reply || 'No response.', role: 'assistant' }]);
         } catch (err: any) {
             setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), content: err.message || 'Something went wrong.', role: 'assistant' }]);

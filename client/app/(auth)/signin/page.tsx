@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { apiFetch } from '@/lib/api-client';
+import { authApi } from '@/api';
 import { AuthUI, ForgotPasswordForm, OtpVerifyForm, ResetPasswordForm } from '@/components/ui/auth-fuse';
 
 type Step = 'form' | 'signup-otp' | 'forgot' | 'reset-otp' | 'reset-pw';
@@ -21,10 +21,7 @@ export default function SigninPage() {
         clearError();
         setLoading(true);
         try {
-            await apiFetch('/auth/login', {
-                method: 'POST',
-                body: JSON.stringify({ username, password }),
-            });
+            await authApi.login({ username, password });
             router.push('/dashboard');
         } catch (err: any) {
             setError(err.message);
@@ -37,10 +34,7 @@ export default function SigninPage() {
         clearError();
         setLoading(true);
         try {
-            const res = await apiFetch('/auth/register', {
-                method: 'POST',
-                body: JSON.stringify({ username, email, password }),
-            });
+            const res = await authApi.register({ username, email, password });
             if (res.requiresVerification) {
                 setPendingEmail(email);
                 setStep('signup-otp');
@@ -58,10 +52,7 @@ export default function SigninPage() {
         clearError();
         setLoading(true);
         try {
-            await apiFetch('/auth/forgot-password', {
-                method: 'POST',
-                body: JSON.stringify({ email }),
-            });
+            await authApi.forgotPassword({ email });
             setPendingEmail(email);
             setStep('reset-otp');
         } catch (err: any) {
@@ -82,10 +73,7 @@ export default function SigninPage() {
         clearError();
         setLoading(true);
         try {
-            await apiFetch('/auth/reset-password', {
-                method: 'POST',
-                body: JSON.stringify({ email: pendingEmail, code: resetCode, newPassword }),
-            });
+            await authApi.resetPassword({ email: pendingEmail, code: resetCode, newPassword });
             setStep('form');
             setError('');
         } catch (err: any) {
@@ -111,10 +99,7 @@ export default function SigninPage() {
                     clearError();
                     setLoading(true);
                     try {
-                        await apiFetch('/auth/verify-email', {
-                            method: 'POST',
-                            body: JSON.stringify({ email: pendingEmail, code }),
-                        });
+                        await authApi.verifyEmail({ email: pendingEmail, code });
                         router.push('/dashboard');
                     } catch (err: any) {
                         setError(err.message);
