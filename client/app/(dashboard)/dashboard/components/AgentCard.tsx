@@ -149,9 +149,16 @@ export function AgentCard({ agent, onControlChange, index, compact = false }: Ag
 
                     {/* Address Pill (if available) */}
                     {address && (
-                        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/5 border border-primary/10 text-[11px] font-mono text-primary/70 mb-6 truncate">
+                        <div className="flex items-center gap-2 p-1 pl-3 rounded-xl bg-primary/5 border border-primary/10 text-[11px] font-mono text-primary/70 mb-6 group/address">
                             <IconDatabase size={14} className="shrink-0" />
-                            {address}
+                            <span className="truncate flex-1">{address}</span>
+                            <button
+                                onClick={handleCopyAddress}
+                                className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-300"
+                                title="Copy Address"
+                            >
+                                {copied ? <IconCheck size={14} /> : <IconCopy size={14} />}
+                            </button>
                         </div>
                     )}
 
