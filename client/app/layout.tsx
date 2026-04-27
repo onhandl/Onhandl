@@ -30,6 +30,8 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 };
 
+import { RootProviders } from './root-providers';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -40,7 +42,9 @@ export default function RootLayout({
       <body
         className={`${figtree.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
-        {children}
+        <RootProviders>
+          {children}
+        </RootProviders>
         <Toaster />
       </body>
     </html>

@@ -7,6 +7,7 @@ import { X, ArrowRight, ArrowLeft, Cpu, Wand2, Bot, Sparkles, ShieldCheck } from
 import { toast } from 'sonner';
 import { authApi } from '@/api';
 import { financialAgentApi } from '@/api/financial.api';
+import { useWorkspace } from '@/contexts/WorkspaceContext';
 import { cn } from '@/lib/utils';
 import SignUp from '@/app/(auth)/signup/page';
 import SignIn from '@/app/(auth)/signin/page';
@@ -31,6 +32,7 @@ const ease = [0.16, 1, 0.3, 1] as [number, number, number, number];
 
 export function AgentBuilderModal({ isOpen, onClose }: AgentBuilderModalProps) {
     const router = useRouter();
+    const { refreshWorkspaces } = useWorkspace();
     const [step, setStep] = useState<Step>('name');
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
@@ -67,6 +69,7 @@ export function AgentBuilderModal({ isOpen, onClose }: AgentBuilderModalProps) {
         try {
             await authApi.getMe();
             setIsAuthenticated(true);
+            await refreshWorkspaces();
             await createAgent({ name, description });
         } catch {
             setStep('auth');
@@ -77,6 +80,10 @@ export function AgentBuilderModal({ isOpen, onClose }: AgentBuilderModalProps) {
 
     const handleAuthSuccess = async () => {
         setIsAuthenticated(true);
+        // Ensure workspace is initialized before creating the agent
+        await refreshWorkspaces();
+        // Small delay to ensure localStorage is synced if needed
+        await new Promise(r => setTimeout(r, 100));
         await createAgent({ name, description });
     };
 

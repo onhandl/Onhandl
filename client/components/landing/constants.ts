@@ -57,7 +57,6 @@ export const pricingPlans: PricingPlan[] = [
             'Up to 3 AI agents',
             'Basic templates',
             'Community support',
-            'Community support',
             '1,000 welcome tokens',
         ],
         ctaText: 'Get Started',
