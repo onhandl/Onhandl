@@ -1,4 +1,4 @@
-import { TelegramService } from '../../../infrastructure/messaging/telegram.service';
+import { TelegramService } from '../../../infrastructure/messaging/telegram/telegram.service';
 import { eventBus } from '../../../infrastructure/events/eventBus';
 import { buildIdempotencyKey, IdempotencyService } from '../../../infrastructure/idempotency/idempotency.service';
 import { TelegramEventNotifierRepository } from './telegram-event-notifier.repository';
