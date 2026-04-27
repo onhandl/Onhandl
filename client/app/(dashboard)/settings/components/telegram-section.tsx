@@ -2,8 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { authApi } from '@/api/auth.api';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, Input, Label } from '@/components/ui';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui';
 import { Button } from '@/components/ui/buttons/button';
+import { Input } from '@/components/ui/forms/input';
+import { Label } from '@/components/ui/forms/label';
+import { OtpInput } from '@/components/ui/forms/otp-input';
 import { Switch } from '@/components/ui/selection/switch';
 import { Loader2, CheckCircle2, MessageCircle, Link, XCircle, ExternalLink, Bell, Edit3 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -19,12 +22,9 @@ export function TelegramSection() {
     const fetchStatus = async () => {
         setLoading(true);
         try {
-            const [statusData, permData] = await Promise.all([
-                authApi.getTelegramStatus(),
-                authApi.getTelegramPermissions().catch(() => ({ notifications: false, write: false }))
-            ]);
+            const statusData = await authApi.getTelegramStatus();
             setStatus(statusData);
-            setPermissions(permData);
+            setPermissions(statusData?.permissions || { notifications: false, write: false });
         } catch (err) {
             console.error('Failed to load telegram status', err);
         } finally {
@@ -90,7 +90,10 @@ export function TelegramSection() {
         );
     }
 
-    if (status?.linked) {
+    // Treat accounts with placeholder usernames or missing dates as unlinked for safety
+    const isGenuinelyLinked = status?.linked && status?.username && status?.linkedAt;
+
+    if (isGenuinelyLinked) {
         return (
             <Card className="border-border shadow-sm">
                 <CardHeader className="border-b border-border/50 bg-muted/5">
@@ -105,8 +108,10 @@ export function TelegramSection() {
                             <CheckCircle2 className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                            <p className="text-sm font-bold text-foreground">Linked as @{status.username || 'User'}</p>
-                            <p className="text-xs text-muted-foreground">Connected on {new Date(status.linkedAt).toLocaleDateString()}</p>
+                            <p className="text-sm font-bold text-foreground">Linked as @{status.username}</p>
+                            <p className="text-xs text-muted-foreground">
+                                Connected on {new Date(status.linkedAt).toLocaleDateString()}
+                            </p>
                         </div>
                     </div>
 
@@ -186,21 +191,58 @@ export function TelegramSection() {
                         </div>
                     </div>
 
-                    <form onSubmit={handleVerify} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="otp">Verification Code</Label>
-                            <Input
-                                id="otp"
-                                placeholder="Enter 6-digit code"
+                    <form onSubmit={handleVerify} className="space-y-6">
+                        <div className="space-y-4">
+                            <Label htmlFor="otp" className="text-xs font-bold uppercase tracking-widest text-muted-foreground block text-center">
+                                Verification Code
+                            </Label>
+                            <OtpInput
                                 value={otp}
-                                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                className="text-center text-lg tracking-[0.5em] font-mono h-12"
+                                onChange={setOtp}
+                                disabled={verifying}
+                                className="justify-center"
                             />
+                            <Button
+                                type="submit"
+                                disabled={verifying || otp.length < 6}
+                                className="w-full h-12 rounded-2xl bg-primary text-white font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-primary/20 mt-4"
+                            >
+                                {verifying ? (
+                                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verifying...</>
+                                ) : (
+                                    <><Link className="w-4 h-4 mr-2" /> Link Account</>
+                                )}
+                            </Button>
                         </div>
-                        <Button type="submit" disabled={verifying || otp.length !== 6} className="w-full rounded-xl">
-                            {verifying ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Verifying...</> : <><Link className="mr-2 h-4 w-4" /> Link Telegram</>}
-                        </Button>
                     </form>
+
+                    <div className="pt-6 border-t border-border/50 space-y-4">
+                        <h4 className="text-sm font-semibold text-foreground px-1 opacity-50">Permissions (Available after linking)</h4>
+                        <div className="space-y-3 opacity-50 pointer-events-none">
+                            <div className="flex items-center justify-between p-4 rounded-xl border border-border/60">
+                                <div className="flex gap-3">
+                                    <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center">
+                                        <Bell className="w-4 h-4 text-muted-foreground" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium">Notifications</p>
+                                    </div>
+                                </div>
+                                <Switch checked={false} disabled={true} />
+                            </div>
+                            <div className="flex items-center justify-between p-4 rounded-xl border border-border/60">
+                                <div className="flex gap-3">
+                                    <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center">
+                                        <Edit3 className="w-4 h-4 text-muted-foreground" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium">Write Access</p>
+                                    </div>
+                                </div>
+                                <Switch checked={false} disabled={true} />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </CardContent>
         </Card>

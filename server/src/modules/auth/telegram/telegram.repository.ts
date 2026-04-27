@@ -78,15 +78,19 @@ export const TelegramAuthRepository = {
   async getSafeTelegramProfileByUserId(userId: string) {
     const user = await User.findById(userId).select('telegram').lean();
     const tg = (user as any)?.telegram;
-    if (!tg) return { linked: false };
+    // Only consider it 'linked' if we have a valid telegram userId AND username
+    if (!tg || !tg.userId || !tg.username) return { linked: false };
     return {
       linked: true,
-      username: tg.username,
-      firstName: tg.firstName,
-      lastName: tg.lastName,
-      linkedAt: tg.linkedAt,
-      lastAuthAt: tg.lastAuthAt,
-      permissions: tg.permissions,
+      username: tg.username || 'User',
+      firstName: tg.firstName || '',
+      lastName: tg.lastName || '',
+      linkedAt: tg.linkedAt || null,
+      lastAuthAt: tg.lastAuthAt || null,
+      permissions: {
+        notifications: !!tg.permissions?.notifications,
+        write: !!tg.permissions?.write,
+      },
     };
   },
 };

@@ -22,8 +22,8 @@ export default function SignUp() {
         setLoading(true);
         try {
             await authApi.register(form);
-            toast.success('Account created! Please sign in.');
-            router.push('/signin');
+            toast.success('Account created!', { description: 'Please verify your email.' });
+            router.push(`/verify-email?email=${encodeURIComponent(form.email)}`);
         } catch (error: any) {
             toast.error('Registration failed', { description: error.message });
         } finally {

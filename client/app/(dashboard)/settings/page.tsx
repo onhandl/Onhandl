@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/api-client';
 import { Loader2, User, KeyRound, CreditCard, Bell, Coins, ChevronRight, MessageCircle } from 'lucide-react';
 import { ProfileSection } from './components/profile-section';
@@ -23,6 +24,15 @@ export default function SettingsPage() {
   const [tokenInfo, setTokenInfo] = useState<{ tokens: number; plan: string } | null>(null);
   const [user, setUser] = useState({ username: '', email: '', whatsapp: '', telegramUsername: '', avatarUrl: '' });
 
+
+  const searchParams = useSearchParams();
+  const sectionParam = searchParams.get('section') as Section | null;
+
+  useEffect(() => {
+    if (sectionParam && NAV.some(n => n.key === sectionParam)) {
+      setActive(sectionParam);
+    }
+  }, [sectionParam]);
 
   useEffect(() => {
     apiFetch('/auth/me').then((data: any) => {

@@ -11,7 +11,7 @@ import { AgentCard } from './components/AgentCard';
 import Link from 'next/link';
 import {
   Plus, Sparkles, ArrowRight,
-  LayoutGrid, List, Search, RefreshCw, X
+  LayoutGrid, List, Search, RefreshCw, X, Bell
 } from 'lucide-react';
 import { IconActivity, IconChartBar, IconClock, IconCpu, IconShieldCheck, IconWallet } from "@tabler/icons-react";
 import { cn } from '@/lib/utils';
@@ -148,6 +148,15 @@ export default function DashboardPage() {
                   {activeWorkspace?.name || 'Loading Workspace...'}
                 </div>
               </div>
+            </div>
+            <div className="flex items-center gap-4 mt-2">
+              <Link
+                href="/settings?section=integrations"
+                className="group flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors bg-muted/40 px-2.5 py-1 rounded-lg border border-border/40 hover:border-primary/40"
+              >
+                <Bell className="w-3 h-3 group-hover:animate-bounce" />
+                Notifications
+              </Link>
             </div>
           </motion.div>
 
