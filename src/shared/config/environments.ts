@@ -55,7 +55,7 @@ export const ENV = {
     
 };
 
-const REQUIRED_ENV = ['MONGO_URI', 'JWT_SECRET', 'TELEGRAM_BOT_TOKEN'];
+const REQUIRED_ENV = ['MONGO_URI', 'JWT_SECRET', 'TELEGRAM_BOT_TOKEN' , 'CLIENT_URL', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_REDIRECT_URI'];
 
 for (const key of REQUIRED_ENV) {
     if (!ENV[key as keyof typeof ENV]) {
